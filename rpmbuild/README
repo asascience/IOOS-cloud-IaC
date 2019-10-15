@@ -1,0 +1,17 @@
+This folder contains SPEC files for rpmbuild.
+
+See rpmdev-setuptree for directory structure.
+
+On Fedora, the default rpm build tree is ~/rpmbuild.
+
+ls ~/rpmbuild 
+BUILD/
+BUILDROOT/
+RPMS/
+SOURCES/
+SPECS/
+SRPMS/
+
+You can create this directory structure with rpmdev-setuptree from the rpmdevtools package.
+
+(From: https://ro-che.info/articles/2018-01-25-rpm-packager-cheat-sheet)
