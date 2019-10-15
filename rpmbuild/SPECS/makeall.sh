@@ -34,14 +34,16 @@ cbofs-devel.spec
 
 
 # NCEPLIBS built folder
-export BBASE=/home/ec2-user/nosofs-prereqs/BUILT
+export BBASE=/home/centos/nosofs-prereqs/BUILT
 
 rpmlist="$alist $nceplibs $utils $compilers"
 
 #rpmlist=$nceplibs
 #rpmlist=$utils
 #rpmlist='g2.spec'
-rpmlist='cbofs-devel.spec'
+rpmlist=$models
+
+[ -d "../RPMS" ] || mkdir ../RPMS
 
 for rpm in $rpmlist
 do
@@ -57,7 +59,7 @@ do
   fi
   #mv /home/ec2-user/nosofs-prereqs/rpmbuild/RPMS/x86_64/*.rpm /home/ec2-user/nosofs-prereqs/RPMS
   #mv /home/$USER/nosofs-prereqs/rpmbuild/RPMS/x86_64/*.rpm /home/$USER/nosofs-prereqs/RPMS
-  mv /home/$USER/rpmbuild/RPMS/x86_64/*.rpm ../../RPMS
+  mv /home/$USER/rpmbuild/RPMS/x86_64/*.rpm ../RPMS
   
 done
 

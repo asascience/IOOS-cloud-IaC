@@ -1,6 +1,6 @@
 Name:	 nosofs-cbofs-fcst-devel
 Version: v3.1.9.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: NCEP Chesapeake Bay Operational Forecast System
 
 License: ROMS and Public Domain 
@@ -37,5 +37,7 @@ cp -Rp /save/centos/nosofs.%{version}/sorc/ROMS_COMPILE.sh     %{buildroot}/save
 /save/nosofs.%{version}/*
 
 %changelog
-* Wed Oct 2 2019 Patrick Tripp <patrick.tripp@rpsgroup.com>
-- Initial RPM package for NOSOFS CBOFS src
+* Tue Oct 15 2019 Patrick Tripp <patrick.tripp@rpsgroup.com> 3.1.9.1-2
+- Built with newer intel/mpi/2019.5.281
+* Wed Oct 2 2019 Patrick Tripp <patrick.tripp@rpsgroup.com> 3.1.9.1-1
+- Initial RPM package for NOSOFS CBOFS devel
