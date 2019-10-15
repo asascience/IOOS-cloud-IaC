@@ -1,0 +1,175 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  RPS IOOS-Cloud CBOFS Environment: AWS EC2 instance with needed libraries for NOAA's NOSOFS CBOFS model.
+
+Parameters:
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the web server
+    Type: "AWS::EC2::KeyPair::KeyName"
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  InstanceType:
+    Description: Base EC2 instance type
+    Type: String
+    Default: t3.micro
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+      - c5.12xlarge
+      - c5.18xlarge	
+      - c5.24xlarge	
+    ConstraintDescription: must be a valid EC2 instance type.
+  SSHLocation:
+    Description: >-
+      Lockdown SSH access to the bastion host (default can be accessed from
+      anywhere)
+    Type: String
+    MinLength: "9"
+    MaxLength: "18"
+    Default: 0.0.0.0/0
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid CIDR range of the form x.x.x.x/x.
+
+Resources:
+  EC2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      KeyName: !Ref KeyName
+      InstanceType: !Ref InstanceType
+      # CentOS7 Public Base Image
+      ImageId: ami-02eac2c0129f6376b
+      SecurityGroups:
+        - !Ref EC2SecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 24
+      UserData: 
+        # Can try using runcmd instead:
+        # runcmd:
+        # See: https://gist.github.com/gene1wood/a00d0b9d029f40e866df
+        Fn::Base64: 
+          !Sub |
+            MIME-Version: 1.0
+            Content-Type: text/x-shellscript; charset="us-ascii"
+            #!/bin/bash -x
+            ## Install the cfn tools (not included in non AMZL images).
+            yum -y install git
+            tries=0
+            until git clone https://github.com/aws-quickstart/quickstart-linux-utilities.git
+            do 
+              echo "Retrying"
+              ((tries=$tries + 1))
+              if [ $tries -eq 3 ] ; then
+                echo "Unable to retrieve quickstart-linux-utilities"
+                break
+              fi
+            done
+            cd /quickstart-linux-utilities
+            source quickstart-cfn-tools.source
+            qs_update-os || qs_err
+            qs_bootstrap_pip || qs_err
+            qs_aws-cfn-bootstrap || qs_err
+
+            # Run the cloud formation initialization and signal when done
+            /usr/bin/cfn-init -v --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region} --configsets nosofs_prereqs
+            # See: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-signal.html
+            # use the cfn-signal script in conjunction with a CreationPolicy or an Auto Scaling group with a WaitOnResourceSignals update policy
+            # /usr/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region}
+            ## End of shell script
+    Metadata:
+      'AWS::CloudFormation::Init':
+        configSets:
+          nosofs_prereqs:
+            - setup_base_env
+            - install_libs
+            - install_impi
+            - copy_impi_module
+        setup_base_env:
+          packages:
+            yum:
+              man-db: []
+              man-pages: []
+              environment-modules: []
+              wget: []
+              tcsh: []
+              ksh:  []
+          files:
+            /tmp/setup_env.sh:
+              content: !Join
+                - ''
+                - - |
+                    #!/bin/bash -ex
+                    mkdir -p /ptmp ; chgrp wheel /ptmp ; chmod 775 /ptmp
+                    mkdir -p /noscrub ; chgrp wheel /noscrub ; chmod 775 /noscrub
+                    mkdir -p /save ; chgrp wheel /save ; chmod 775 /save
+                    sed -i 's/tsflags=nodocs/# &/' /etc/yum.conf
+                    mkdir -p /usrx/modulefiles
+                    . /usr/share/Modules/init/sh
+                    echo /usrx/modulefiles | tee -a ${MODULESHOME}/init/.modulespath
+                    echo . /usr/share/Modules/init/bash >> /etc/profile.d/custom.sh
+                    echo source /usr/share/Modules/init/csh >> /etc/profile.d/custom.csh
+              mode: '000700'
+              owner: root
+              group: root
+          commands:
+            run_setup_env:
+              command: ./setup_env.sh
+              cwd: /tmp
+
+        install_libs:
+          sources:
+            /tmp/rpms: https://ioos-cloud-sandbox.s3.amazonaws.com/public/nosofs_prereqs.tar
+          files:
+            /tmp/rpms/install_rpms.sh:
+              content: !Join
+                - ''
+                - - |
+                    #!/bin/bash -ex
+                    yum -y install                      \
+                      gcc-6.5.0-1.el7.x86_64.rpm        \
+                      hdf5-1.8.21-1.el7.x86_64.rpm      \
+                      netcdf-4.2-1.el7.x86_64.rpm       \
+                      produtil-1.0.18-1.el7.x86_64.rpm
+              mode: '000700'
+              owner: root
+              group: root
+          commands:
+            install_rpms:
+              cwd: /tmp/rpms
+              command: ./install_rpms.sh
+
+        install_impi:
+          sources: 
+            /tmp/impi/intel_mpi_2018.5.288: https://ioos-cloud-sandbox.s3.amazonaws.com/public/intel_mpi_2018.5.288.tgz
+          commands:
+            run_install:
+              cwd: /tmp/impi/intel_mpi_2018.5.288
+              command: "echo 'DEBUG DEBUG DEBUG I AM HERE'; pwd; /tmp/impi/intel_mpi_2018.5.288/install.sh -s silent.cfg ; echo '... finished impi silent install'"
+
+        copy_impi_module:
+          commands:
+            copy_it:
+              cwd: "~"
+              command: "mkdir -p /usrx/modulefiles/mpi/intel ; cp -p /opt/intel/compilers_and_libraries_2018.6.288/linux/mpi/intel64/modulefiles/mpi /usrx/modulefiles/mpi/intel/2018.6.288"
+
+  EC2SecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: SSH access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: "22"
+          ToPort: "22"
+          CidrIp: !Ref SSHLocation
+Outputs:
+  Instance:
+    Value: !GetAtt
+      - EC2Instance
+      - PublicDnsName
+    Description: DNS Name of the newly created EC2 instance
