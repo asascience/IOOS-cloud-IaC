@@ -1,1 +1,1 @@
-rpmbuild/RPMS
+rpmbuild/RPMS/*.rpm
