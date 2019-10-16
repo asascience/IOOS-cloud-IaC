@@ -11,13 +11,12 @@ Parameters:
     Description: Base EC2 instance type
     Type: String
     AllowedValues:
-      - t3.micro
       - t3.small   # 2 vcpu
       - t3.medium  # 2 vcpu
       - t3.large   # 2 vcpu
       - c5.large   # 2 vcpu
       - c5.xlarge	 # 4 vcpu
-    Default: t3.micro
+    Default: t3.small
     ConstraintDescription: must be a valid EC2 instance type.
   SSHLocation:
     Description: >-
@@ -64,16 +63,23 @@ Resources:
       SubnetId: !Ref Subnet
       RouteTableId: !Ref RouteTable
   
-  # Route subnet ssh traffic to SSH
-  SSHRoute:
+  InternetRoute:
     Type: AWS::EC2::Route
-    DependsOn: 
-      - InternetGateway
-      - GatewayAttachment
+    DependsOn: GatewayAttachment
     Properties:
-       RouteTableId: !Ref RouteTable
-       DestinationCidrBlock: !Ref SSHLocation
-       GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  
+  # Route subnet ssh traffic to SSH
+  # Is this needed with the above? NO. InternetRoute above is needed so we can install items from Internet.
+  #SSHRoute:
+  #  Type: AWS::EC2::Route
+  #  DependsOn: GatewayAttachment
+  #  Properties:
+  #     RouteTableId: !Ref RouteTable
+  #     DestinationCidrBlock: !Ref SSHLocation
+  #     GatewayId: !Ref InternetGateway
   
   #PrivateRoute:
   #  Type: AWS::EC2::Route
@@ -239,26 +245,45 @@ Resources:
               command: ./install_rpms.sh
 
         install_impi:
-          
+          # 2019.5.281
           sources: 
-            /tmp/impi/intel_mpi_2018.5.288: https://ioos-cloud-sandbox.s3.amazonaws.com/public/libs/intel_mpi_2018.5.288.tgz
+            /tmp/intel_mpi: https://ioos-cloud-sandbox.s3.amazonaws.com/public/libs/intel_mpi_2019.5.281.tgz
+          files:
+            /tmp/intel_mpi/install_impi.sh:
+              content: !Sub |
+                #!/bin/bash
+                echo 'Starting Intel MPI silent install...'
+                ./install.sh -s silent.cfg 
+                echo '... Finished impi silent install'
+              mode: '000700'
+              owner: root
+              group: root
           commands:
             run_install:
-              cwd: /tmp/impi/intel_mpi_2018.5.288
-              command: "echo 'Starting Intel MPI silent install...'; /tmp/impi/intel_mpi_2018.5.288/install.sh -s silent.cfg ; echo '... Finished impi silent install'"
+              cwd: /tmp/intel_mpi
+              command: ./install_impi.sh
 
         copy_impi_module: 
           # 2019.5.281
+          files:
+            /tmp/intel_mpi/copy_modulefile.sh:
+              content: !Sub |
+                #!/bin/bash
+                mkdir -p /usrx/modulefiles/mpi/intel
+                cp -p /opt/intel/compilers_and_libraries/linux/mpi/intel64/modulefiles/mpi /usrx/modulefiles/mpi/intel/2019.5.281
+              mode: '000700'
+              owner: root
+              group: root
           commands:
             copy_it:
-              cwd: "~"
-              command: "mkdir -p /usrx/modulefiles/mpi/intel ; cp -p /opt/intel/compilers_and_libraries_2018.6.288/linux/mpi/intel64/modulefiles/mpi /usrx/modulefiles/mpi/intel/2018.6.288"
+              cwd: /tmp/intel_mpi
+              command: ./copy_modulefile.sh
         
         install_cbofs:
           commands:
             cbofsmodel: 
               cwd: /tmp/rpms
-              command: "module load mpi/intel; wget https://ioos-cloud-sandbox.s3.amazonaws.com/public/cbofs/nosofs-cbofs-fcst-devel-v3.1.9.1-1.el7.x86_64.rpm; yum -y install /tmp/rpms/nosofs-cbofs-fcst-devel-v3.1.9.1-1.el7.x86_64.rpm"
+              command: "wget https://ioos-cloud-sandbox.s3.amazonaws.com/public/cbofs/nosofs-cbofs-fcst-devel-v3.1.9.1-2.el7.x86_64.rpm; yum -y install /tmp/rpms/nosofs-cbofs-fcst-devel-v3.1.9.1-2.el7.x86_64.rpm"
             ICs:
               cwd: /noscrub/com/nos
               command: "curl https://ioos-cloud-sandbox.s3.amazonaws.com/public/cbofs/ICs.cbofs.2019100100.tgz | tar -xvz; chown -R root /noscrub"
