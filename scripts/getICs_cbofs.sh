@@ -50,9 +50,8 @@ do
   fi
 done
 
-# Need to prep the tides - not on nomads
-
-#cp -pf $pfx.roms.tides.$sfx nos.cbofs.roms.tides.nc 
+# Need to rename the tides file - roms is still using generic name
+cp -pf $pfx.roms.tides.$sfx nos.cbofs.roms.tides.nc
 
 # Fetch the restart/init file
 # ININAME == nos.cbofs.rst.nowcast.20191001.t00z.nc
@@ -77,7 +76,7 @@ if [[ $? -ne 0 ]] ; then
 fi
 
 # Rename it
-cp -p $ifile $rfile
+mv $ifile $rfile
 
 
 
