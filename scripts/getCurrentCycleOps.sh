@@ -7,11 +7,9 @@ if [[ $(uname) == "Darwin" ]] ; then
   CURDATE=`date -j "+%Y%m%d"`
   PREDATE=`date -j -v-1d "+%Y%m%d"`
 else
-
-# Linux/Gnu
-CURDATE=`date -u -d "1 day ago" +%Y%m%d`
-PREDATE=`date -u -d "1 day ago" +%Y%m%d`
-
+  # Linux/Gnu
+  CURDATE=`date -u -d "1 day ago" +%Y%m%d`
+  PREDATE=`date -u -d "1 day ago" +%Y%m%d`
 fi
 
 # https://nomads.ncep.noaa.gov/pub/data/nccf/com/nos/prod/cbofs.20191021/
