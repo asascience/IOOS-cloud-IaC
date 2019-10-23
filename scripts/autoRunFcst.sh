@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-curdir=$PWD
+startdir=$PWD
 
 module load produtil
 
@@ -51,9 +51,11 @@ export NPP=$(($Itiles * $Jtiles))
 cd $NOSDIR/jobs
 ./fcstrun.sh $cdate $cyc
 
+
 # Copy results to S3 bucket using aws-cli
+cd $startdir
 ./copyResults2S3.sh $COMDIR $cdate $cyc
 
 # Send a shutdown signal
-# sudo shutdown
+sudo shutdown
 

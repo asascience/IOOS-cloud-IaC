@@ -11,16 +11,13 @@ Parameters:
     Description: Base EC2 instance type
     Type: String
     AllowedValues:
-      - t3.small    # 2 vcpu
-      - t3.medium   # 2 vcpu
-      - t3.large    # 2 vcpu
-      - c5.large    # 2 vcpu
-      - c5.xlarge	  # 4 vcpu
-      - c5.2xlarge  # 8 vcpu
-      - c5.4xlarge  # 16 vcpu
-      - c5.12xlarge # 48 vcpu
+      - t3.small   # 2 vcpu
+      - t3.medium  # 2 vcpu
+      - t3.large   # 2 vcpu
+      - c5.large   # 2 vcpu
+      - c5.xlarge	 # 4 vcpu
       - c5.24xlarge # 96 vcpu
-    Default: c5.2xlarge
+    Default: t3.small
     ConstraintDescription: must be a valid EC2 instance type.
   SSHLocation:
     Description: >-
@@ -159,13 +156,13 @@ Resources:
       - EC2SecurityGroup
       - InstanceProfile
     Properties:
-      # Cant have with NetworkInterface - SubnetId: !Ref Subnet
+      # Cant have with NetworkInterface
+      # SubnetId: !Ref Subnet
       KeyName: !Ref KeyName
       InstanceType: !Ref InstanceType
       # CentOS7 Public Base Image
       IamInstanceProfile: !Ref InstanceProfile 
-      ImageId: ami-0d438fa29f98e6b91  # us-east-1 my updated centos image
-      #ImageId: ami-02eac2c0129f6376b  # us-east-1 centos public image
+      ImageId: ami-02eac2c0129f6376b
       # Cant have this with NetoworkInterface
       #SecurityGroupIds: 
       #  - Fn::GetAtt: "EC2SecurityGroup.GroupId"
@@ -207,7 +204,7 @@ Resources:
             qs_bootstrap_pip || qs_err
             qs_aws-cfn-bootstrap || qs_err
             # Run the cloud formation initialization 
-            /usr/bin/cfn-init -v --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region} --configsets nosofs
+            /usr/bin/cfn-init -v --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region} --configsets nosofs_prereqs
             # See: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-signal.html
             # use the cfn-signal script in conjunction with a CreationPolicy or an Auto Scaling group with a WaitOnResourceSignals update policy
             # /usr/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region}
@@ -215,14 +212,13 @@ Resources:
     Metadata:
       'AWS::CloudFormation::Init':
         configSets:
-          nosofs:
-            # - setup_base_env
-            - install_libs
-            - install_impi
-            - copy_impi_module
-            - install_cbofs
-            - fix_perms
-            - run_forecast
+          nosofs_prereqs:
+            - setup_base_env
+            #- install_libs
+            #- install_impi
+            #- copy_impi_module
+            #- install_cbofs
+            #- fix_perms
             # run demo script
             #   get ICs
             #     modify .in file / use sed
@@ -333,32 +329,9 @@ Resources:
             permissions:
               command: "chgrp -R wheel /save; chmod -R g+w /save; chgrp -R wheel /noscrub; chmod -R g+w /noscrub/nos/com"
 
-        run_forecast:
-          files:
-            /tmp/runfcst/start.sh:
-              content: !Sub |
-                #!/bin/bash
-                aws s3 cp --recursive s3://ioos-cloud-sandbox/cbofs-output/scripts/ .
-                chmod a+x *.sh
-                ./autoRunFcst.sh
-            mode: '000755'
-            owner: centos
-            group: wheel
-          commands:
-            runit:
-              cwd: /tmp/runfcst
-              command: ./start.sh
 Outputs:
   Instance:
     Value: !GetAtt
       - EC2Instance
       - PublicDnsName
     Description: DNS Name of the newly created EC2 instance
-  #StackName: 
-  #  Value: !Ref "AWS::StackName"
-  #  Description: The name of this stack (used for S3 folder)
-
-
-# Use this inside instance for s3 key
-# curl http://169.254.169.254/latest/meta-data/instance-id
-# ex: i-00842f23840d572f2
