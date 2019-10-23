@@ -40,6 +40,9 @@ cp -p $romsin $romssave
 Itiles=8
 Jtiles=12
 NTIMES=720   # 6 hour
+
+#Itiles=4
+#Jtiles=4
 #NTIMES=120   # 1 hour
 
 # Replace tiles and ntimes with custom setting
@@ -47,7 +50,6 @@ NTIMES=720   # 6 hour
 
 sed -i "s/NtileI == 10/NtileI == $Itiles/" $romsin
 sed -i "s/NtileJ == 14/NtileJ == $Jtiles/" $romsin
-
 sed -i "s/NTIMES == 34560/NTIMES == $NTIMES/" $romsin
 
 # Launch the forecast
