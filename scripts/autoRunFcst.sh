@@ -6,7 +6,7 @@ curdir=$PWD
 module load produtil
 
 COMDIR=/noscrub/com/nos
-NOSDIR=/save/centos/nosofs.v3.1.9.1
+NOSDIR=/save/nosofs.v3.1.9.1
 
 curcycle=$(./getCurrentCycleOps.sh)
 prevcycle=$(ndate -6 $curcycle)
@@ -31,7 +31,8 @@ cp -p $romsin $romssave
 
 Itiles=8
 Jtiles=12
-NTIMES=720   # 6 hour
+#NTIMES=720   # 6 hour
+NTIMES=120   # 1 hour
 
 # Replace tiles and ntimes with custom setting
 # Safest and most reusable way, just delete any matching lines
@@ -50,8 +51,9 @@ export NPP=$(($Itiles * $Jtiles))
 cd $NOSDIR/jobs
 ./fcstrun.sh $cdate $cyc
 
-# Copy results to S3 bucket using aws-cli and AIM
-#
+# Copy results to S3 bucket using aws-cli
+./copyResults2S3.sh $COMDIR $cdate $cyc
+
 # Send a shutdown signal
 # sudo shutdown
 
