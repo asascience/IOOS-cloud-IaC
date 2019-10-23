@@ -1,5 +1,4 @@
-#!/bin/sh
-set -e
+#!/bin/sh -x
 
 if [[ $(uname) == "Darwin" ]] ; then
   # BSD/Mac date

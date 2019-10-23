@@ -1,5 +1,4 @@
-#!/bin/sh
-#set -x
+#!/bin/sh -x
 
 . /usr/share/Modules/init/sh
 module load produtil

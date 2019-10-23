@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 
 if [[ $# -ne 3 ]] ; then
   echo Usage: $0 COMDIR cdate cyc

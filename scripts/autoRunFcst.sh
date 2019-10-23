@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 
 startdir=$PWD
 
@@ -36,15 +36,15 @@ cp -p $romsin $romssave
 
 # NtileI == 10
 # NtileJ == 14
-# NTIMES == 34560
+# NTIMES == 34560   # 48 hours
 
 Itiles=8
 Jtiles=12
-NTIMES=720   # 6 hour
+NTIMES=4320   # 6 hours
 
 #Itiles=4
 #Jtiles=4
-#NTIMES=120   # 1 hour
+#NTIMES=720   # 1 hour
 
 # Replace tiles and ntimes with custom setting
 # Order seems to be important
