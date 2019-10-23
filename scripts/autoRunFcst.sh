@@ -2,6 +2,7 @@
 
 startdir=$PWD
 
+. /usr/share/Modules/init/sh
 module load produtil
 module load gcc
 

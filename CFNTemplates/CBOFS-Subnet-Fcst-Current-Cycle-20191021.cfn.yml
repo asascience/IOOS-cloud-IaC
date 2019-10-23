@@ -335,7 +335,7 @@ Resources:
 
         run_forecast:
           files:
-            /tmp/runfcst/start.sh:
+            /tmp/runfcst/runit.sh:
               content: !Sub |
                 #!/bin/bash
                 aws s3 cp --recursive s3://ioos-cloud-sandbox/cbofs-output/scripts/ .
@@ -348,7 +348,7 @@ Resources:
           commands:
             runit:
               cwd: /tmp/runfcst
-              command: ./start.sh
+              command: ./runit.sh
 Outputs:
   Instance:
     Value: !GetAtt
