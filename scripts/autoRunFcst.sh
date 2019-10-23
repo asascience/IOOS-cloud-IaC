@@ -1,9 +1,12 @@
 #!/bin/sh
-set -e
 
 startdir=$PWD
 
 module load produtil
+module load gcc
+
+# This is needed for Intel MPI 2019
+export I_MPI_FABRICS=ofi
 
 COMDIR=/noscrub/com/nos
 NOSDIR=/save/nosofs.v3.1.9.1
@@ -31,8 +34,8 @@ cp -p $romsin $romssave
 
 Itiles=8
 Jtiles=12
-#NTIMES=720   # 6 hour
-NTIMES=120   # 1 hour
+NTIMES=720   # 6 hour
+#NTIMES=120   # 1 hour
 
 # Replace tiles and ntimes with custom setting
 # Safest and most reusable way, just delete any matching lines
@@ -57,5 +60,5 @@ cd $startdir
 ./copyResults2S3.sh $COMDIR $cdate $cyc
 
 # Send a shutdown signal
-sudo shutdown
+# sudo shutdown now
 

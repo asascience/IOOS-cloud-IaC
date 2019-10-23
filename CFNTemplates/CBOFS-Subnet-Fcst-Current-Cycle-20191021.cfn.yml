@@ -331,7 +331,7 @@ Resources:
         fix_perms:
           commands:
             permissions:
-              command: "chgrp -R wheel /save; chmod -R g+w /save; chgrp -R wheel /noscrub; chmod -R g+w /noscrub/nos/com"
+              command: "chgrp -R wheel /save; chmod -R g+w /save; chgrp -R wheel /noscrub; chmod -R g+w /noscrub/com/nos"
 
         run_forecast:
           files:
@@ -341,9 +341,10 @@ Resources:
                 aws s3 cp --recursive s3://ioos-cloud-sandbox/cbofs-output/scripts/ .
                 chmod a+x *.sh
                 ./autoRunFcst.sh
-            mode: '000755'
-            owner: centos
-            group: wheel
+                #shutdown now
+              mode: '000755'
+              owner: centos
+              group: wheel
           commands:
             runit:
               cwd: /tmp/runfcst
