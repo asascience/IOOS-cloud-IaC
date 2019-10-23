@@ -41,6 +41,31 @@ Parameters:
 
 Resources:
 
+  # IAM Role
+  InstanceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::579273261343:policy/IOOS-cloud-sandbox-S3-policy"
+                    
+  
+  # IAM - Instance Profile
+  InstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    DependsOn: InstanceRole
+    Properties:
+      Roles:
+        - !Ref InstanceRole
+
   # Internet Gateway
   InternetGateway:
     Type: AWS::EC2::InternetGateway
@@ -129,11 +154,13 @@ Resources:
     DependsOn: 
       - GatewayAttachment
       - EC2SecurityGroup
+      - InstanceProfile
     Properties:
       # Cant have with NetworkInterface - SubnetId: !Ref Subnet
       KeyName: !Ref KeyName
       InstanceType: !Ref InstanceType
       # CentOS7 Public Base Image
+      IamInstanceProfile: !Ref InstanceProfile 
       ImageId: ami-02eac2c0129f6376b
       # Cant have this with NetoworkInterface
       #SecurityGroupIds: 
@@ -175,7 +202,6 @@ Resources:
             qs_update-os || qs_err
             qs_bootstrap_pip || qs_err
             qs_aws-cfn-bootstrap || qs_err
-
             # Run the cloud formation initialization 
             /usr/bin/cfn-init -v --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region} --configsets nosofs_prereqs
             # See: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-signal.html
