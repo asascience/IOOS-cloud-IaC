@@ -347,8 +347,7 @@ Resources:
                 else
                   echo "Forecast should be complete now. Check S3 for output."
                 fi
-                #sleep 60
-                #shutdown now
+                shutdown now
               mode: '000755'
               owner: root
               group: wheel
