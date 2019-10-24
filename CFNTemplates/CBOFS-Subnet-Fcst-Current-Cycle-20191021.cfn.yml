@@ -11,16 +11,12 @@ Parameters:
     Description: Base EC2 instance type
     Type: String
     AllowedValues:
-      - t3.small    # 2 vcpu
-      - t3.medium   # 2 vcpu
-      - t3.large    # 2 vcpu
-      - c5.large    # 2 vcpu
       - c5.xlarge	  # 4 vcpu
       - c5.2xlarge  # 8 vcpu
       - c5.4xlarge  # 16 vcpu
       - c5.12xlarge # 48 vcpu
       - c5.24xlarge # 96 vcpu
-    Default: c5.2xlarge
+    Default: c5.xlarge
     ConstraintDescription: must be a valid EC2 instance type.
   SSHLocation:
     Description: >-
@@ -117,7 +113,7 @@ Resources:
   #     DestinationCidrBlock: !Ref Subnet
 
   # Create a small subnet for this setup
-  # This must be changed for each instance, can't overlap subnets in same vpc
+  # This must be changed for each concurrent instance, can't overlap subnets in same vpc
   Subnet:
     Type: AWS::EC2::Subnet
     Properties:
@@ -207,7 +203,7 @@ Resources:
             qs_bootstrap_pip || qs_err
             qs_aws-cfn-bootstrap || qs_err
             # Run the cloud formation initialization 
-            /usr/bin/cfn-init -v --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region} --configsets nosofs
+            /usr/bin/cfn-init -v --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region} --configsets install_run
             # See: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-signal.html
             # use the cfn-signal script in conjunction with a CreationPolicy or an Auto Scaling group with a WaitOnResourceSignals update policy
             # /usr/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region}
@@ -215,7 +211,7 @@ Resources:
     Metadata:
       'AWS::CloudFormation::Init':
         configSets:
-          nosofs:
+          install_run:
             # - setup_base_env
             - install_libs
             - install_impi
@@ -223,13 +219,6 @@ Resources:
             - install_cbofs
             - fix_perms
             - run_forecast
-            # run demo script
-            #   get ICs
-            #     modify .in file / use sed
-            #       change Tiles and NTIMES (720) and NSTEPS 720*6 - 4320
-            #   run cbofs for 6 hour forecast
-            #   send output to S3 bucket
-            #   shutdown
         setup_base_env:
           packages:
             yum:
@@ -337,13 +326,31 @@ Resources:
           files:
             /tmp/runfcst/runit.sh:
               content: !Sub |
-                #!/bin/bash
+                #!/bin/sh -a
                 aws s3 cp --recursive s3://ioos-cloud-sandbox/cbofs-output/scripts/ .
-                chmod a+x *.sh
-                ./autoRunFcst.sh
+                chmod a+x *.sh                 
+                . /usr/share/Modules/init/sh
+                #echo . /usr/share/Modules/init/bash >> /home/centos/.bashrc
+                #echo . /usr/share/Modules/init/bash >> /home/centos/.bash_profile
+                module avail
+                echo "Starting autorun fcst ..."
+                su centos << EOF
+                  printenv
+                  module avail
+                  ./autoRunFcst.sh >& /tmp/runlog.log
+                  if [ $? -ne 0 ] ; then 
+                    echo "autoRunFcst FAILED"
+                  fi
+                EOF
+                if [ $? -ne 0 ] ; then 
+                  echo "su failed to run"
+                else
+                  echo "Forecast should be complete now. Check S3 for output."
+                fi
+                #sleep 60
                 #shutdown now
               mode: '000755'
-              owner: centos
+              owner: root
               group: wheel
           commands:
             runit:
