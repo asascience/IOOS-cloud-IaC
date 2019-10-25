@@ -1,0 +1,57 @@
+#!/bin/sh
+
+. /usr/share/Modules/init/sh
+module load produtil
+module load gcc
+
+if [ $# -ne 2 ] ; then
+  echo "Usage: $0 YYYYMMDD HH"
+  exit 1
+fi
+
+nomads=https://nomads.ncep.noaa.gov/pub/data/nccf/com/nos/prod/ngofs.${CDATE}
+
+pfx=nos.ngofs
+sfx=${CDATE}.t${cyc}z.nc
+
+flist="
+  $pfx.met.forecast.$sfx
+  $pfx.obc.$sfx
+  $pfx.river.$sfx
+  $pfx.hflux.forecast.$sfx
+  $pfx.forecast.${CDATE}.t${cycle}z.in
+"
+  #nos.ngofs.init.nowcast.${CDATE}.t${cycle}z.nc
+
+mkdir ngofs.$CDATE
+cd ngofs.$CDATE
+
+for file in $flist
+do
+  echo "wget $nomads/$file"
+  wget -nc $nomads/$file
+done
+
+# Fetch the restart/init file
+
+# Get $cdate$cyc +6 hours init file, rename it to $cdate$cyc restart file
+NEXT=`$NDATE +6 ${CDATE}${cyc}`
+NCDATE=`echo $NEXT | cut -c1-8`
+ncyc=`echo $NEXT | cut -c9-10`
+
+nsfx=${NCDATE}.t${ncyc}z.nc
+
+if [ $cyc == 21 ] ; then
+  url=https://nomads.ncep.noaa.gov/pub/data/nccf/com/nos/prod/ngofs.$NCDATE
+fi
+
+ifile=${pfx}.init.nowcast.${nsfx}
+rfile=${pfx}.rst.nowcast.${sfx}
+
+wget -nc ${url}/$ifile
+if [[ $? -ne 0 ]] ; then
+  echo "ERROR: Unable to retrieve $file from \n $url"
+fi
+
+# Rename it
+mv $ifile $rfile
