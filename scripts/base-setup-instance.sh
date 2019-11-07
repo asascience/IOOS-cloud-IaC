@@ -79,9 +79,9 @@ install_impi () {
 
 
 
+# Personal stuff here
 setup_aliases () {
 
-  # Personal aliases here
   echo alias lsl ls -al >> ~/.tcshrc
   echo alias lst ls -altr >> ~/.tcshrc
   echo alias h history >> ~/.tcshrc
@@ -89,5 +89,11 @@ setup_aliases () {
   echo alias cds cd /save/$user >> ~/.tcshrc
   echo alias cdns cd /noscrub/$user >> ~/.tcshrc
   echo alias cdpt cd /ptmp/$user >> ~/.tcshrc
+
+
+  git config --global user.name "Patrick Tripp"
+  git config --global user.email patrick.tripp@rpsgroup.com
+
+  #git commit --amend --reset-author
 }
 
