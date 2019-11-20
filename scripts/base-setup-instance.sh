@@ -53,6 +53,14 @@ install_libs () {
     hdf5-1.8.21-1.el7.x86_64.rpm      \
     netcdf-4.2-1.el7.x86_64.rpm       \
     produtil-1.0.18-1.el7.x86_64.rpm
+
+# 2019.6-154
+# 2020.0.154
+# /opt/intel/compilers_and_libraries/linux/mpi/intel64/modulefiles
+
+sudo mkdir -p /usrx/modulefiles/mpi/intel
+  sudo cp -p /opt/intel/compilers_and_libraries/linux/mpi/intel64/modulefiles/mpi /usrx/modulefiles/mpi/intel/2020.0.154
+
 }
 
 
@@ -73,7 +81,7 @@ install_impi () {
   echo '... Finished impi silent install'
 
   sudo mkdir -p /usrx/modulefiles/mpi/intel
-  sudo cp -p /opt/intel/compilers_and_libraries/linux/mpi/intel64/modulefiles/mpi /usrx/modulefiles/mpi/intel/2019.5.281
+  sudo cp -p /opt/intel/compilers_and_libraries/linux/mpi/intel64/modulefiles/mpi /usrx/modulefiles/mpi/intel/2019.6.085
 
 }
 
