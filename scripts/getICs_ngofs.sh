@@ -29,8 +29,8 @@ flist="
   $pfx.river.$sfx.tar
   $pfx.hflux.forecast.$sfx
   $pfx.forecast.${CDATE}.t${cyc}z.in
+  $pfx.init.nowcast.$sfx
 "
-  #nos.ngofs.init.nowcast.${CDATE}.t${cycle}z.nc
 
 #mkdir ngofs.$CDATE
 #cd ngofs.$CDATE
@@ -64,4 +64,4 @@ if [[ $? -ne 0 ]] ; then
 fi
 
 # Rename it
-mv $ifile $rfile
+cp -p $ifile $rfile
