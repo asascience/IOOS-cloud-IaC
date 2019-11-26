@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-# Need a JSON formatter for pretty print
-
 import boto3
 import time
 
@@ -17,10 +15,63 @@ subnet_id='subnet-09dae53e246bd68e4'
 placement_group='IOOS-cloud-sandbox-cluster-placement-group'
 
 
+
 ''' Function  Definitions '''
 '''-----------------------'''
 
-def create_nodes(count, nodeType, interface) :
+########################################################################
+def describeInstance(instance) :
+  client = boto3.client('ec2')
+  return client.describe_instances(InstanceIds=[instance.instance_id]) 
+  
+########################################################################
+
+
+
+
+########################################################################
+def getClient() :
+  client = boto3.client('ec2')
+  return client
+########################################################################
+
+
+
+
+########################################################################
+def placementGroup(nodeType) :
+  if nodeType.startswith('c5') :
+    group = { 'GroupName': placement_group }
+    return group
+########################################################################
+
+
+
+
+########################################################################
+def netInterface(nodeType) :
+
+  interfaceDict = {
+        'AssociatePublicIpAddress': True,
+        'DeleteOnTermination': True,
+        'Description': 'Network adaptor via boto3 api',
+        'DeviceIndex': 0,
+        'Groups': [ sg_id1,  sg_id2, sg_id3 ],
+        'SubnetId': subnet_id
+  }
+
+  if nodeType == 'c5n.18xlarge' :
+    interfaceDict['InterfaceType'] = 'efa'
+
+  return interfaceDict
+########################################################################
+
+
+
+
+
+########################################################################
+def createNodes(count, nodeType, tags) :
 
   # Add error checking
   # If interface is efa, node must by c5n.18xlarge
@@ -56,29 +107,27 @@ def create_nodes(count, nodeType, interface) :
     TagSpecifications=[
       {
         'ResourceType': 'instance',
-        'Tags': [
-          {
-            'Key': 'Name',
-            'Value': 'IOOS-cloud-sandbox'
-          },
-          {
-            'Key': 'NAME',
-            'Value': 'T3Micro-BOTO3-created-instance'
-          }
-        ]
+        'Tags': tags
       }
     ]
+
+#    Placement={
+#      placementGroup
+#    },
+#    NetworkInterfaces = [ netInterface(nodeType) ]
+#    
   )
 
   return instances
+########################################################################
 
 
 
 
 ''' Function: terminate_nodes '''
 ''' ------------------------- '''
-   
-def terminate_nodes(instances) :
+########################################################################
+def terminateNodes(instances) :
 
   import time
 
@@ -93,7 +142,7 @@ def terminate_nodes(instances) :
     responses.append(response)
 
   return responses
-
+########################################################################
 '''
 {
     'TerminatingInstances': [

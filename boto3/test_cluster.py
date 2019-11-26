@@ -2,43 +2,58 @@
 
 # Need a JSON formatter for pretty print
 
-import boto3
+# would like to keep things cloud platform agnostic at this layer
+#import boto3
 import time
 import cluster
 import json
 
-interface='efa' 
 #nodeType='c5n.large'
-#interface='interface' # does not accept interface
 #nodeType='c5.large'
 nodeType='t3.micro'
 nodes=1
 
-client = boto3.client('ec2')
+tags = [ { 'Key': 'Name', 'Value': 'IOOS-cloud-sandbox' },
+         { 'Key': 'NAME', 'Value': 'T3Micro-BOTO3-created-instance' }
+       ]
 
-instances = cluster.create_nodes(nodes,nodeType,interface)
+# Should create my own client class also, I need some experience with Azure for comparison
+client = cluster.getClient()
+
+instances = cluster.createNodes(nodes,nodeType,tags)
+#instances = cluster.createNodes(nodes,nodeType)
 print('create_nodes created : ', instances);
 
 for instance in instances :
   print('describe_instances')
-  response = client.describe_instances(InstanceIds=[instance.instance_id])
+  response = cluster.describeInstance(instance) 
   print(response)
 
 # wait for node to startup
-print('Sleeping for 30 seconds')
-time.sleep(20)
+secs=20
+print('Sleeping for %d seconds' % (secs))  # % ('Zara', 21)
+time.sleep(secs)
 
+
+
+
+# Launch the run script
+
+
+
+
+# Terminate the cluster nodes
 print('About to terminate: ', instances)
-# launch run script
 
-responses = cluster.terminate_nodes(instances)
+responses = cluster.terminateNodes(instances)
 
 print('Responses from terminate: ')
 for response in responses :
   print(response)
 
+
 print('describe_instances')
 for instance in instances :
-  response = client.describe_instances(InstanceIds=[instance.instance_id])
+  response = cluster.describeInstance(instance)
   print(response)
 
