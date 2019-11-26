@@ -40,9 +40,11 @@ def getClient() :
 
 ########################################################################
 def placementGroup(nodeType) :
+  group = {} 
   if nodeType.startswith('c5') :
     group = { 'GroupName': placement_group }
-    return group
+
+  return group
 ########################################################################
 
 
@@ -90,33 +92,31 @@ def createNodes(count, nodeType, tags) :
     KeyName=key_name,
     MinCount=min_count,    
     MaxCount=max_count,
-    #Placement={
-    #  'GroupName': placement_group
-    #},
-    NetworkInterfaces=[
-      {
-        'AssociatePublicIpAddress': True,
-        'DeleteOnTermination': True,
-        'Description': 'EFA Network adaptor via BOTO create_instances',
-        'DeviceIndex': 0,
-        'Groups': [ sg_id1,  sg_id2, sg_id3 ],
-        'SubnetId': subnet_id,
-        #'InterfaceType': interface
-      }
-    ],
+#    NetworkInterfaces=[
+#      {
+#        'AssociatePublicIpAddress': True,
+#        'DeleteOnTermination': True,
+#        'Description': 'EFA Network adaptor via BOTO create_instances',
+#        'DeviceIndex': 0,
+#        'Groups': [ sg_id1,  sg_id2, sg_id3 ],
+#        'SubnetId': subnet_id,
+#        #'InterfaceType': interface
+#      }
+#    ],
     TagSpecifications=[
       {
         'ResourceType': 'instance',
         'Tags': tags
       }
-    ]
-
-#    Placement={
-#      placementGroup
-#    },
-#    NetworkInterfaces = [ netInterface(nodeType) ]
-#    
+    ],
+    Placement= placementGroup(nodeType),
+    NetworkInterfaces = [ netInterface(nodeType) ]
   )
+
+
+  # Make sure they started
+
+
 
   return instances
 ########################################################################
