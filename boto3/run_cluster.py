@@ -7,8 +7,6 @@ import cluster
 import pprint
 
 
-#pp = pprint.PrettyPrinter(indent=2)
-#pp = pprint.PrettyPrinter(compact=True)
 pp = pprint.PrettyPrinter()
 
 #nodeType='c5n.large'
@@ -23,37 +21,26 @@ tags = [ { 'Key': 'Name', 'Value': 'IOOS-cloud-sandbox' },
 # Should create my own client class also, I need some experience with Azure for comparison
 client = cluster.getClient()
 
-try:
-  print('Starting %d instances ...' % (nodes))
-  print('Waiting for all instances to enter running state ...')
-  instances = cluster.createNodes(nodes,nodeType,tags)
-  print('All instances are running... cluster ready')
-  for instance in instances:
-    print('Created InstanceId: ' + instance.instance_id)
+print('Starting %d instances ...' % (nodes))
+print('Waiting for all instances to enter running state ...')
 
+try:
+  instances = cluster.createNodes(nodes,nodeType,tags)
 except Exception as e:
   print('In driver: Exception while creating nodes :' + str(e))
-  cluster.terminateNodes(instances)
   sys.exit()
 
+print('All instances are running... cluster ready')
 
-# Need something smaller - just the state
-# This contains out-of-date instance metadata from the initial api call
-#for instance in instances :
-#  print('describe_instances')
-#  response = cluster.describeInstance(instance) 
-#  pp.pprint(response)
+for instance in instances:
+  print('Instance started: ' + str(instance))
 
 
 print()
+print('##################')
 print('Run something here')
+print('##################')
 print()
-
-########################################################################
-########################################################################
-# Launch the run script
-########################################################################
-########################################################################
 
 
 # Terminate the cluster nodes

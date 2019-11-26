@@ -62,6 +62,7 @@ def placementGroup(nodeType) :
 ########################################################################
 # Specify an efa enabled network interface if supported by node type
 # Also attaches security groups
+#
 # TODO: refactor Groups
 def netInterface(nodeType) :
 
@@ -119,8 +120,23 @@ def createNodes(count, nodeType, tags) :
     raise Exception() from e
 
 
+  client = boto3.client('ec2')
+  waiter = client.get_waiter('instance_running')
 
+  print('Trying the waiter technique')
+  for instance in instances:
+    waiter.wait(
+      InstanceIds=[instance.instance_id],
+      WaiterConfig={
+        'Delay': 10,
+        'MaxAttempts': 6
+      }
+    )
+  # Now still need to handle the case where the instances havent started yet
+
+  
   # Make sure the nodes are running before returning
+  # EC2 Waiter does not meet the needs here
   ready = False
   timer=0
   maxtime=120
@@ -176,20 +192,3 @@ def terminateNodes(instances) :
 
   return responses
 ########################################################################
-'''
-{
-    'TerminatingInstances': [
-        {
-            'CurrentState': {
-                'Code': 123,
-                'Name': 'pending'|'running'|'shutting-down'|'terminated'|'stopping'|'stopped'
-            },
-            'InstanceId': 'string',
-            'PreviousState': {
-                'Code': 123,
-                'Name': 'pending'|'running'|'shutting-down'|'terminated'|'stopping'|'stopped'
-            }
-        },
-    ]
-}
-'''
