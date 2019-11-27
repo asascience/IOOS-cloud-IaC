@@ -29,6 +29,37 @@ Function  Definitions
 '''
 
 ########################################################################
+def getHosts(instances) :
+  hosts = []
+
+  for instance in instances :
+    hostname=instance.private_dns_name
+    hosts.append(hostname)
+
+  return hosts
+########################################################################
+
+
+
+########################################################################
+def getHostsCSV(instances) :
+  hosts = ''
+
+  instcnt=len(instances)
+  cnt=0
+  for instance in instances :
+    cnt += 1
+    hostname=instance.private_dns_name
+    # no comma on last host
+    if cnt == instcnt : 
+      hosts += hostname
+    else :
+      hosts += hostname + ','
+  return hosts
+########################################################################
+
+  
+########################################################################
 def describeInstance(instance) :
   client = boto3.client('ec2')
   return client.describe_instances(InstanceIds=[instance.instance_id]) 
@@ -120,54 +151,36 @@ def createNodes(count, nodeType, tags) :
     raise Exception() from e
 
 
+  # Make sure the nodes are running before returning
+
   client = boto3.client('ec2')
   waiter = client.get_waiter('instance_running')
 
-  print('Trying the waiter technique')
+  # print('Waiting for instances to enter running state ...')
   for instance in instances:
     waiter.wait(
       InstanceIds=[instance.instance_id],
       WaiterConfig={
-        'Delay': 10,
-        'MaxAttempts': 6
+        'Delay': 5,
+        'MaxAttempts': 12
       }
     )
-  # Now still need to handle the case where the instances havent started yet
-
   
-  # Make sure the nodes are running before returning
-  # EC2 Waiter does not meet the needs here
-  ready = False
-  timer=0
-  maxtime=120
-  dt=10
+  # Assume the nodes are ready, set to False if not
+  ready=True
 
-  while not(ready):
+  # if any instance is not running, ready=False
+  inum=1
+  for instance in instances :
+    state=ec2.Instance(instance.instance_id).state['Name']
+    print ('instance ' + str(inum) + ' : ' + state)
+    if state != 'running':
+      ready=False
+    inum+=1
 
-    # Assume the nodes are ready, set to False if not
-    ready=True
-
-    # if any instance is not running, ready=False
-    inum=1
-    for instance in instances :
-      #instance=ec2.Instance(instance.instance_id)  # this does not update what is in the list
-      #state=instance.state['Name']
-      state=ec2.Instance(instance.instance_id).state['Name']
-      print ('instance ' + str(inum) + ' : ' + state)
-      if state != 'running':
-        ready=False
-      inum+=1
-
-    # All are running, break out of loop
-    if ready :
-      break
-
-    # If more than N seconds have elapsed, give up
-    time.sleep(dt)
-    timer += dt
-    if timer >= maxtime :
-      terminateNodes(instances)
-      raise Exception('Nodes took too long to start')    
+  if not(ready) :
+    terminateNodes(instances)
+    raise Exception('Nodes did not start within time limit... terminating them...')    
 
 
   return instances
