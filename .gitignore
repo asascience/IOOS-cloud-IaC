@@ -1,2 +1,3 @@
 rpmbuild/RPMS/*.rpm
+**/__pycache__
 .DS_Store
