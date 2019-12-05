@@ -1,6 +1,6 @@
 Name:           wgrib2
 Version:        2.0.8
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Date and other utilities used in NCO production suite
 
 License:        HDF5 and NCSA HDF5 and JasPer and libpng and UCAR and zlib and BSD
@@ -9,7 +9,7 @@ Source0:        ftp://ftp.cpc.ncep.noaa.gov/wd51we/wgrib2/wgrib2.tgz
 
 BuildArch:       x86_64
 
-%define builtdir /home/ec2-user/nosofs-prereqs/builds/grib2/wgrib2
+%define builtdir /usrx/wgrib2/2.0.8
 
 %description
 wgrib2 utility from NCEP
@@ -19,13 +19,14 @@ built with Gnu CC and gfortran, netcdf4
 %install
 rm -Rf %{buildroot}
 mkdir -p %{buildroot}/usrx/%{name}/%{version}
+mkdir -p %{buildroot}/usrx/%{name}/%{version}/bin
 mkdir -p %{buildroot}/usrx/%{name}/%{version}/docs
 mkdir -p %{buildroot}/usrx/%{name}/%{version}/share
 
-cp -p %{builtdir}/wgrib2 %{buildroot}/usrx/%{name}/%{version}/
-cp -p %{builtdir}/LICENSE* %{buildroot}/usrx/%{name}/%{version}/share
-cp -p %{builtdir}/../formats.doc %{buildroot}/usrx/%{name}/%{version}/docs/
-cp -p %{builtdir}/../intro*.doc %{buildroot}/usrx/%{name}/%{version}/docs/
+cp -p %{builtdir}/bin/wgrib2 %{buildroot}/usrx/%{name}/%{version}/bin
+cp -p %{builtdir}/share/LICENSE* %{buildroot}/usrx/%{name}/%{version}/share
+cp -p %{builtdir}/docs/formats.doc %{buildroot}/usrx/%{name}/%{version}/docs/
+cp -p %{builtdir}/docs/intro*.doc %{buildroot}/usrx/%{name}/%{version}/docs/
 
 mkdir -p %{buildroot}/usrx/modulefiles/%{name}
 
@@ -38,8 +39,9 @@ proc ModulesHelp { } {
 
 set topdir /usrx/%{name}/%{version}
 
-setenv WGRIB2 \$topdir/exec/wgrib2
-setenv WGRIB  \$topdir/exec/wgrib2
+setenv WGRIB2 \$topdir/bin/wgrib2
+setenv WGRIB  \$topdir/bin/wgrib2
+append-path   PATH  \$topdir/bin
 
 EOF
 
@@ -58,5 +60,7 @@ EOF
    %doc /usrx/%{name}/%{version}/docs/*
 
 %changelog
+* Thu Dec 5 2019 Patrick Tripp <patrick.tripp@rpsgroup.com>
+- put binary in bin folder
 * Wed Sep 18 2019 Patrick Tripp <patrick.tripp@rpsgroup.com>
 - Initial %{name} package

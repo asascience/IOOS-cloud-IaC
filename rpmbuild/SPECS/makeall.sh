@@ -4,8 +4,9 @@ alist='
 zlib.spec
 libpng.spec
 jasper.spec
-hdf5.spec
+hdf5-impi-devel.spec
 '
+#hdf5.spec
 
 nceplibs='
 bacio.spec
@@ -32,6 +33,14 @@ cbofs.spec
 cbofs-devel.spec
 '
 
+some='
+produtil.spec
+hdf5-impi-devel.spec 
+netcdf.spec
+wgrib2.spec
+'
+
+
 
 # NCEPLIBS built folder
 export BBASE=/home/centos/nosofs-prereqs/BUILT
@@ -41,16 +50,20 @@ rpmlist="$alist $nceplibs $utils $compilers"
 #rpmlist=$nceplibs
 #rpmlist=$utils
 #rpmlist='g2.spec'
-rpmlist=$models
+#rpmlist=$models
+rpmlist=$some
+
 
 [ -d "../RPMS" ] || mkdir ../RPMS
 
 for rpm in $rpmlist
 do
-    echo "==========================================="
-    echo " Building rpm for $rpm"
-    echo "==========================================="
-  QA_RPATHS=$[ 0x0001|0x0010|0x0002 ] rpmbuild -bb $rpm
+  echo "==========================================="
+  echo " Building rpm for $rpm"
+  echo "==========================================="
+  #QA_RPATHS=$[ 0x0001|0x0010|0x0002 ] rpmbuild -bb $rpm
+
+  rpmbuild -bb $rpm
   if [[ $? -ne 0 ]] ; then
     echo "==========================================="
     echo " Error .... could not build $rpm"
