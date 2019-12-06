@@ -34,10 +34,7 @@ cbofs-devel.spec
 '
 
 some='
-produtil.spec
-hdf5-impi-devel.spec 
-netcdf.spec
-wgrib2.spec
+hdf5-impi.spec 
 '
 
 

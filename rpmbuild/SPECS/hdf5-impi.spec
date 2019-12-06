@@ -34,6 +34,7 @@ proc ModulesHelp { } {
 module-whatis       "Sets up the HDF5 Library environment"
 
 set ver v%{version}
+prepend-path    LD_LIBRARY_PATH  "/usrx/%{name}/%{version}/lib"
 setenv HDF5_LIB "-L/usrx/%{name}/%{version}/lib -lhdf5 -lhdf5_hl"
 setenv HDF5_INC "-I/usrx/%{name}/%{version}/include"
 

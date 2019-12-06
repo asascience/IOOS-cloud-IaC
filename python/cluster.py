@@ -13,7 +13,9 @@ from botocore.exceptions import ClientError
 # eg class Cluster:
 # REGION us-east-1
 # ami-01d859635d7625db5 - CentOS7updated-GCC6.5-IMPI2002-EFA-EFS
-image_id='ami-01d859635d7625db5'
+# image_id='ami-01d859635d7625db5'  # netcdf 4.2
+
+image_id='ami-099cf72623c9aa846'  # NetCDF 4.5
 key_name='patrick-ioos-cloud-sandbox'
 sg_id1='sg-006041073bfa7b072'
 sg_id2='sg-0a48755f7b926b051'

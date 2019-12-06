@@ -12,11 +12,13 @@ pp = pprint.PrettyPrinter()
 #nodeType='c5n.large'
 #nodeType='c5.large'
 nodeType='c5n.xlarge'
+#nodeType='c5n.4xlarge'
 #nodeType='t3.micro'
 nodes=2
 
 tags = [ { 'Key': 'Name', 'Value': 'IOOS-cloud-sandbox' },
-         { 'Key': 'NAME', 'Value': nodeType + '-BOTO3-created-instance' }
+         # { 'Key': 'NAME', 'Value': nodeType + '-BOTO3-created-instance' }
+         { 'Key': 'NAME', 'Value': nodeType + '-BOTO3-ngofs-run' }
        ]
 
 print('Starting %d instances ...' % (nodes))
@@ -44,14 +46,14 @@ for instance in instances:
 # Do a lookup, embed in a class
 
 '''
-VCPUS
-c5n.large	2
-c5n.xlarge	4
-c5n.2xlarge	8
-c5n.4xlarge	16
-c5n.9xlarge	36
-c5n.18xlarge	72
-c5n.metal	72
+               VCPUS CPUS
+c5n.large	2    1
+c5n.xlarge	4    2
+c5n.2xlarge	8    4
+c5n.4xlarge	16   8
+c5n.9xlarge	36   18
+c5n.18xlarge	72   36
+c5n.metal	72   36
 
 PPN=VCPUS/2
 '''
@@ -62,19 +64,17 @@ PPN=VCPUS/2
 # cluster.terminate()
 # Need to generate hostsfile or hosts string
 
-CDATE='20191030'
-HH='09'
+CDATE='20191206'
+HH='03'
+
+# TODO -- look up this number by machine type
 PPN=2
+
 NP=nodes*PPN
 # set export I_MPI_OFI_LIBRARY_INTERNAL=1 or 0
 # export FI_PROVIDER=efa or tcp
 # setup tiling for ROMS models
 # setup fcst length 
-
-#print('##################')
-#print('Run something here')
-#print('##################')
-#print()
 
 # Shared libraries must be available to the executable!!! 
 runscript='/save/nosofs-NCO/jobs/launcher.sh'
@@ -92,6 +92,7 @@ print('hostnames : ' + hosts)
 #subprocess.run(["ls", "-l", "/dev/null"], stdout=subprocess.PIPE)
 #subprocess.run([runscript,CDATE,HH,nodes,NP], stdout=subprocess.PIPE)
 try:
+  # TODO - make this a method of cluster
   subprocess.run([runscript,CDATE,HH,str(nodes),str(NP),hosts], stderr=subprocess.STDOUT)
 except Exception as e:
   print('In driver: Exception during subprocess.run :' + str(e))
