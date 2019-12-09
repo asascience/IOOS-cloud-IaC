@@ -3,7 +3,7 @@
 # Retrieve 48 hour forecast from NOAA
 
 if [ $# -lt 3 ] ; then
-  echo "Usage: $0 cbofs|ngofs|etc. yyyymmdd cycle [directory]"
+  echo "Usage: $0 cbofs|ngofs|etc. yyyymmdd cycle [destination path]"
   exit 1
 fi
 

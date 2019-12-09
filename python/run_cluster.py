@@ -11,14 +11,20 @@ pp = pprint.PrettyPrinter()
 
 #nodeType='c5n.large'
 #nodeType='c5.large'
-nodeType='c5n.xlarge'
+#nodeType='c5n.xlarge'
 #nodeType='c5n.4xlarge'
 #nodeType='t3.micro'
-nodes=2
+
+nodeType='c5.18xlarge'
+nodes=1
+
+OFS='cbofs'
+CDATE='20191209'
+HH='00'
 
 tags = [ { 'Key': 'Name', 'Value': 'IOOS-cloud-sandbox' },
          # { 'Key': 'NAME', 'Value': nodeType + '-BOTO3-created-instance' }
-         { 'Key': 'NAME', 'Value': nodeType + '-BOTO3-ngofs-run' }
+         { 'Key': 'NAME', 'Value': OFS + '-fcst-' + CDATE + HH }
        ]
 
 print('Starting %d instances ...' % (nodes))
@@ -64,11 +70,8 @@ PPN=VCPUS/2
 # cluster.terminate()
 # Need to generate hostsfile or hosts string
 
-CDATE='20191206'
-HH='03'
-
 # TODO -- look up this number by machine type
-PPN=2
+PPN=48
 
 NP=nodes*PPN
 # set export I_MPI_OFI_LIBRARY_INTERNAL=1 or 0
@@ -93,10 +96,13 @@ print('hostnames : ' + hosts)
 #subprocess.run([runscript,CDATE,HH,nodes,NP], stdout=subprocess.PIPE)
 try:
   # TODO - make this a method of cluster
-  subprocess.run([runscript,CDATE,HH,str(nodes),str(NP),hosts], stderr=subprocess.STDOUT)
+  subprocess.run([runscript,CDATE,HH,str(nodes),str(NP),hosts,OFS], \
+    stderr=subprocess.STDOUT)
+
 except Exception as e:
   print('In driver: Exception during subprocess.run :' + str(e))
 
+print('Forecast finished')
 
 # Terminate the cluster nodes
 print('About to terminate: ', instances)
