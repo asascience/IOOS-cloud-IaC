@@ -6,6 +6,7 @@ import time
 import cluster
 import pprint
 import subprocess
+import nodeInfo
 
 pp = pprint.PrettyPrinter()
 
@@ -13,23 +14,22 @@ pp = pprint.PrettyPrinter()
 #nodeType='c5.large'
 #nodeType='c5n.xlarge'
 #nodeType='c5n.4xlarge'
-#nodeType='t3.micro'
 
-nodeType='c5.18xlarge'
-nodes=1
+nodeType='c5n.18xlarge'
+nodes=4
 
 OFS='cbofs'
 CDATE='20191209'
 HH='00'
 
 tags = [ { 'Key': 'Name', 'Value': 'IOOS-cloud-sandbox' },
-         # { 'Key': 'NAME', 'Value': nodeType + '-BOTO3-created-instance' }
          { 'Key': 'NAME', 'Value': OFS + '-fcst-' + CDATE + HH }
        ]
 
-print('Starting %d instances ...' % (nodes))
+print('Starting ' + str(nodes) + ' instances ...')
 print('Waiting for all instances to enter running state ...')
 
+# TODO: make instances a member of cluster
 try:
   instances = cluster.createNodes(nodes,nodeType,tags)
 except Exception as e:
@@ -42,38 +42,26 @@ for instance in instances:
   print('Instance started: ' + str(instance))
 
 
-# compute the number of processors available
-# Feed that data to run script 
-
-# 
-# NODES
-# NPP
-# PPN
-# Do a lookup, embed in a class
-
-'''
-               VCPUS CPUS
-c5n.large	2    1
-c5n.xlarge	4    2
-c5n.2xlarge	8    4
-c5n.4xlarge	16   8
-c5n.9xlarge	36   18
-c5n.18xlarge	72   36
-c5n.metal	72   36
-
-PPN=VCPUS/2
-'''
-# 
 # cluster.create() or ctor
 # cluster.start()
 # cluster.stop()
 # cluster.terminate()
-# Need to generate hostsfile or hosts string
 
-# TODO -- look up this number by machine type
-PPN=48
+# look up this number by machine type
+#PPN=0
+try:
+  PPN=nodeInfo.getPPN(nodeType)
+except:
+  print('Could not determine PPN')
+  cluster.terminateNodes(instances)
+  sys.exit()
+  # TODO: Add better failure handling routine
+  # Cleanup and exit here
 
 NP=nodes*PPN
+
+NP=140
+
 # set export I_MPI_OFI_LIBRARY_INTERNAL=1 or 0
 # export FI_PROVIDER=efa or tcp
 # setup tiling for ROMS models

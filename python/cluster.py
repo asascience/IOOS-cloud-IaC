@@ -151,6 +151,9 @@ def createNodes(count, nodeType, tags) :
   except ClientError as e:
     print('ClientError exception in createNodes')
     raise Exception() from e
+  except :
+    print('exception in createNodes')
+    raise Exception('exception in createNodes')
 
 
   # Make sure the nodes are running before returning
