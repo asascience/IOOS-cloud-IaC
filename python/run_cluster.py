@@ -16,7 +16,7 @@ pp = pprint.PrettyPrinter()
 #nodeType='c5n.4xlarge'
 
 nodeType='c5n.18xlarge'
-nodes=4
+nodes=5
 
 OFS='cbofs'
 CDATE='20191209'
@@ -50,7 +50,7 @@ for instance in instances:
 # look up this number by machine type
 #PPN=0
 try:
-  PPN=nodeInfo.getPPN(nodeType)
+  coresPN=nodeInfo.getPPN(nodeType)
 except:
   print('Could not determine PPN')
   cluster.terminateNodes(instances)
@@ -58,9 +58,12 @@ except:
   # TODO: Add better failure handling routine
   # Cleanup and exit here
 
+PPN=coresPN
 NP=nodes*PPN
 
+# Override defaults here
 NP=140
+PPN=28
 
 # set export I_MPI_OFI_LIBRARY_INTERNAL=1 or 0
 # export FI_PROVIDER=efa or tcp
@@ -84,7 +87,7 @@ print('hostnames : ' + hosts)
 #subprocess.run([runscript,CDATE,HH,nodes,NP], stdout=subprocess.PIPE)
 try:
   # TODO - make this a method of cluster
-  subprocess.run([runscript,CDATE,HH,str(nodes),str(NP),hosts,OFS], \
+  subprocess.run([runscript,CDATE,HH,str(NP),str(PPN),hosts,OFS], \
     stderr=subprocess.STDOUT)
 
 except Exception as e:
