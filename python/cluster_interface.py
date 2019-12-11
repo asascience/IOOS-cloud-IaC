@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-import boto3
-import time
-from botocore.exceptions import ClientError
+#import boto3
+#import time
+#from botocore.exceptions import ClientError
 
 # Can use dependency injection / service dependency for interface layer, platform agnostic
 # One pattern on a service constructor, e.g. this.cluster = new clusterService(aws | azure | gcp)
@@ -170,9 +170,7 @@ def createNodes(count, nodeType, tags) :
         'MaxAttempts': 12
       }
     )
-
-  # Wait another 30 seconds, sshd is sometimes slow to come up
-  time.sleep(30) 
+  
   # Assume the nodes are ready, set to False if not
   ready=True
 
