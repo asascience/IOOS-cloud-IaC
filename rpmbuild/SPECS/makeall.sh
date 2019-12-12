@@ -4,9 +4,9 @@ alist='
 zlib.spec
 libpng.spec
 jasper.spec
-hdf5-impi-devel.spec
+hdf5-impi.spec
+hdf5.spec
 '
-#hdf5.spec
 
 nceplibs='
 bacio.spec
@@ -34,7 +34,7 @@ cbofs-devel.spec
 '
 
 some='
-hdf5-impi.spec 
+netcdf.spec
 '
 
 

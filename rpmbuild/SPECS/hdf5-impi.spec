@@ -1,6 +1,6 @@
 Name:           hdf5-impi
 Version:        1.8.21
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        HDF5 libraries and tools
 
 License:        NCSA HDF
@@ -35,8 +35,9 @@ module-whatis       "Sets up the HDF5 Library environment"
 
 set ver v%{version}
 prepend-path    LD_LIBRARY_PATH  "/usrx/%{name}/%{version}/lib"
-setenv HDF5_LIB "-L/usrx/%{name}/%{version}/lib -lhdf5 -lhdf5_hl"
+setenv HDF5_LIB "-L/usrx/%{name}/%{version}/lib -lhdf5 -lhdf5_hl -lz"
 setenv HDF5_INC "-I/usrx/%{name}/%{version}/include"
+setenv HDF5_LIBDIR "/usrx/%{name}/%{version}/lib"
 
 EOF
 
@@ -58,5 +59,7 @@ EOF
    ldconfig -n /usrx/%{name}/%{version}/lib
 
 %changelog
+* Thu Dec 12 2019 Patrick Tripp <patrick.tripp@rpsgroup.com>
+- 2 Added HDF5_LIBDIR
 * Thu Dec 5 2019 Patrick Tripp <patrick.tripp@rpsgroup.com>
 - HDF5 with parallel support

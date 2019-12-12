@@ -22,10 +22,11 @@ pp = pprint.PrettyPrinter()
 #CDATE='20191209'
 #HH='00'
 
-nodeType='c5.9xlarge'
+#nodeType='c5n.18xlarge'
+nodeType='c5.18xlarge'
 nodes=1
 OFS='ngofs'
-CDATE='20191206'
+CDATE='20191212'
 HH='03'
 
 tags = [ { 'Key': 'Name', 'Value': 'IOOS-cloud-sandbox' },
