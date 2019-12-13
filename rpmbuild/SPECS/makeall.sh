@@ -36,6 +36,7 @@ cbofs-devel.spec
 some='
 netcdf.spec
 '
+#hdf5.spec
 
 
 

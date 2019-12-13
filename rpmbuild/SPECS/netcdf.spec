@@ -1,6 +1,6 @@
 Name:           netcdf
 Version:        4.5
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        NetCDF precompiled libraries and tools
 
 License:        NetCDF
@@ -14,7 +14,7 @@ BuildArch:       x86_64
 %description
 Includes C, C++, and Fortran libraries built with GCC version 6.50 and
 Gnu Fortran gfortran version 6.5.0
-This was build using hdf5 support - serial version
+This was build using hdf5 serial v1.10.5
 
 
 %install
@@ -62,6 +62,8 @@ EOF
    ldconfig -n /usrx/%{name}/%{version}/lib
 
 %changelog
+* Thu Dec 12 2019 Patrick Tripp <patrick.tripp@rpsgroup.com>
+- rebuilt using HDF5 serial v1.10.5
 * Thu Dec 12 2019 Patrick Tripp <patrick.tripp@rpsgroup.com>
 - rebuilt using serial HDF5
 * Thu Dec 5 2019 Patrick Tripp <patrick.tripp@rpsgroup.com>

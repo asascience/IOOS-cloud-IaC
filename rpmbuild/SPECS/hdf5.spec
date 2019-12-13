@@ -1,11 +1,11 @@
 Name:           hdf5
-Version:        1.8.21
-Release:        2%{?dist}
+Version:        1.10.5
+Release:        3%{?dist}
 Summary:        HDF5 libraries and tools
 
 License:        NCSA HDF
 URL:            https://portal.hdfgroup.org/display/support
-Source0:        https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.21/src
+Source0:        https://support.hdfgroup.org/ftp/HDF5/releases
 
 #Requires:
 
@@ -59,6 +59,8 @@ EOF
    ldconfig -n /usrx/%{name}/%{version}/lib
 
 %changelog
+* Thu Dec 12 2019 Patrick Tripp <patrick.tripp@rpsgroup.com>
+- Upgrade to 1.10.5
 * Thu Dec 12 2019 Patrick Tripp <patrick.tripp@rpsgroup.com>
 - 2 Added env module
 * Wed Sep 18 2019 Patrick Tripp <patrick.tripp@rpsgroup.com>

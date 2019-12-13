@@ -22,9 +22,9 @@ pp = pprint.PrettyPrinter()
 #CDATE='20191209'
 #HH='00'
 
-#nodeType='c5n.18xlarge'
-nodeType='c5.18xlarge'
-nodes=1
+nodeType='c5n.18xlarge'
+#nodeType='c5.18xlarge'
+nodes=2
 OFS='ngofs'
 CDATE='20191212'
 HH='03'

@@ -16,7 +16,8 @@ from botocore.exceptions import ClientError
 # image_id='ami-01d859635d7625db5'  # netcdf 4.2
 
 #image_id='ami-099cf72623c9aa846'  # NetCDF 4.5 HDF5 parallel
-image_id='ami-00114486c1dc4ec09'  # NetCDF 4.5 HDF5 serial
+#image_id='ami-00114486c1dc4ec09'  # NetCDF 4.5 HDF5 serial
+image_id='ami-04a10608958c0c138'   # HDF5 1.10.5, NetCDF 4.5
 key_name='patrick-ioos-cloud-sandbox'
 sg_id1='sg-006041073bfa7b072'
 sg_id2='sg-0a48755f7b926b051'
