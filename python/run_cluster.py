@@ -24,6 +24,7 @@ pp = pprint.PrettyPrinter()
 
 nodeType='c5n.18xlarge'
 #nodeType='c5.18xlarge'
+#nodeType='c5.9xlarge'
 nodes=2
 OFS='ngofs'
 CDATE='20191212'

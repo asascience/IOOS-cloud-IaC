@@ -3,6 +3,7 @@
 import boto3
 import time
 from botocore.exceptions import ClientError
+import nodeInfo
 
 # Can use dependency injection / service dependency for interface layer, platform agnostic
 # One pattern on a service constructor, e.g. this.cluster = new clusterService(aws | azure | gcp)
@@ -25,6 +26,12 @@ sg_id3='sg-04a6bcecaec589f64'
 subnet_id='subnet-09dae53e246bd68e4'
 placement_group='IOOS-cloud-sandbox-cluster-placement-group'
 
+'''
+CpuOptions={
+        'CoreCount': 123,
+        'ThreadsPerCore': 123
+    },
+'''
 
 
 ''' 
@@ -129,6 +136,7 @@ def createNodes(count, nodeType, tags) :
   min_count=count
   max_count=count
   instance_type=nodeType
+  
 
   ec2 = boto3.resource('ec2')
 
@@ -148,10 +156,15 @@ def createNodes(count, nodeType, tags) :
         }
       ],
       Placement= placementGroup(nodeType),
-      NetworkInterfaces = [ netInterface(nodeType) ]
+      NetworkInterfaces = [ netInterface(nodeType) ],
+      CpuOptions={
+        'CoreCount': nodeInfo.getPPN(instance_type),
+        'ThreadsPerCore': 1
+      }
+      
     )
   except ClientError as e:
-    print('ClientError exception in createNodes')
+    print('ClientError exception in createNodes' + str(e))
     raise Exception() from e
   except :
     print('exception in createNodes')
