@@ -15,22 +15,43 @@ pp = pprint.PrettyPrinter()
 #nodeType='c5n.xlarge'
 #nodeType='c5n.4xlarge'
 
-nodeType='c5n.18xlarge'
-nodes=5
+#nodeType='c5n.18xlarge'
+#nodes=5
 
-OFS='cbofs'
-CDATE='20191209'
-HH='00'
+#OFS='cbofs'
+#CDATE='20191209'
+#HH='00'
+
+nodeType='c5n.18xlarge'
+#nodeType='c5.18xlarge'
+#nodeType='c5.9xlarge'
+nodes=2
+OFS='ngofs'
+CDATE='20191212'
+HH='03'
 
 tags = [ { 'Key': 'Name', 'Value': 'IOOS-cloud-sandbox' },
          { 'Key': 'NAME', 'Value': OFS + '-fcst-' + CDATE + HH }
        ]
+
+# cluster=new Cluster(nodeType,nodes,tags)
+
+try:
+  # coresPN=cluster.getPPN()
+  coresPN=nodeInfo.getPPN(nodeType)
+except:
+  print('Could not determine PPN for '+ nodeType)
+  sys.exit()
+
+PPN=coresPN
+NP=nodes*PPN
 
 print('Starting ' + str(nodes) + ' instances ...')
 print('Waiting for all instances to enter running state ...')
 
 # TODO: make instances a member of cluster
 try:
+  # cluster.start()
   instances = cluster.createNodes(nodes,nodeType,tags)
 except Exception as e:
   print('In driver: Exception while creating nodes :' + str(e))
@@ -41,29 +62,15 @@ print('All instances are running... cluster ready')
 for instance in instances:
   print('Instance started: ' + str(instance))
 
-
 # cluster.create() or ctor
 # cluster.start()
 # cluster.stop()
 # cluster.terminate()
 
-# look up this number by machine type
-#PPN=0
-try:
-  coresPN=nodeInfo.getPPN(nodeType)
-except:
-  print('Could not determine PPN')
-  cluster.terminateNodes(instances)
-  sys.exit()
-  # TODO: Add better failure handling routine
-  # Cleanup and exit here
-
-PPN=coresPN
-NP=nodes*PPN
-
 # Override defaults here
-NP=140
-PPN=28
+# CBOFS
+#NP=140
+#PPN=28
 
 # set export I_MPI_OFI_LIBRARY_INTERNAL=1 or 0
 # export FI_PROVIDER=efa or tcp
@@ -74,6 +81,8 @@ PPN=28
 runscript='/save/nosofs-NCO/jobs/launcher.sh'
 
 try:
+  # hosts=cluster.getHosts('csv')
+  # hosts=cluster.getHosts('csv')
   hosts=cluster.getHostsCSV(instances)
 except Exception as e:
   print('In driver: execption retrieving list of hostnames:' + str(e))
@@ -87,6 +96,8 @@ print('hostnames : ' + hosts)
 #subprocess.run([runscript,CDATE,HH,nodes,NP], stdout=subprocess.PIPE)
 try:
   # TODO - make this a method of cluster
+
+  # cluster.run(task)
   subprocess.run([runscript,CDATE,HH,str(NP),str(PPN),hosts,OFS], \
     stderr=subprocess.STDOUT)
 
@@ -97,6 +108,7 @@ print('Forecast finished')
 
 # Terminate the cluster nodes
 print('About to terminate: ', instances)
+# cluster.terminate()
 responses = cluster.terminateNodes(instances)
 
 # Just check the state

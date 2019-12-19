@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
-import boto3
-import time
-from botocore.exceptions import ClientError
-import nodeInfo
+#import boto3
+#import time
+#from botocore.exceptions import ClientError
 
 # Can use dependency injection / service dependency for interface layer, platform agnostic
 # One pattern on a service constructor, e.g. this.cluster = new clusterService(aws | azure | gcp)
@@ -16,9 +15,7 @@ import nodeInfo
 # ami-01d859635d7625db5 - CentOS7updated-GCC6.5-IMPI2002-EFA-EFS
 # image_id='ami-01d859635d7625db5'  # netcdf 4.2
 
-#image_id='ami-099cf72623c9aa846'  # NetCDF 4.5 HDF5 parallel
-#image_id='ami-00114486c1dc4ec09'  # NetCDF 4.5 HDF5 serial
-image_id='ami-04a10608958c0c138'   # HDF5 1.10.5, NetCDF 4.5
+image_id='ami-099cf72623c9aa846'  # NetCDF 4.5
 key_name='patrick-ioos-cloud-sandbox'
 sg_id1='sg-006041073bfa7b072'
 sg_id2='sg-0a48755f7b926b051'
@@ -26,12 +23,6 @@ sg_id3='sg-04a6bcecaec589f64'
 subnet_id='subnet-09dae53e246bd68e4'
 placement_group='IOOS-cloud-sandbox-cluster-placement-group'
 
-'''
-CpuOptions={
-        'CoreCount': 123,
-        'ThreadsPerCore': 123
-    },
-'''
 
 
 ''' 
@@ -136,7 +127,6 @@ def createNodes(count, nodeType, tags) :
   min_count=count
   max_count=count
   instance_type=nodeType
-  
 
   ec2 = boto3.resource('ec2')
 
@@ -156,15 +146,10 @@ def createNodes(count, nodeType, tags) :
         }
       ],
       Placement= placementGroup(nodeType),
-      NetworkInterfaces = [ netInterface(nodeType) ],
-      CpuOptions={
-        'CoreCount': nodeInfo.getPPN(instance_type),
-        'ThreadsPerCore': 1
-      }
-      
+      NetworkInterfaces = [ netInterface(nodeType) ]
     )
   except ClientError as e:
-    print('ClientError exception in createNodes' + str(e))
+    print('ClientError exception in createNodes')
     raise Exception() from e
   except :
     print('exception in createNodes')
@@ -185,9 +170,7 @@ def createNodes(count, nodeType, tags) :
         'MaxAttempts': 12
       }
     )
-
-  # Wait another 30 seconds, sshd is sometimes slow to come up
-  time.sleep(30) 
+  
   # Assume the nodes are ready, set to False if not
   ready=True
 
