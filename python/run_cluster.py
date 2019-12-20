@@ -11,7 +11,6 @@ import nodeInfo
 pp = pprint.PrettyPrinter()
 
 #nodeType='c5n.large'
-#nodeType='c5.large'
 #nodeType='c5n.xlarge'
 #nodeType='c5n.4xlarge'
 
@@ -22,12 +21,13 @@ pp = pprint.PrettyPrinter()
 #CDATE='20191209'
 #HH='00'
 
-nodeType='c5n.18xlarge'
+#nodeType='c5n.18xlarge'
 #nodeType='c5.18xlarge'
 #nodeType='c5.9xlarge'
-nodes=2
+nodeType='c5.4xlarge'
+nodes=1
 OFS='ngofs'
-CDATE='20191212'
+CDATE='20191219'
 HH='03'
 
 tags = [ { 'Key': 'Name', 'Value': 'IOOS-cloud-sandbox' },
@@ -45,6 +45,10 @@ except:
 
 PPN=coresPN
 NP=nodes*PPN
+
+# Override to match NCO COOPS 
+#NP=280
+#PPN=36
 
 print('Starting ' + str(nodes) + ' instances ...')
 print('Waiting for all instances to enter running state ...')
