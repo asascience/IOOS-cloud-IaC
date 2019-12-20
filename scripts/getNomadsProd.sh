@@ -29,7 +29,7 @@ do
 done
 
 if [[ $OFS == "ngofs" ]] ; then
-  wget -nc $NOMADS/nos.ngofs.nestnode.*.forecast.$CDATE.t${CYC}z.nc
+  wget -nc $NOMADS/nos.${OFS}.nestnode.*.forecast.$CDATE.t${CYC}z.nc
 fi
 
 
