@@ -25,10 +25,8 @@ class Cluster(ABC) :
 
 
   ## getPPN - get the number of processors per node 
-  #@abstractmethod
   def getCoresPN(self) :
     return self.PPN
-    #pass
   
   ''' 
   Abstract Function Definitions
@@ -42,22 +40,32 @@ class Cluster(ABC) :
   def start() :
     pass
 
+
+
   ## terminate  
   @abstractmethod
   def terminate() :
     pass
- 
+
+
+
+  ## getHosts 
   ## get the list of hostnames or IPs in this cluster 
   @abstractmethod
   def getHosts() :
     pass
+
+
  
+  ## getHostsCSV
   ## get a comma separated list of hosts in this cluster
   @abstractmethod
   def getHostsCSV() :
     pass
   
 
+
+  ## getState
   @abstractmethod
   def getState() :
     pass
