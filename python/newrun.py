@@ -3,7 +3,7 @@
 # keep things cloud platform agnostic at this layer
 import sys
 import time
-import Cluster
+from AWSCluster import AWSCluster
 import pprint
 import subprocess
 import nodeInfo
@@ -17,22 +17,28 @@ pp = pprint.PrettyPrinter()
 #nodeType='c5n.18xlarge'
 #nodeType='c5.18xlarge'
 #nodeType='c5.9xlarge'
-nodeType='c5.4xlarge'
+#nodeType='c5.4xlarge'
+nodeType='c5.large'
 nodes=1
 OFS='ngofs'
 CDATE='20191219'
 HH='03'
+platform='AWS'
 
 tags = [ { 'Key': 'Name', 'Value': 'IOOS-cloud-sandbox' },
          { 'Key': 'NAME', 'Value': OFS + '-fcst-' + CDATE + HH }
        ]
 
-cluster = Cluster(nodeType,nodes,tags)
+# TODO - platform is probably not needed, unless using a factory pattern
+cluster = AWSCluster(platform,nodeType,nodes,tags)
+
 
 try:
-  coresPN=cluster.getPPN()
-except:
-  print('Could not determine PPN for '+ nodeType)
+  coresPN=cluster.getCoresPN()
+except Exception as e:
+  print('Could not determine PPN for '+ nodeType + ' ' + str(e))
+  print('Cores='+str(coresPN))
+
   sys.exit()
 
 PPN=coresPN
@@ -51,31 +57,32 @@ except Exception as e:
 #NP=140
 #PPN=28
 
-# Shared libraries must be available to the executable!!! shell env is not preserved
-runscript='/save/nosofs-NCO/jobs/launcher.sh'
 
 try:
   hosts=cluster.getHostsCSV()
 except Exception as e:
   print('In driver: execption retrieving list of hostnames:' + str(e))
 
+
 print('hostnames : ' + hosts)
 
-try:
 
+
+# Shared libraries must be available to the executable!!! shell env is not preserved
+runscript='/save/nosofs-NCO/jobs/launcher.sh'
+try:
   # cluster.run(task)
   subprocess.run([runscript,CDATE,HH,str(NP),str(PPN),hosts,OFS], \
     stderr=subprocess.STDOUT)
-
 except Exception as e:
   print('In driver: Exception during subprocess.run :' + str(e))
 
 print('Forecast finished')
 
+
 # Terminate the cluster nodes
-print('About to terminate: ', instances)
-# cluster.terminate()
-responses = cluster.terminateNodes(instances)
+print('About to terminate cluster ')
+responses = cluster.terminate()
 
 # Just check the state
 print('Responses from terminate: ')

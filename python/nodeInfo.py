@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
-
 # keep things cloud platform agnostic at this layer
 import sys
-#import cluster
 
 def getPPN(instance_type) :
+
+  # print('Key is: ' + str(instance_type))
 
   awsTypes = { 'c5.large':1, 'c5.xlarge':2, 'c5.2xlarge':4, 'c5.4xlarge':8, \
                 'c5.9xlarge':18, 'c5.18xlarge':36, 'c5.24xlarge':48, 'c5n.metal':36, \
