@@ -1,32 +1,48 @@
-import boto3
 import time
+import json
+
+import boto3
 from botocore.exceptions import ClientError
 
-from Cluster import Cluster
 import nodeInfo
+from Cluster import Cluster
 
 class AWSCluster(Cluster) :
 
-#  __configFile = ''
-#  __instances = []
+  ''' 
+  Members of parent class
+    self.__state
+    self.__instances[]
+  '''
 
-  def __init__(self, nodeType, nodeCount, tags) :
-
-    #platform='AWS'
-    #self.platform = platform   # only AWS is valid currently
+  def __init__(self, configFile) :
 
     # Call the parent constructor
-    Cluster.__init__(self, nodeType, nodeCount)
+    Cluster.__init__(self)
+    
+    self.platform  = ''   # Only AWS implemented
+    self.nodeType  = ''
+    self.nodeCount = 0
+    self.OFS       = ''
+    self.CDATE     = ''
+    self.HH        = ''
+    self.tags      = []
+    self.image_id  = ''
+    self.key_name  = ''
+    self.sg_id1    = ''
+    self.sg_id2    = ''
+    self.sg_id3    = ''
+    self.subnet_id = ''
+    self.placement_group = ''
 
-    # TODO: Define these in config file
-    self.tags = tags
-    self.image_id = 'ami-04a10608958c0c138'   # HDF5 1.10.5, NetCDF 4.5
-    self.key_name = 'patrick-ioos-cloud-sandbox'
-    self.sg_id1 = 'sg-006041073bfa7b072'
-    self.sg_id2 = 'sg-0a48755f7b926b051'
-    self.sg_id3 = 'sg-04a6bcecaec589f64'
-    self.subnet_id = 'subnet-09dae53e246bd68e4'
-    self.placement_group = 'IOOS-cloud-sandbox-cluster-placement-group'
+    self.configFile = configFile
+    cfDict = self.readConfig(configFile)
+    self.__parseConfig(cfDict)
+
+    self.PPN = nodeInfo.getPPN(self.nodeType)
+
+    # Can do it this way also - function
+    #self.__parseConfig(self.readConfig(configFile))
 
 
   ''' 
@@ -35,6 +51,43 @@ class AWSCluster(Cluster) :
   '''
 
   # Implement these interfaces
+
+  def readConfig(self, configFile) :
+
+    with open(configFile, 'r') as cf:
+      cfDict = json.load(cf)
+
+    print(json.dumps(cfDict, indent=4))
+    print(str(cfDict))
+
+    # Could do the parse here instead also, more than one way to do it
+    return cfDict
+
+
+  def __parseConfig(self, cfDict) :
+
+    self.platform  = cfDict['platform']
+    self.region    = cfDict['region']
+    self.nodeType  = cfDict['nodeType']
+    self.nodeCount = cfDict['nodeCount']
+    self.OFS       = cfDict['OFS']
+    self.CDATE     = cfDict['CDATE']
+    self.HH        = cfDict['HH']
+    self.tags      = cfDict['tags']
+    self.image_id  = cfDict['image_id']
+    self.key_name  = cfDict['key_name']
+    self.sg_id1    = cfDict['sg_id1']
+    self.sg_id2    = cfDict['sg_id2']
+    self.sg_id3    = cfDict['sg_id3']
+    self.subnet_id = cfDict['subnet_id']
+    self.placement_group = cfDict['placement_group']
+
+    return
+
+
+  def getCoresPN(self) :
+    return self.PPN
+
   def start(self) :
      return self.__AWScreateCluster()
 
@@ -46,8 +99,6 @@ class AWSCluster(Cluster) :
 
   def getHostsCSV(self) :
     return self.__AWSgetHostsCSV()
-
-
 
 #  def getState(self) :
 #    return self.__state
@@ -126,7 +177,7 @@ class AWSCluster(Cluster) :
   ########################################################################
   def __AWScreateCluster(self) :
   
-    ec2 = boto3.resource('ec2')
+    ec2 = boto3.resource('ec2',region_name=self.region)
   
     try: 
       self.__instances = ec2.create_instances(
@@ -141,8 +192,6 @@ class AWSCluster(Cluster) :
             'Tags': self.tags
           }
         ],
-
-        # TODO : Do not need function parameter with this class instance
         Placement= self.__AWSplacementGroup(),
         NetworkInterfaces = [ self.__AWSnetInterface() ],
         CpuOptions={
@@ -155,10 +204,11 @@ class AWSCluster(Cluster) :
       print('ClientError exception in createCluster' + str(e))
       raise Exception() from e
   
-  
+ 
+    print('Waiting for nodes to enter running state ...') 
     # Make sure the nodes are running before returning
   
-    client = boto3.client('ec2')
+    client = boto3.client('ec2', self.region)
     waiter = client.get_waiter('instance_running')
   
     for instance in self.__instances:

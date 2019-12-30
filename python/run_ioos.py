@@ -16,28 +16,31 @@ pp = pprint.PrettyPrinter()
 #nodeType='c5.18xlarge'
 #nodeType='c5.9xlarge'
 #nodeType='c5.4xlarge'
-nodeType='c5n.2xlarge'
-nodes=2
-OFS='ngofs'
-CDATE='20191219'
-HH='03'
-platform='AWS'
+#nodeType='c5n.2xlarge'
+#nodes=2
+#OFS='ngofs'
+#CDATE='20191219'
+#HH='03'
+#platform='AWS'
 
-tags = [ { 'Key': 'Name', 'Value': 'IOOS-cloud-sandbox' },
-         { 'Key': 'NAME', 'Value': OFS + '-fcst-' + CDATE + HH }
-       ]
+#tags = [ { 'Key': 'Name', 'Value': 'IOOS-cloud-sandbox' },
+         #{ 'Key': 'NAME', 'Value': OFS + '-fcst-' + CDATE + HH }
+       #]
+
+config='ioos.config'
 
 try:
-  cluster = AWSCluster(nodeType,nodes,tags)
+  #cluster = AWSCluster(nodeType,nodes,tags)
+  cluster = AWSCluster(config)
 except Exception as e:
   print('Could not create cluster: ' + str(e))
   sys.exit()
 
 PPN = cluster.getCoresPN()
-NP = nodes*PPN
+NP = cluster.nodeCount*PPN
 
-print('Starting ' + str(nodes) + ' instances ...')
-print('Waiting for all instances to enter running state ...')
+print('Starting ' + str(cluster.nodeCount) + ' instances ...')
+#print('Waiting for all instances to enter running state ...')
 
 try:
   cluster.start()
@@ -63,7 +66,7 @@ print('hostnames : ' + hosts)
 runscript='/save/nosofs-NCO/jobs/launcher.sh'
 try:
   # cluster.run(task)
-  subprocess.run([runscript,CDATE,HH,str(NP),str(PPN),hosts,OFS], \
+  subprocess.run([runscript,CDATE,HH,str(NP),str(PPN),hosts,cluster.OFS], \
     stderr=subprocess.STDOUT)
 except Exception as e:
   print('In driver: Exception during subprocess.run :' + str(e))
