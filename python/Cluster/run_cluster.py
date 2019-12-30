@@ -16,8 +16,8 @@ pp = pprint.PrettyPrinter()
 #nodeType='c5.18xlarge'
 #nodeType='c5.9xlarge'
 #nodeType='c5.4xlarge'
-nodeType='c5.large'
-nodes=1
+nodeType='c5n.2xlarge'
+nodes=2
 OFS='ngofs'
 CDATE='20191219'
 HH='03'
@@ -27,20 +27,14 @@ tags = [ { 'Key': 'Name', 'Value': 'IOOS-cloud-sandbox' },
          { 'Key': 'NAME', 'Value': OFS + '-fcst-' + CDATE + HH }
        ]
 
-# TODO - platform is probably not needed, unless using a factory pattern
-cluster = AWSCluster(platform,nodeType,nodes,tags)
-
-
 try:
-  coresPN=cluster.getCoresPN()
+  cluster = AWSCluster(nodeType,nodes,tags)
 except Exception as e:
-  print('Could not determine PPN for '+ nodeType + ' ' + str(e))
-  print('Cores='+str(coresPN))
-
+  print('Could not create cluster: ' + str(e))
   sys.exit()
 
-PPN=coresPN
-NP=nodes*PPN
+PPN = cluster.getCoresPN()
+NP = nodes*PPN
 
 print('Starting ' + str(nodes) + ' instances ...')
 print('Waiting for all instances to enter running state ...')
@@ -63,7 +57,6 @@ except Exception as e:
 
 
 print('hostnames : ' + hosts)
-
 
 
 # Shared libraries must be available to the executable!!! shell env is not preserved

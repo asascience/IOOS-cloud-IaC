@@ -10,17 +10,15 @@ class AWSCluster(Cluster) :
 #  __configFile = ''
 #  __instances = []
 
-  def __init__(self, platform, nodeType, nodeCount, tags) :
+  def __init__(self, nodeType, nodeCount, tags) :
+
+    #platform='AWS'
+    #self.platform = platform   # only AWS is valid currently
 
     # Call the parent constructor
-    Cluster.__init__(self, platform, nodeType, nodeCount)
-    #self.platform = platform   # only AWS is valid currently
-    #self.nodeCount = nodeCount
-    #self.nodeType = nodeType
-    #self.__state = "none"
-    #self.__instances = []
-    #self.PPN = nodeInfo.getPPN(self.nodeType)
+    Cluster.__init__(self, nodeType, nodeCount)
 
+    # TODO: Define these in config file
     self.tags = tags
     self.image_id = 'ami-04a10608958c0c138'   # HDF5 1.10.5, NetCDF 4.5
     self.key_name = 'patrick-ioos-cloud-sandbox'
@@ -36,7 +34,7 @@ class AWSCluster(Cluster) :
   =====================
   '''
 
-
+  # Implement these interfaces
   def start(self) :
      return self.__AWScreateCluster()
 
@@ -49,11 +47,11 @@ class AWSCluster(Cluster) :
   def getHostsCSV(self) :
     return self.__AWSgetHostsCSV()
 
-  def getState(self) :
-    return self.__state
 
-  #def getPPN(self) :
-  #return self.PPN
+
+#  def getState(self) :
+#    return self.__state
+
 
   ########################################################################
   def __AWSgetHosts(self) :
