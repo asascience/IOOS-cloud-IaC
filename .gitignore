@@ -2,3 +2,4 @@ rpmbuild/RPMS/*.rpm
 **/__pycache__
 .DS_Store
 adnoc/ROMS/*
+python/ocean.in

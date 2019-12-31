@@ -64,6 +64,7 @@ def getTiling( nodeCount, coresPN ) :
 
   print("NtileI : ", NtileI, " NtileJ ", NtileJ)
 
+  return { "NtileI": NtileI, "NtileJ": NtileJ }
       
 
 
