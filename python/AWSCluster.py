@@ -235,7 +235,7 @@ class AWSCluster(Cluster) :
       inum+=1
   
     if not(ready) :
-      __AWSterminateCluster()
+      self.__AWSterminateCluster()
       raise Exception('Nodes did not start within time limit... terminating them...')    
   
     return self.__instances
@@ -251,7 +251,7 @@ class AWSCluster(Cluster) :
   
     print('Terminating instances: ',self.__instances)
   
-    ec2 = boto3.resource('ec2')
+    ec2 = boto3.resource('ec2',region_name=self.region)
   
     responses = []
   
