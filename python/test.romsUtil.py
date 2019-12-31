@@ -6,8 +6,8 @@ template="../adnoc/ocean.in.template"
 outfile="ocean.in"
 
 
-nodeCount=4
-coresPN=36
+nodeCount=1
+coresPN=33
 
 tiles = util.getTiling( nodeCount, coresPN )
 
