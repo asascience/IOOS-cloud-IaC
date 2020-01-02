@@ -37,10 +37,12 @@ def terminate_cluster()
 with Flow("model run") as flow:
   get_ics()
   configure_model()
-  create_cluster()
+  create_cluster('forecast')
   run_forecast()
-  post_process()
   terminate_cluster()
+
+  create_cluster('post')
+  post_process()
 
 
 flow.run()

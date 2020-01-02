@@ -10,8 +10,12 @@ pp = pprint.PrettyPrinter()
 
 config='adnoc.config'
 
+## Task cluster instantiate()
 try:
+  print('creating cluster')
   cluster = AWSCluster(config)
+  print('cluster initialized')
+
 except Exception as e:
   print('Could not create cluster: ' + str(e))
   sys.exit()
@@ -21,12 +25,15 @@ NP = cluster.nodeCount*PPN
 
 print('Starting ' + str(cluster.nodeCount) + ' instances ...')
 
+
+## Task cluster.start()
 try:
   cluster.start()
 except Exception as e:
   print('In driver: Exception while creating nodes :' + str(e))
   sys.exit()
 
+## Task getHosts
 try:
   hosts=cluster.getHostsCSV()
 except Exception as e:
@@ -34,7 +41,11 @@ except Exception as e:
 
 print('hostnames : ' + hosts)
 
+# Task setup ROMS forecast
+# read config
+# create template
 
+## Task forecast run
 ##################################################
 ####  Cluster job script here
 ##################################################

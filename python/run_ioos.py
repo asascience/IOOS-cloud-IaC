@@ -66,6 +66,10 @@ print('hostnames : ' + hosts)
 runscript='/save/nosofs-NCO/jobs/launcher.sh'
 try:
   # cluster.run(task)
+  CDATE=cluster.CDATE
+  HH=cluster.HH
+  OFS=cluster.OFS
+
   subprocess.run([runscript,CDATE,HH,str(NP),str(PPN),hosts,cluster.OFS], \
     stderr=subprocess.STDOUT)
 except Exception as e:

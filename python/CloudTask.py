@@ -9,12 +9,23 @@ mpirun --np 4 dask-mpi --scheduler-file /home/$USER/scheduler.json
 
 Amazon Elastic MapReduce (EMR) is a web service for creating a cloud-hosted Hadoop cluster.
 
-
-
 '''
+
+from prefect import Task
+
+class CloudTask(Task):
+
+  def run(self):
+    print("... CloudTask.run stub")
+
+
+
+
 def cloudTask ( scriptname, **kwargs) :
   print('... cloudTask stub')
   return
+
+
 
 ''' Data Access APIs
 from: https://docs.dask.org/en/latest/setup/cloud.html

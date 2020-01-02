@@ -9,17 +9,17 @@ from Cluster import Cluster
 
 class AWSCluster(Cluster) :
 
-  ''' 
-  Members of parent class
-    self.__state
-    self.__instances[]
-  '''
 
   def __init__(self, configFile) :
 
     # Call the parent constructor
-    Cluster.__init__(self)
-    
+    # Cluster.__init__(self)
+
+    self.configFile = configFile
+
+    self.__state = "none"   # This could be an enumeration of none, running, stopped, error
+    self.__instances = []
+
     self.platform  = ''   # Only AWS implemented
     self.nodeType  = ''
     self.nodeCount = 0
@@ -35,15 +35,15 @@ class AWSCluster(Cluster) :
     self.subnet_id = ''
     self.placement_group = ''
 
-    self.configFile = configFile
-    cfDict = self.readConfig(configFile)
-    self.__parseConfig(cfDict)
+    #cfDict = self.readConfig(configFile)
+    #self.__parseConfig(cfDict)
+    self.readConfig(configFile)
 
     self.PPN = nodeInfo.getPPN(self.nodeType)
 
-    # Can do it this way also - function
+    # Can do it this way also - nested functions
     #self.__parseConfig(self.readConfig(configFile))
-
+    
 
   ''' 
   Function  Definitions
@@ -52,6 +52,9 @@ class AWSCluster(Cluster) :
 
   # Implement these interfaces
 
+
+  ########################################################################
+  ########################################################################
   def readConfig(self, configFile) :
 
     with open(configFile, 'r') as cf:
@@ -61,18 +64,26 @@ class AWSCluster(Cluster) :
     print(str(cfDict))
 
     # Could do the parse here instead also, more than one way to do it
-    return cfDict
+    #return cfDict
+    self.__parseConfig(cfDict)
+
+    return
+  ########################################################################
 
 
+
+  ########################################################################
   def __parseConfig(self, cfDict) :
 
     self.platform  = cfDict['platform']
     self.region    = cfDict['region']
     self.nodeType  = cfDict['nodeType']
     self.nodeCount = cfDict['nodeCount']
+
     self.OFS       = cfDict['OFS']
     self.CDATE     = cfDict['CDATE']
     self.HH        = cfDict['HH']
+    
     self.tags      = cfDict['tags']
     self.image_id  = cfDict['image_id']
     self.key_name  = cfDict['key_name']
@@ -83,6 +94,7 @@ class AWSCluster(Cluster) :
     self.placement_group = cfDict['placement_group']
 
     return
+  ########################################################################
 
 
   def getCoresPN(self) :

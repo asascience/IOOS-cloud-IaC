@@ -5,24 +5,21 @@ from abc import ABC, abstractmethod
 '''
 class Cluster(ABC) :
 
-#  __configFile = ''
-#  __instances = []
-#cluster = AWSCluster(platform,nodeType,nodes,tags)
+  #  __configFile = ''
+  #  __instances = []
+  #cluster = AWSCluster(platform,nodeType,nodes,tags)
 
-  def __init__(self) :
+  # Idea: We can use a Factory pattern here, can either have a type parameter, or infer it from the nodeType
+  # self.__configFile = configFile
+  # Or, self.platform = getPlatform(nodeType)
 
-    # Idea: We can use a Factory pattern here, can either have a type parameter, or infer it from the nodeType
-    # self.__configFile = configFile
-    # Or, self.platform = getPlatform(nodeType)
+  #self.nodeCount = nodeCount
+  #self.nodeType = nodeType
+  #self.__state = "none"   # This should be an enumeration of none, running, stopped, error
+  #self.__instances = []
 
-
-    #self.nodeCount = nodeCount
-    #self.nodeType = nodeType
-    self.__state = "none"   # This should be an enumeration of none, running, stopped, error
-    self.__instances = []
-
-    # dependency here on nodeInfo - nodeType must be defined there
-    #self.PPN = nodeInfo.getPPN(nodeType)
+  # dependency here on nodeInfo - nodeType must be defined there
+  #self.PPN = nodeInfo.getPPN(nodeType)
 
   ## getPPN - get the number of processors per node 
   @abstractmethod
