@@ -38,8 +38,9 @@ class AWSCluster(Cluster.Cluster) :
     #cfDict = self.readConfig(configFile)
     #self.__parseConfig(cfDict)
     self.readConfig(configFile)
-
     self.PPN = nodeInfo.getPPN(self.nodeType)
+
+    print('In AWSCluster init: nodeCount: ', str(self.nodeCount), ' PPN: ', str(self.PPN))
 
     # Can do it this way also - nested functions
     #self.__parseConfig(self.readConfig(configFile))

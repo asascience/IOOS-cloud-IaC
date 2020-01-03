@@ -7,9 +7,9 @@ outfile="ocean.in"
 
 
 nodeCount=1
-coresPN=33
+coresPN=36
 
-tiles = util.getTiling( nodeCount, coresPN )
+tiles = util.getTiling( nodeCount * coresPN )
 
 # Just a dictionary
 # Could also read this in from a json file 

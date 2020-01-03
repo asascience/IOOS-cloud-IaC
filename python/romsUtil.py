@@ -24,8 +24,9 @@ def sedoceanin ( template, outfile, settings ) :
 
 
 
-
-def getTiling( nodeCount, coresPN ) :
+# TODO: just need totalCores
+#def getTiling( nodeCount, coresPN ) :
+def getTiling( totalCores ) :
   ''' Algorithm
 
     prefer a square or closest to it
@@ -47,9 +48,10 @@ def getTiling( nodeCount, coresPN ) :
   NtileI=1
   NtileJ=1
 
-  totalCores = coresPN * nodeCount
+  #totalCores = coresPN * nodeCount
+  print('In getTiling: totalCores = ', str(totalCores))
 
-  if (totalCores != 1 && totalCores % 2 != 0):
+  if ((totalCores != 1) and (totalCores % 2 != 0)):
     raise Exception("Total cores must be even")
 
   square = math.sqrt(totalCores) 
