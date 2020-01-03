@@ -2,7 +2,8 @@
 
 # keep things cloud platform agnostic at this layer
 import sys
-from AWSCluster import AWSCluster
+#from AWSCluster import AWSCluster
+from Cluster.AWSCluster import AWSCluster
 import pprint
 import subprocess
 

@@ -2,7 +2,7 @@
 
 # keep things cloud platform agnostic at this layer
 import sys
-from AWSCluster import AWSCluster
+from Cluster import AWSCluster
 import pprint
 import subprocess
 
@@ -83,7 +83,8 @@ def terminate_cluster(cluster):
 
 with Flow('ofs workflow') as flow:
 
-  # Pre process
+  # Pre process tasks here
+
 
   # TODO: separate the cluster infrastructure config from the forecast job config
   config='adnoc.config'
@@ -100,13 +101,13 @@ with Flow('ofs workflow') as flow:
   print('About to terminate cluster ')
   terminate_cluster(cluster)
 
-  # Post process
-  config = 'post.config'
-  postscript = 'poststub'
+  # Post process example
+  #config = 'post.config'
+  #postscript = 'poststub'
 
-  post_machine = init_cluster(config)
-  start_cluster(post_machine)
-  post_run(post_machine,postscript)
+  #post_machine = init_cluster(config)
+  #start_cluster(post_machine)
+  #post_run(post_machine,postscript)
   
 flow.run()
 

@@ -4,11 +4,11 @@ import json
 import boto3
 from botocore.exceptions import ClientError
 
-import nodeInfo
+import Cluster.nodeInfo as nodeInfo
+
 from Cluster import Cluster
 
-class AWSCluster(Cluster) :
-
+class AWSCluster(Cluster.Cluster) :
 
   def __init__(self, configFile) :
 
@@ -51,6 +51,16 @@ class AWSCluster(Cluster) :
   '''
 
   # Implement these interfaces
+
+  ## getState
+  def getState(this) :
+    return this.__state
+
+
+  ## setState
+  def setState(this, state) :
+    this.__state = state
+    return this.__state
 
 
   ########################################################################

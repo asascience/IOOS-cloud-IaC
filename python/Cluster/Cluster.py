@@ -17,7 +17,7 @@ class Cluster(ABC) :
   #self.nodeType = nodeType
   #self.__state = "none"   # This should be an enumeration of none, running, stopped, error
   #self.__instances = []
-
+  
   # dependency here on nodeInfo - nodeType must be defined there
   #self.PPN = nodeInfo.getPPN(nodeType)
 
@@ -27,13 +27,13 @@ class Cluster(ABC) :
     return self.PPN
 
   ## getState
-  #@abstractmethod
+  @abstractmethod
   def getState(this) :
     return this.__state
 
 
   ## setState
-  #@abstractmethod
+  @abstractmethod
   def setState(this, state) :
     this.__state = state
     return this.__state
