@@ -65,25 +65,37 @@ def forecast_run(cluster):
 
   # Make ocean in
   makeOceanin(cluster)
- 
+
+
   try:
     HOSTS=cluster.getHostsCSV()
   except Exception as e:
     print('In driver: execption retrieving list of hostnames:' + str(e))
   # TODO - check this error handling and refactor if needed
 
+
   HOSTS='localhost'
+  # This hack is needed since we don't have a clean Intel compiler and run-time installation
+  LIBPATH = os.getenv('LD_LIBRARY_PATH')
+  LIBPATH = LIBPATH + ':/opt/intel/psxe_runtime_2017.8.262/linux/compiler/lib/intel64_lin'
+  os.putenv('LD_LIBRARY_PATH',LIBPATH)
+  print('LD_LIBRARY_PATH : ', os.getenv('LD_LIBRARY_PATH'))
 
   # mpirun -n 1 /home/mmonim/roms-761/oceanM ocean.in > ocean.out 2>&1
   print('hostnames : ' + HOSTS)
   #MPIOPTS = " -nolocal -launcher ssh -hosts " + HOSTS + " -np " + str(NPROCS) + " -ppn " + str(PPN)
-  MPIOPTS = " -launcher ssh -hosts " + HOSTS + " -np " + str(NPROCS) + " -ppn " + str(PPN)
+  MPIOPTS = "-launcher ssh -hosts " + HOSTS + " -np " + str(NPROCS) + " -ppn " + str(PPN) + " "
 
-  print('mpirun ', MPIOPTS, EXEC, oceanin);
+  # mpirun -env <ENVVAR> <value>
+  print('mpirun', MPIOPTS, EXEC, oceanin);
+  os.chdir(RUNDIR)
+
+  #subprocess.run('echo $PWD',shell=True)
+  #subprocess.run('which mpirun',shell=True)
+
   try:
-    os.chdir(RUNDIR)
-    #subprocess.run(['echo $PWD'])
-    subprocess.run(['mpirun', MPIOPTS, EXEC, oceanin ], stderr=subprocess.STDOUT)
+    subprocess.run(['mpirun', '-launcher','ssh', '-hosts', HOSTS, '-np', str(NPROCS), \
+                    '-ppn', str(PPN), EXEC, oceanin ], stderr=subprocess.STDOUT)
  
   except Exception as e:
     print('In driver: Exception during subprocess.run :' + str(e))
@@ -124,11 +136,11 @@ def makeOceanin(cluster) :
 
 
 
-
 #######################################################################
 @task 
 def terminate_cluster(cluster):
 
+  
   responses = cluster.terminate()
   # Just check the state
   print('Responses from terminate: ')
@@ -137,7 +149,9 @@ def terminate_cluster(cluster):
 #######################################################################
 
 
-
+#LIBPATH = os.getenv('LD_LIBRARY_PATH')
+#LIBPATH = LIBPATH + ':/opt/intel/psxe_runtime_2017.8.262/linux/compiler/lib/intel64_lin'
+#os.putenv('LD_LIBRARY_PATH',LIBPATH)
 
 
 with Flow('ofs workflow') as flow:
@@ -151,13 +165,14 @@ with Flow('ofs workflow') as flow:
 
   # Forecast
   cluster = init_cluster(config)
+
   #cluster = start_cluster(cluster)
 
   status = forecast_run(cluster)
 
   # Terminate the cluster nodes
-#  terminate_cluster(cluster)
-#  terminate_cluster.set_upstream(status)
+  terminate_cluster(cluster)
+  terminate_cluster(cluster).set_upstream(status)
 
   # Post process example
   #config = 'post.config'
