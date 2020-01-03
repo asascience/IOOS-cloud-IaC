@@ -1,3 +1,3 @@
-#from Cluster import Cluster
-#from AWSCluster import AWSCluster
-#import nodeInfo
+from Cluster import Cluster
+from Cluster import AWSCluster
+from Cluster import nodeInfo

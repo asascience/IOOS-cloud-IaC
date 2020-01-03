@@ -9,7 +9,7 @@ import subprocess
 
 pp = pprint.PrettyPrinter()
 
-config='adnoc.config'
+config='configs/adnoc.config'
 
 ## Task cluster instantiate()
 try:

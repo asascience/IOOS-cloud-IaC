@@ -5,7 +5,6 @@ import math
 
 
 
-
 def sedoceanin ( template, outfile, settings ) :
  
   with open(template, 'r') as infile :
