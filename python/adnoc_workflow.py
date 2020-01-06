@@ -66,7 +66,6 @@ def forecast_run(cluster):
   # Make ocean in
   makeOceanin(cluster)
 
-
   try:
     HOSTS=cluster.getHostsCSV()
   except Exception as e:
@@ -74,7 +73,7 @@ def forecast_run(cluster):
   # TODO - check this error handling and refactor if needed
 
 
-  HOSTS='localhost'
+  #HOSTS='localhost'
   # This hack is needed since we don't have a clean Intel compiler and run-time installation
   LIBPATH = os.getenv('LD_LIBRARY_PATH')
   LIBPATH = LIBPATH + ':/opt/intel/psxe_runtime_2017.8.262/linux/compiler/lib/intel64_lin'
@@ -82,20 +81,26 @@ def forecast_run(cluster):
   print('LD_LIBRARY_PATH : ', os.getenv('LD_LIBRARY_PATH'))
 
   # mpirun -n 1 /home/mmonim/roms-761/oceanM ocean.in > ocean.out 2>&1
-  print('hostnames : ' + HOSTS)
+  #print('hostnames : ' + HOSTS)
   #MPIOPTS = " -nolocal -launcher ssh -hosts " + HOSTS + " -np " + str(NPROCS) + " -ppn " + str(PPN)
-  MPIOPTS = "-launcher ssh -hosts " + HOSTS + " -np " + str(NPROCS) + " -ppn " + str(PPN) + " "
-
-  # mpirun -env <ENVVAR> <value>
+  MPIOPTS = "-genv LD_LIBRARY_PATH " + LIBPATH + " -nolocal -launcher ssh -hosts " + HOSTS + " -np " + str(NPROCS) + " -ppn " + str(PPN) + " "
   print('mpirun', MPIOPTS, EXEC, oceanin);
+
+  #MPIRUN=['mpirun', '-nolocal', '-launcher','ssh', '-hosts', HOSTS, '-np', str(NPROCS), \
+  #                  '-ppn', str(PPN), EXEC, oceanin ]
+
+  #print('Calling mpirun : ', MPIRUN)
+
+  # mpirun -env <ENVVAR> <value> /opt/intel/psxe_runtime_2017.8.262/linux/compiler/lib/intel64_lin
   os.chdir(RUNDIR)
 
   #subprocess.run('echo $PWD',shell=True)
   #subprocess.run('which mpirun',shell=True)
+  # subprocess does not work unless each argument is listed separately
 
   try:
-    subprocess.run(['mpirun', '-launcher','ssh', '-hosts', HOSTS, '-np', str(NPROCS), \
-                    '-ppn', str(PPN), EXEC, oceanin ], stderr=subprocess.STDOUT)
+    subprocess.run(['mpirun', '-usize',str(NPROCS),'-verbose', '-genv', 'LD_LIBRARY_PATH', LIBPATH, '-nolocal', '-launcher','ssh', \
+                    '-hosts', HOSTS, '-np', str(NPROCS), '-ppn', str(PPN), EXEC, oceanin ], stderr=subprocess.STDOUT)
  
   except Exception as e:
     print('In driver: Exception during subprocess.run :' + str(e))
@@ -166,12 +171,11 @@ with Flow('ofs workflow') as flow:
   # Forecast
   cluster = init_cluster(config)
 
-  #cluster = start_cluster(cluster)
+  cluster = start_cluster(cluster)
 
   status = forecast_run(cluster)
 
   # Terminate the cluster nodes
-  terminate_cluster(cluster)
   terminate_cluster(cluster).set_upstream(status)
 
   # Post process example
