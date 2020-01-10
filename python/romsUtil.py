@@ -2,7 +2,7 @@ import sys
 import shutil
 import re
 import math
-
+import datetime
 
 
 def sedoceanin ( template, outfile, settings ) :
@@ -21,6 +21,27 @@ def sedoceanin ( template, outfile, settings ) :
 
   return
 
+
+
+def ndays( cdate1, cdate2 ) :
+  days = datetime.timedelta(days=0)
+ 
+  print(f"cdate1 : {cdate1}   cdate2: {cdate2}")
+
+  y1 = int(cdate1[0:4])
+  m1 = int(cdate1[4:6].lstrip("0"))
+  d1 = int(cdate1[6:8].lstrip("0"))
+
+  y2 = int(cdate2[0:4])
+  m2 = int(cdate2[4:6].lstrip("0"))
+  d2 = int(cdate2[6:8].lstrip("0"))
+
+  date1 = datetime.datetime(y1,m1,d1)
+  date2 = datetime.datetime(y2,m2,d2)
+  days = date1 - date2
+  print(str(days.days))
+  return days.days
+  
 
 
 

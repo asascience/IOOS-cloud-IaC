@@ -13,6 +13,7 @@ from prefect import Flow, task
 pp = pprint.PrettyPrinter()
 
 
+# Reuse
 #######################################################################
 @task
 def init_cluster(config) -> AWSCluster :
@@ -27,6 +28,7 @@ def init_cluster(config) -> AWSCluster :
 
 
 
+# Reuse
 #######################################################################
 @task
 def start_cluster(cluster):
@@ -37,44 +39,72 @@ def start_cluster(cluster):
   except Exception as e:
     print('In driver: Exception while creating nodes :' + str(e))
     sys.exit()
-  return cluster
+  return 'STARTED'
 
 #######################################################################
 
 
 
-
+# Reuse if parameterized
+# Customize
 #######################################################################
 # TODO - paramaterize this forecast run
 @task
 def forecast_run(cluster):
 
-  # Shared libraries must be available to the executable!!! shell env is not preserved
-  #runscript='/save/nosofs-NCO/jobs/launcher.sh'
+  jobDesc = "jobs/liveocean.job"
+
   PPN = cluster.getCoresPN()
   NPROCS = cluster.nodeCount*PPN
 
-  print('In forecast_run. PPN = ', str(PPN), ' NPROCS = ', str(NPROCS))
+  with open(jobDesc, 'r') as cf:
+    jobDict = json.load(cf)
 
-  # TODO: Read these from a job config file
-  CDATE = cluster.CDATE
-  HH = cluster.HH
-  OFS = cluster.OFS
+  print(json.dumps(jobDict, indent=4))
+  print(str(jobDict))
 
-  # TODO parameterize this
+  CDATE = jobDict['CDATE']
+  HH = jobDict['HH']
+  OFS = jobDict['OFS']
+
   runscript="fcst_launcher.sh"
 
-  # Make ocean in
-  # TODO - setup for NOSOFS and LiveOcean
-  template = f"templates/{OFS}.ocean.in"
-  outfile = "/com/liveocean/f2019.11.06/liveocean.in"
-  makeOceanin(cluster,template,outfile)
+  # Make ocean in for ROMS
+  if cluster.OFS == 'liveocean':
+
+    # Using f-strings
+ 
+    # Add stuff to the replacement dictionary 
+    fdate = f"f{CDATE[0:3]}.{CDATE[4:5]}.{CDATE[6:7]}"
+    template = f"templates/{OFS}.ocean.in"
+    outfile = f"/com/liveocean/{fdate}/liveocean.in"
+
+    TIME_REF = "19700101"
+    DSTART = util.ndays(CDATE,TIME_REF)
+
+    replace = {
+      "__NTIMES__"   : jobDict['NTIMES'],
+      "__TIME_REF__" : jobDict['TIME_REF'],
+      "__DSTART__"   : DSTART,
+      "__FDATE__"    : fdate,
+      "__ININAME__"  : "/com/liveocean/f2019.11.05/ocean_his_0025.nc"
+    }
+
+  elif cluster.OFS == 'cbofs':
+    template = f"TODO-cbofstemplate"
+    outfile = f"TODO-template"
+  else
+    print("unsupported model")
+ 
+  # FVCOM 
+
+  makeOceanin(cluster,replace,template,outfile)
 
   try:
     HOSTS=cluster.getHostsCSV()
   except Exception as e:
     print('In driver: execption retrieving list of hostnames:' + str(e))
-  # TODO - check this error handling and refactor if needed
+    # TODO - check this error handling and refactor if needed
 
   try:
     subprocess.run([runscript,CDATE,HH,str(NPROCS),str(PPN),HOSTS,OFS], \
@@ -89,7 +119,8 @@ def forecast_run(cluster):
 
 
 
-
+# Reuse if parameterized
+# Customize
 #######################################################################
 # TODO add a job config to parameterize these templated variables
 def makeOceanin(cluster,template,outfile) :
@@ -98,6 +129,8 @@ def makeOceanin(cluster,template,outfile) :
   #template=""
   #outfile=""
 
+  # Can remove cluster dependency if nodeCount and corePN are parameterized
+  # cluster dependency can remain above and this can be added to romsUtil module
   nodeCount = cluster.nodeCount
   coresPN = cluster.getCoresPN()
   totalCores = nodeCount * coresPN
@@ -112,8 +145,8 @@ def makeOceanin(cluster,template,outfile) :
     "__NTILEJ__"   : tiles["NtileJ"],
     "__NTIMES__"   : 60,
     "__TIME_REF__" : "20191212.00",     # adnoc
-    "__DSTART__"   : "18206.0d0",       # liveocean
-    "__FDATE__"    : "f2019.11.06",     # liveocean
+    "__DSTART__"   : "18206.0d0",       # liveocean - calculate
+    "__FDATE__"    : "f2019.11.06",     # liveocean - 
     "__ININAME__"  : "/com/liveocean/f2019.11.05/ocean_his_0025.nc"
   }
 
@@ -126,11 +159,10 @@ def makeOceanin(cluster,template,outfile) :
 
 
 
-
+# Reuse
 #######################################################################
 @task 
 def terminate_cluster(cluster):
-
   
   responses = cluster.terminate()
   # Just check the state
@@ -140,7 +172,7 @@ def terminate_cluster(cluster):
 #######################################################################
 
 
-
+# Customize
 with Flow('ofs workflow') as fcstflow:
 
   # Pre process tasks here
@@ -151,15 +183,17 @@ with Flow('ofs workflow') as fcstflow:
   # TODO: make this a runtime argument
   config='./configs/liveocean.config'
 
-  # Forecast
+  # Create the cluster object
   cluster = init_cluster(config)
 
-  cluster = start_cluster(cluster)
+  # Start the cluster
+  started = start_cluster(cluster)
 
-  status = forecast_run(cluster)
+  # Run the forecast
+  fcst_status = forecast_run(cluster).set_upstream(started)
 
   # Terminate the cluster nodes
-  terminate_cluster(cluster).set_upstream(status)
+  terminate_cluster(cluster).set_upstream(fcst_status)
  
   # fcstflowrunner = fcstflow.run()
   fcstflow.run()
