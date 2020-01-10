@@ -26,6 +26,7 @@ def init_cluster(config) -> AWSCluster :
 
 
 
+
 #######################################################################
 @task
 def start_cluster(cluster):
@@ -114,6 +115,7 @@ def makeOceanin(cluster) :
 
 
 
+
 #######################################################################
 @task 
 def terminate_cluster(cluster):
@@ -128,13 +130,14 @@ def terminate_cluster(cluster):
 
 
 
-with Flow('ofs workflow') as flow:
+with Flow('ofs workflow') as fcstflow:
 
   # Pre process tasks here
 
 
   # TODO: refactor the DAG instead of relying on the cluster object 
   # TODO: separate the cluster infrastructure config from the forecast job config
+  # TODO: make this a runtime argument
   config='./configs/ioos.config'
 
   # Forecast
@@ -155,8 +158,10 @@ with Flow('ofs workflow') as flow:
   #start_cluster(post_machine)
   #post_run(post_machine,postscript)
 
- 
-flow.run()
+  # fcstflowrunner = fcstflow.run()
 
 
 
+  # postflowrunner = postflow.run(executor=daskexecutor)
+
+  # if (fcstflowrunner.state() =
