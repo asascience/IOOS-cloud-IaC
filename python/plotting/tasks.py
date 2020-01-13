@@ -7,9 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from prefect import task
-from prefect.engine.signals import SKIP
 
-import tile
+from plotting import tile
 
 
 @task
