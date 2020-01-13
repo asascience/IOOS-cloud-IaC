@@ -14,19 +14,26 @@ def main():
     FILES = sorted([os.path.join(SOURCE, f) for f in os.listdir(SOURCE)])
     FILES = FILES[:5]
 
+    if not os.path.exists(TARGET):
+        os.mkdir(TARGET)
+
     with Flow('plotting') as flow:
         plot_roms.map(ncfile=FILES, target=unmapped(TARGET), varname=unmapped('temp'))
 
+    # When calling dask-scheduler and dask-worker at the command line
     # address_tcp = 'tcp://10.90.69.73:8786'
     # print(address_tcp)
     # executor = DaskExecutor(address=address_tcp, local_processes=True, debug=True)
 
-    client = Client()
-    print(client)
-    address_tcp = client.scheduler.address
-    executor = DaskExecutor(address=address_tcp)
+    # Defining the client in the script
+    # client = Client()
+    # print(client)
+    # address_tcp = client.scheduler.address
+    # executor = DaskExecutor(address=address_tcp)
+    # flow.run(executor=executor)
 
-    flow.run(executor=executor)
+    # Ignoring Dask
+    flow.run()
 
 if __name__=='__main__':
     main()
