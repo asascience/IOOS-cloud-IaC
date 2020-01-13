@@ -76,6 +76,8 @@ def job_init(cluster) :
   # TODO: Make ocean in for ROMS
   if OFS == 'liveocean':
 
+    # LiveOcean requires a significant amount of available RAM to run > 16GB
+    # NTIMES 90 is 1 hour for liveocean 
     # Using f-strings
     # Add stuff to the replacement dictionary 
     fdate = f"f{CDATE[0:4]}.{CDATE[4:6]}.{CDATE[6:8]}"

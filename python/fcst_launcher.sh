@@ -35,14 +35,14 @@ case $OFS in
     export JOBDIR=$HOMEnos/jobs
     export JOBSCRIPT=$JOBDIR/fcstrun.sh
     export JOBARGS="$CDATE"
-    break;;
+    ;;
   *)
     export HOMEnos=/save/nosofs-NCO
     export JOBDIR=$HOMEnos/jobs
     export JOBSCRIPT=$JOBDIR/fcstrun.sh
     export cyc=$HH
     export JOBARGS="$CDATE $HH"
-    break;;
+    ;;
 esac
  
 export MPIOPTS="-nolocal -launcher ssh -hosts $HOSTS -np $NPROCS -ppn $PPN"
