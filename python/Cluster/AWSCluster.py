@@ -8,6 +8,8 @@ import Cluster.nodeInfo as nodeInfo
 
 from Cluster import Cluster
 
+debug = False
+
 class AWSCluster(Cluster.Cluster) :
 
   def __init__(self, configFile) :
@@ -19,13 +21,9 @@ class AWSCluster(Cluster.Cluster) :
 
     self.__state = "none"   # This could be an enumeration of none, running, stopped, error
     self.__instances = []
-
     self.platform  = ''   # Only AWS implemented
     self.nodeType  = ''
     self.nodeCount = 0
-    self.OFS       = ''
-    self.CDATE     = ''
-    self.HH        = ''
     self.tags      = []
     self.image_id  = ''
     self.key_name  = ''
@@ -71,8 +69,9 @@ class AWSCluster(Cluster.Cluster) :
     with open(configFile, 'r') as cf:
       cfDict = json.load(cf)
 
-    print(json.dumps(cfDict, indent=4))
-    print(str(cfDict))
+    if (debug) :
+      print(json.dumps(cfDict, indent=4))
+      print(str(cfDict))
 
     # Could do the parse here instead also, more than one way to do it
     #return cfDict
@@ -86,15 +85,15 @@ class AWSCluster(Cluster.Cluster) :
   ########################################################################
   def __parseConfig(self, cfDict) :
 
+# Moved to job config
+#    self.OFS       = cfDict['OFS']
+#    self.CDATE     = cfDict['CDATE']
+#    self.HH        = cfDict['HH']
+   
     self.platform  = cfDict['platform']
     self.region    = cfDict['region']
     self.nodeType  = cfDict['nodeType']
-    self.nodeCount = cfDict['nodeCount']
-
-    self.OFS       = cfDict['OFS']
-    self.CDATE     = cfDict['CDATE']
-    self.HH        = cfDict['HH']
-    
+    self.nodeCount = cfDict['nodeCount'] 
     self.tags      = cfDict['tags']
     self.image_id  = cfDict['image_id']
     self.key_name  = cfDict['key_name']

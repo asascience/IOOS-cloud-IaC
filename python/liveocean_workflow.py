@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 
 # keep things cloud platform agnostic at this layer
+# Python dependencies
 import sys
 import os
-from Cluster.AWSCluster import AWSCluster
+import json
 import pprint
 import subprocess
-import romsUtil as util
 
+# 3rd party dependencies
 from prefect import Flow, task
 
-pp = pprint.PrettyPrinter()
+# Local dependencies
+from Cluster.AWSCluster import AWSCluster
+import romsUtil as util
 
+pp = pprint.PrettyPrinter()
+debug = False
 
 # Reuse
 #######################################################################
@@ -39,19 +44,18 @@ def start_cluster(cluster):
   except Exception as e:
     print('In driver: Exception while creating nodes :' + str(e))
     sys.exit()
-  return 'STARTED'
-
+  return True
 #######################################################################
 
 
 
-# Reuse if parameterized
-# Customize
-#######################################################################
-# TODO - paramaterize this forecast run
-@task
-def forecast_run(cluster):
 
+# Reuse ? Only if parameterize hard coded paths/filenames
+#######################################################################
+# @ task : need to parameterize/objectify Job if to be made a task
+def job_init(cluster) :
+
+  # TODO: Move this into it's own routine, make it a function param
   jobDesc = "jobs/liveocean.job"
 
   PPN = cluster.getCoresPN()
@@ -60,29 +64,30 @@ def forecast_run(cluster):
   with open(jobDesc, 'r') as cf:
     jobDict = json.load(cf)
 
-  print(json.dumps(jobDict, indent=4))
-  print(str(jobDict))
+  if (debug) :
+    print(json.dumps(jobDict, indent=4))
+    print(str(jobDict))
 
   CDATE = jobDict['CDATE']
   HH = jobDict['HH']
   OFS = jobDict['OFS']
+  TIME_REF = jobDict['TIME_REF']
 
-  runscript="fcst_launcher.sh"
-
-  # Make ocean in for ROMS
-  if cluster.OFS == 'liveocean':
+  # TODO: Make ocean in for ROMS
+  if OFS == 'liveocean':
 
     # Using f-strings
- 
     # Add stuff to the replacement dictionary 
-    fdate = f"f{CDATE[0:3]}.{CDATE[4:5]}.{CDATE[6:7]}"
+    fdate = f"f{CDATE[0:4]}.{CDATE[4:6]}.{CDATE[6:8]}"
     template = f"templates/{OFS}.ocean.in"
     outfile = f"/com/liveocean/{fdate}/liveocean.in"
 
-    TIME_REF = "19700101"
-    DSTART = util.ndays(CDATE,TIME_REF)
+    print('PT DEBUG: str error')
 
-    replace = {
+    DSTART = util.ndays(CDATE,TIME_REF)
+    # DSTART = days from TIME_REF to start of forecast day larger minus smaller date
+
+    settings = {
       "__NTIMES__"   : jobDict['NTIMES'],
       "__TIME_REF__" : jobDict['TIME_REF'],
       "__DSTART__"   : DSTART,
@@ -93,17 +98,51 @@ def forecast_run(cluster):
   elif cluster.OFS == 'cbofs':
     template = f"TODO-cbofstemplate"
     outfile = f"TODO-template"
-  else
+  else :
     print("unsupported model")
- 
-  # FVCOM 
+    # TODO: Throw exception
 
-  makeOceanin(cluster,replace,template,outfile)
+  print('PT DEBUG: about to call makeOceanin')
+  makeOceanin(cluster,settings,template,outfile)
+  print('PT DEBUG: after makeOceanin')
+
+  return jobDict
+#######################################################################
+
+
+
+# Reuse if parameterized
+# Customize
+#######################################################################
+# TODO - paramaterize this forecast run, add Job object
+@task
+def forecast_run(cluster):
+
+  # Setup the job
+  # TODO: make it a function param? own task?
+
+  PPN = cluster.getCoresPN()
+  NPROCS = cluster.nodeCount*PPN
+
+  jobDict = job_init(cluster)
+  #try:
+  #  jobDict = job_init(cluster)
+  #except Exception as e:
+  #  print('In forecast_run: execption from job_init: '+ str(e))
+  #  return False
+    
+
+  CDATE = jobDict['CDATE']
+  HH = jobDict['HH']
+  OFS = jobDict['OFS']
+
+  runscript="fcst_launcher.sh"
 
   try:
     HOSTS=cluster.getHostsCSV()
   except Exception as e:
     print('In driver: execption retrieving list of hostnames:' + str(e))
+    return False
     # TODO - check this error handling and refactor if needed
 
   try:
@@ -111,9 +150,10 @@ def forecast_run(cluster):
       stderr=subprocess.STDOUT)
   except Exception as e:
     print('In driver: Exception during subprocess.run :' + str(e))
+    return False
 
   print('Forecast finished')
-  return 'DONE'
+  return True
 
 #######################################################################
 
@@ -123,11 +163,9 @@ def forecast_run(cluster):
 # Customize
 #######################################################################
 # TODO add a job config to parameterize these templated variables
-def makeOceanin(cluster,template,outfile) :
+def makeOceanin(cluster,settings,template,outfile) :
 
   # TODO - setup for NOSOFS
-  #template=""
-  #outfile=""
 
   # Can remove cluster dependency if nodeCount and corePN are parameterized
   # cluster dependency can remain above and this can be added to romsUtil module
@@ -136,24 +174,14 @@ def makeOceanin(cluster,template,outfile) :
   totalCores = nodeCount * coresPN
   tiles = util.getTiling( totalCores )
 
-  # TODO - separate settings for nosofs and liveocean
-  # TODO - fix variables for liveocean, hardcoded for specific test case currently
-  # Just a dictionary
-  # Could also read this in from a json file 
-  settings = {
-    "__NTILEI__"   : tiles["NtileI"],
-    "__NTILEJ__"   : tiles["NtileJ"],
-    "__NTIMES__"   : 60,
-    "__TIME_REF__" : "20191212.00",     # adnoc
-    "__DSTART__"   : "18206.0d0",       # liveocean - calculate
-    "__FDATE__"    : "f2019.11.06",     # liveocean - 
-    "__ININAME__"  : "/com/liveocean/f2019.11.05/ocean_his_0025.nc"
+  reptiles = {
+    "__NTILEI__"   : str(tiles["NtileI"]),
+    "__NTILEJ__"   : str(tiles["NtileJ"]),
   }
 
-  #       DSTART =  18206.0d0
-  # ! days from TIME_REF to start of forecast day
+  settings.update(reptiles)
 
-  util.sedoceanin ( template, outfile, settings )
+  util.sedoceanin(template,outfile,settings)
 
 #######################################################################
 
@@ -187,13 +215,17 @@ with Flow('ofs workflow') as fcstflow:
   cluster = init_cluster(config)
 
   # Start the cluster
-  started = start_cluster(cluster)
+  isStarted = start_cluster(cluster)
 
   # Run the forecast
-  fcst_status = forecast_run(cluster).set_upstream(started)
+  runStatus = forecast_run(cluster)
 
   # Terminate the cluster nodes
-  terminate_cluster(cluster).set_upstream(fcst_status)
+  terminated = terminate_cluster(cluster)
+
+  # fcstflow.add_edge(cluster,isStarted)  # implicit
+  fcstflow.add_edge(isStarted,runStatus)
+  fcstflow.add_edge(runStatus,terminated)
  
   # fcstflowrunner = fcstflow.run()
   fcstflow.run()

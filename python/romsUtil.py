@@ -15,7 +15,8 @@ def sedoceanin ( template, outfile, settings ) :
       newline = line
 
       for key, value in settings.items() :
-        newline = re.sub(key, str(value), newline)        
+        #print('In sedoceanin :',key, ' ', value)
+        newline = re.sub(key, str(value), newline) 
 
       outfile.write(re.sub(key, value, newline))
 
