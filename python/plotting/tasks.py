@@ -6,12 +6,12 @@ import PIL.Image
 import numpy as np
 import matplotlib.pyplot as plt
 
-from prefect import task
+#from prefect import task
 
 from plotting import tile
 
 
-@task
+#@task
 def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: int = 10):
     '''Plot roms output'''
 

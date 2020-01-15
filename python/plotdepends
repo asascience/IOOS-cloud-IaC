@@ -1,0 +1,7 @@
+pyproj
+cmocean
+numpy
+matplotlib
+netCDF4
+PIL  (pip3 install --user Pillow==6.2.1)
+
