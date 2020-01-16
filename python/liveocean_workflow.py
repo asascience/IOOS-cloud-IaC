@@ -20,7 +20,7 @@ from prefect.engine.task_runner import TaskRunner
 from Cluster.AWSCluster import AWSCluster
 import romsUtil as util
 
-from plotting.tasks import plot_roms
+from plotting.plot import plot_roms
 
 pp = pprint.PrettyPrinter()
 debug = False

@@ -8,8 +8,7 @@ import matplotlib.pyplot as plt
 
 from plotting import tile
 
-
-def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: int = 10):
+def plot_roms(ncfile: str, target: str, varname: str, crop: bool = True, zoom: int = 10):
     '''Plot roms output'''
 
     EPSG3857 = pyproj.Proj('EPSG:3857')
@@ -59,7 +58,8 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: 
             d[:,:-1] = np.ma.masked_where(msk[:,1:] == 0, d[:,:-1])
 
             # image size/resolution
-            dpi = 256
+            #dpi = 256
+            dpi = 96   # suitable for screen and web
             height = nty * dpi
             width  = ntx * dpi
 
@@ -72,7 +72,7 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: 
             ax.set_axis_off()
 
             # pcolor
-            pcolor = ax.pcolor(lo, la, d, cmap=plt.get_cmap('viridis'), edgecolors='k', linewidth=0.05)
+            pcolor = ax.pcolor(lo, la, d, cmap=plt.get_cmap('viridis'), edgecolors='none', linewidth=0.05)
 
             ax.set_frame_on(False)
             ax.set_clip_on(False)
@@ -83,8 +83,9 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: 
             ax.set_ylim(lrb[1], ulb[3])
 
             # File output
-            filename = ncfile.split('/')[-1][:-3]
-            fig.savefig(f'{target}/{filename}_{varname}.png', dpi=dpi, bbox_inches='tight', pad_inches=0.0, transparent=True)
+            origfile = ncfile.split('/')[-1][:-3]
+            filename = f'{target}/{origfile}_{varname}.png' 
+            fig.savefig(filename, dpi=dpi, bbox_inches='tight', pad_inches=0.0, transparent=True)
 
             plt.close(fig)
 

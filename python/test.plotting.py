@@ -5,15 +5,8 @@ from prefect import Flow, task, unmapped
 from prefect.engine.executors import DaskExecutor
 from dask.distributed import Client
 
-from plotting.tasks import plot_roms
+from plotting.plot import plot_roms
 
-
-@task
-def make_plots(filename)
-  plot_roms(filename)
-  
-
-  
 
 def main():
     
