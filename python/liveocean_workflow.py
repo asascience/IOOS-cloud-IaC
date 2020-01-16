@@ -13,7 +13,7 @@ import glob
 # 3rd party dependencies
 from prefect import Flow, task, unmapped
 from prefect.triggers import all_successful, all_finished
-from prefect.engine.executors import DaskExecutor
+#from prefect.engine.executors import DaskExecutor
 from prefect.engine.task_runner import TaskRunner
 
 # Local dependencies
@@ -38,6 +38,7 @@ def init_cluster(config) -> AWSCluster :
   return cluster
 #######################################################################
 
+
 # Reuse
 #######################################################################
 @task
@@ -49,7 +50,7 @@ def start_cluster(cluster):
   except Exception as e:
     print('In driver: Exception while creating nodes :' + str(e))
     sys.exit()
-  return True
+  return
 #######################################################################
 
 # Reuse
@@ -68,8 +69,8 @@ def terminate_cluster(cluster):
 
 
 
-# NPROCS in JOB or NPROCS=totalCores in cluster? Who decides?
 # Reuse ? Only if parameterize hard coded paths/filenames
+# NPROCS in JOB or NPROCS=totalCores in cluster? Who decides?
 #######################################################################
 # @ task : need to parameterize/objectify Job if to be made a task
 # TODO: jobDesc file - paramter
@@ -93,7 +94,7 @@ def job_init(cluster) :
   OFS = jobDict['OFS']
   TIME_REF = jobDict['TIME_REF']
 
-  # TODO: Make ocean in for ROMS
+  # TODO: Make ocean in for NOSOFS
   if OFS == 'liveocean':
 
     # TODO: NO HARDCODED PATHS!
@@ -123,7 +124,6 @@ def job_init(cluster) :
     print("unsupported model")
     # TODO: Throw exception
 
-  # 
   makeOceanin(totalCores,settings,template,outfile)
 
   return jobDict
@@ -137,6 +137,9 @@ def job_init(cluster) :
 # TODO - paramaterize this forecast run, add Job object
 @task
 def forecast_run(cluster):
+
+  print("PT TESTING, skipping forecast run")
+  return
 
   # Setup the job
   PPN = cluster.getCoresPN()
@@ -170,7 +173,7 @@ def forecast_run(cluster):
     return False
 
   print('Forecast finished')
-  return True
+  return
 
 #######################################################################
 
@@ -212,6 +215,8 @@ def nc_files(SOURCE):
 #####################################################################
 @task
 def make_plots(filename,target,varname):
+
+  print(f"{filename} {target} {varname}")
 
   if not os.path.exists(target):
       os.mkdir(target)
@@ -263,13 +268,14 @@ with Flow('ofs workflow') as flow:
   #####################################################################
 
   # TODO: make this a runtime argument?
-  config='./configs/liveocean.config'
+  #config='./configs/liveocean.config'
+  config='./configs/test.config'
 
   # Create the cluster object
   cluster = init_cluster(config)
 
   # Start the cluster
-  fcStarted = start_cluster(cluster)
+  #PT fcStarted = start_cluster(cluster)
 
   # Run the forecast
   fcstStatus = forecast_run(cluster)
@@ -277,7 +283,7 @@ with Flow('ofs workflow') as flow:
   # Terminate the cluster nodes
   fcTerminated = terminate_cluster(cluster)
 
-  flow.add_edge(fcStarted,fcstStatus)
+  #PT flow.add_edge(fcStarted,fcstStatus)
   flow.add_edge(fcstStatus,fcTerminated)
 
 
@@ -291,18 +297,19 @@ with Flow('ofs workflow') as flow:
  
   SOURCE = os.path.abspath('/com/liveocean/current')
   TARGET = os.path.abspath('/com/liveocean/current/plots')
-  FILES = nc_files(SOURCE)
+  FILES = nc_files(SOURCE, upstream_tasks=[fcstStatus])
 
   # Start a machine
   postconfig = './configs/post.config'
   postmach = init_cluster(postconfig)
-  pmStarted = start_cluster(postmach)
+  pmStarted = start_cluster(postmach, upstream_tasks=[fcstStatus])
 
   # Start a dask scheduler on the host
   # dasksched = start_dask(postmach,upstream_tasks=[isStarted])
   # This is overly complicated!!!!! Might be easier to just run with MPIRUN - MPMD script
 
-  plots = make_plots.map(filename=FILES, target=unmapped(TARGET), varname=unmapped('temp'),upstream_tasks=[fcstStatus])
+  plots = make_plots.map(filename=FILES, target=unmapped(TARGET), varname=unmapped('temp'))
+  plots.set_upstream([fcstStatus])
   pmTerminated = terminate_cluster(postmach,upstream_tasks=[plots])
 
 
@@ -313,18 +320,7 @@ def main():
   print(flow.tasks)
   flow.run()
 
-  #####################################################################
-
-  #postip = "tcp://10.0.0.255:8786"
-  #executor = DaskExecutor(address=postip)
-  #postflow.run(executor=executor)
-
-  # executor = DaskExecutor(local_processes=True)
-  # executor = DaskExecutor()
-  # plotflow.run(executor=executor)
-  
-  # postflowrunner = postflow.run(executor=daskexecutor)
-  # if (fcstflowrunner.state() =
+#####################################################################
 
  
 if __name__ == '__main__':
