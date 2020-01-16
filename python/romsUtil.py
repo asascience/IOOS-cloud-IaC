@@ -5,6 +5,7 @@ import math
 import datetime
 
 
+#####################################################################
 def sedoceanin ( template, outfile, settings ) :
  
   with open(template, 'r') as infile :
@@ -21,9 +22,13 @@ def sedoceanin ( template, outfile, settings ) :
       outfile.write(re.sub(key, value, newline))
 
   return
+#####################################################################
 
 
 
+
+
+#####################################################################
 def ndays( cdate1, cdate2 ) :
   days = datetime.timedelta(days=0)
  
@@ -42,12 +47,12 @@ def ndays( cdate1, cdate2 ) :
   days = date1 - date2
   print(str(days.days))
   return days.days
+#####################################################################
   
 
 
 
-# TODO: just need totalCores
-#def getTiling( nodeCount, coresPN ) :
+#####################################################################
 def getTiling( totalCores ) :
   ''' Algorithm
 
@@ -94,4 +99,7 @@ def getTiling( totalCores ) :
   print("NtileI : ", NtileI, " NtileJ ", NtileJ)
 
   return { "NtileI": NtileI, "NtileJ": NtileJ }
+#####################################################################
+
+
       

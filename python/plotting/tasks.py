@@ -6,12 +6,9 @@ import PIL.Image
 import numpy as np
 import matplotlib.pyplot as plt
 
-#from prefect import task
-
 from plotting import tile
 
 
-#@task
 def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: int = 10):
     '''Plot roms output'''
 
@@ -98,3 +95,7 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: 
                     bbox = im.getbbox()
                     crop = im.crop(bbox)
                     crop.save(filename, optimize=True)
+
+
+if __name__ == '__main__':
+  main()

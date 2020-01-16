@@ -23,7 +23,7 @@ def main():
 
     #FILES = sorted([os.path.join(SOURCE, f) for f in os.listdir(SOURCE)])
     #FILES = FILES[:5]
-    FILES = glob.glob(f'{SOURCE}/*.nc')
+    FILES = sorted(glob.glob(f'{SOURCE}/*.nc'))
 
     #FILES="/com/liveocean/current/ocean_his_0001.nc,
     # /com/liveocean/current/ocean_his_0002.nc"

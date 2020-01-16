@@ -15,6 +15,9 @@ list='
   c5n.18xlarge,36
   c5n.24xlarge,48
   c5n.metal,36
+  t3.large,2
+  t3.xlarge,4
+  t3.2xlarge,8
 '
 
 for line in $list

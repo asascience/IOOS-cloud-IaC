@@ -7,16 +7,24 @@ import os
 import json
 import pprint
 import subprocess
+import traceback
+import glob
 
 # 3rd party dependencies
-from prefect import Flow, task
+from prefect import Flow, task, unmapped
+from prefect.triggers import all_successful, all_finished
+from prefect.engine.executors import DaskExecutor
+from prefect.engine.task_runner import TaskRunner
 
 # Local dependencies
 from Cluster.AWSCluster import AWSCluster
 import romsUtil as util
 
+from plotting.tasks import plot_roms
+
 pp = pprint.PrettyPrinter()
 debug = False
+
 
 # Reuse
 #######################################################################
@@ -29,9 +37,6 @@ def init_cluster(config) -> AWSCluster :
     sys.exit()
   return cluster
 #######################################################################
-
-
-
 
 # Reuse
 #######################################################################
@@ -47,19 +52,34 @@ def start_cluster(cluster):
   return True
 #######################################################################
 
+# Reuse
+#######################################################################
+@task(trigger=all_finished)
+def terminate_cluster(cluster):
+
+  responses = cluster.terminate()
+  # Just check the state
+  print('Responses from terminate: ')
+  for response in responses :
+    pp.pprint(response)
+
+  return
+#######################################################################
 
 
 
+# NPROCS in JOB or NPROCS=totalCores in cluster? Who decides?
 # Reuse ? Only if parameterize hard coded paths/filenames
 #######################################################################
 # @ task : need to parameterize/objectify Job if to be made a task
+# TODO: jobDesc file - paramter
 def job_init(cluster) :
 
   # TODO: Move this into it's own routine, make it a function param
   jobDesc = "jobs/liveocean.job"
 
   PPN = cluster.getCoresPN()
-  NPROCS = cluster.nodeCount*PPN
+  totalCores = cluster.nodeCount*PPN
 
   with open(jobDesc, 'r') as cf:
     jobDict = json.load(cf)
@@ -76,6 +96,7 @@ def job_init(cluster) :
   # TODO: Make ocean in for ROMS
   if OFS == 'liveocean':
 
+    # TODO: NO HARDCODED PATHS!
     # LiveOcean requires a significant amount of available RAM to run > 16GB
     # NTIMES 90 is 1 hour for liveocean 
     # Using f-strings
@@ -83,8 +104,6 @@ def job_init(cluster) :
     fdate = f"f{CDATE[0:4]}.{CDATE[4:6]}.{CDATE[6:8]}"
     template = f"templates/{OFS}.ocean.in"
     outfile = f"/com/liveocean/{fdate}/liveocean.in"
-
-    print('PT DEBUG: str error')
 
     DSTART = util.ndays(CDATE,TIME_REF)
     # DSTART = days from TIME_REF to start of forecast day larger minus smaller date
@@ -104,9 +123,8 @@ def job_init(cluster) :
     print("unsupported model")
     # TODO: Throw exception
 
-  print('PT DEBUG: about to call makeOceanin')
-  makeOceanin(cluster,settings,template,outfile)
-  print('PT DEBUG: after makeOceanin')
+  # 
+  makeOceanin(totalCores,settings,template,outfile)
 
   return jobDict
 #######################################################################
@@ -121,19 +139,16 @@ def job_init(cluster) :
 def forecast_run(cluster):
 
   # Setup the job
-  # TODO: make it a function param? own task?
-
   PPN = cluster.getCoresPN()
   NPROCS = cluster.nodeCount*PPN
 
-  jobDict = job_init(cluster)
-  #try:
-  #  jobDict = job_init(cluster)
-  #except Exception as e:
-  #  print('In forecast_run: execption from job_init: '+ str(e))
-  #  return False
+  try:
+    jobDict = job_init(cluster)
+  except Exception as e:
+    print('In forecast_run: execption from job_init: '+ str(e))
+    traceback.print_stack()
+    return False
     
-
   CDATE = jobDict['CDATE']
   HH = jobDict['HH']
   OFS = jobDict['OFS']
@@ -161,19 +176,13 @@ def forecast_run(cluster):
 
 
 
-# Reuse if parameterized
-# Customize
+# Reuse
+# TODO: Move this into romsUtils
 #######################################################################
-# TODO add a job config to parameterize these templated variables
-def makeOceanin(cluster,settings,template,outfile) :
+def makeOceanin(totalCores,settings,template,outfile) :
 
   # TODO - setup for NOSOFS
 
-  # Can remove cluster dependency if nodeCount and corePN are parameterized
-  # cluster dependency can remain above and this can be added to romsUtil module
-  nodeCount = cluster.nodeCount
-  coresPN = cluster.getCoresPN()
-  totalCores = nodeCount * coresPN
   tiles = util.getTiling( totalCores )
 
   reptiles = {
@@ -182,55 +191,141 @@ def makeOceanin(cluster,settings,template,outfile) :
   }
 
   settings.update(reptiles)
-
   util.sedoceanin(template,outfile,settings)
-
+  return
 #######################################################################
 
 
 
-# Reuse
-#######################################################################
-@task 
-def terminate_cluster(cluster):
-  
-  responses = cluster.terminate()
-  # Just check the state
-  print('Responses from terminate: ')
-  for response in responses :
-    pp.pprint(response)
-#######################################################################
+#####################################################################
+
+@task
+def nc_files(SOURCE):
+    FILES = sorted(glob.glob(f'{SOURCE}/*.nc'))
+    for f in FILES:
+      print(f)
+    return FILES
+#####################################################################
 
 
-# Customize
-with Flow('ofs workflow') as fcstflow:
 
-  # Pre process tasks here
+#####################################################################
+@task
+def make_plots(filename,target,varname):
+
+  if not os.path.exists(target):
+      os.mkdir(target)
+
+  plot_roms(filename,target,varname)
+  return
+#####################################################################
 
 
-  # TODO: refactor the DAG instead of relying on the cluster object 
-  # TODO: separate the cluster infrastructure config from the forecast job config
-  # TODO: make this a runtime argument
+
+
+#####################################################################
+@task
+def start_dask(cluster) -> str:
+
+  # For now assuming post will only run on one node
+
+  # get first host
+  host = cluster.getHostsCSV()[0]
+
+  # Should this be specified in the Job? Possibly?
+  #nppost = cluster.nodeCount * cluster.PPN
+  nppost = cluster.PPN
+
+  # Start a dask scheduler on the host
+  port = "8786"
+  tcphost = f"tcp://{host}:{port}" 
+
+  print("DEBUG: tcphost : ",tcphost)
+
+  try:
+    subprocess.run(["ssh", host, "dask-scheduler", "&"], stderr=subprocess.STDOUT)
+    for i in range(0,nppost):
+      subprocess.run(["ssh", host, "dask-worker", tcphost, "&"], stderr=subprocess.STDOUT)
+  except Exception as e:
+    print("In start_dask during subprocess.run :" + str(e))
+    traceback.print_stack()
+
+  return tcphost
+#####################################################################
+
+
+
+ # Customize
+with Flow('ofs workflow') as flow:
+
+  #####################################################################
+  # FORECAST
+  #####################################################################
+
+  # TODO: make this a runtime argument?
   config='./configs/liveocean.config'
 
   # Create the cluster object
   cluster = init_cluster(config)
 
   # Start the cluster
-  isStarted = start_cluster(cluster)
+  fcStarted = start_cluster(cluster)
 
   # Run the forecast
-  runStatus = forecast_run(cluster)
+  fcstStatus = forecast_run(cluster)
 
   # Terminate the cluster nodes
-  terminated = terminate_cluster(cluster)
+  fcTerminated = terminate_cluster(cluster)
 
-  # fcstflow.add_edge(cluster,isStarted)  # implicit
-  fcstflow.add_edge(isStarted,runStatus)
-  fcstflow.add_edge(runStatus,terminated)
+  flow.add_edge(fcStarted,fcstStatus)
+  flow.add_edge(fcstStatus,fcTerminated)
+
+
+  #####################################################################
+  # POST Processing
+  #####################################################################
+  # Spin up a new machine?
+  # or launch a container?
+  # or run concurrently on above?
+  # or run on local machine?
  
-  # fcstflowrunner = fcstflow.run()
-  fcstflow.run()
+  SOURCE = os.path.abspath('/com/liveocean/current')
+  TARGET = os.path.abspath('/com/liveocean/current/plots')
+  FILES = nc_files(SOURCE)
 
+  # Start a machine
+  postconfig = './configs/post.config'
+  postmach = init_cluster(postconfig)
+  pmStarted = start_cluster(postmach)
+
+  # Start a dask scheduler on the host
+  # dasksched = start_dask(postmach,upstream_tasks=[isStarted])
+  # This is overly complicated!!!!! Might be easier to just run with MPIRUN - MPMD script
+
+  plots = make_plots.map(filename=FILES, target=unmapped(TARGET), varname=unmapped('temp'),upstream_tasks=[fcstStatus])
+  pmTerminated = terminate_cluster(postmach,upstream_tasks=[plots])
+
+
+#####################################################################
+
+def main():
+
+  print(flow.tasks)
+  flow.run()
+
+  #####################################################################
+
+  #postip = "tcp://10.0.0.255:8786"
+  #executor = DaskExecutor(address=postip)
+  #postflow.run(executor=executor)
+
+  # executor = DaskExecutor(local_processes=True)
+  # executor = DaskExecutor()
+  # plotflow.run(executor=executor)
+  
   # postflowrunner = postflow.run(executor=daskexecutor)
   # if (fcstflowrunner.state() =
+
+ 
+if __name__ == '__main__':
+  main()
