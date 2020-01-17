@@ -139,9 +139,6 @@ def job_init(cluster) :
 @task
 def forecast_run(cluster):
 
-  print("PT TESTING, skipping forecast run")
-  return
-
   # Setup the job
   PPN = cluster.getCoresPN()
   NPROCS = cluster.nodeCount*PPN
@@ -200,7 +197,7 @@ def makeOceanin(totalCores,settings,template,outfile) :
 #######################################################################
 
 
-
+# Reuse
 #####################################################################
 
 @task
@@ -234,16 +231,6 @@ def daskmake_plots(client: Client, FILES: list, target: str, varname:str ):
 
   if not os.path.exists(target):
       os.mkdir(target)
-
-  # Testing single file! WORKS!
-  #filename = FILES[0]
-  #print(f"{filename} {target} {varname}")
-  #future = client.submit(plot_roms, filename, target, varname)
-  #print("future")
-  #print(future)
-  #print("future.result")
-  #result = future.result()
-  #print(result)
 
   idx = 0
   futures = []
@@ -305,23 +292,16 @@ def start_dask(cluster) -> Client:
   # Start a dask scheduler on the host
   port = "8786"
 
-  print("DEBUG: host : ",host)
-
-  # Use dask-ssh instead!!!
-  # dask-ssh --nprocs 1 ip-10-0-0-7.ec2.internal
+  # Use dask-ssh 
   opts = f"dask-ssh --nprocs {nprocs} {host} &"
-  print("DEBUG: opts: ", opts)
 
   try:
     subprocess.Popen(["dask-ssh","--nprocs",str(nprocs),host], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    print("DEBUG: dask-scheduler started")
   except Exception as e:
     print("In start_dask during subprocess.run :" + str(e))
     traceback.print_stack()
 
-  print("DEBUG: attempting to create Dask client")
   daskclient = Client(f"{host}:{port}")
-  print("DEBUG: daskclient created")
   return daskclient
 #####################################################################
 
@@ -342,7 +322,7 @@ with Flow('ofs workflow') as flow:
   cluster = init_cluster(config)
 
   # Start the cluster
-  #PT fcStarted = start_cluster(cluster)
+  fcStarted = start_cluster(cluster)
 
   # Run the forecast
   fcstStatus = forecast_run(cluster)
@@ -350,7 +330,7 @@ with Flow('ofs workflow') as flow:
   # Terminate the cluster nodes
   fcTerminated = terminate_cluster(cluster)
 
-  #PT flow.add_edge(fcStarted,fcstStatus)
+  flow.add_edge(fcStarted,fcstStatus)
   flow.add_edge(fcstStatus,fcTerminated)
 
 
@@ -361,7 +341,8 @@ with Flow('ofs workflow') as flow:
   # or launch a container?
   # or run concurrently on above?
   # or run on local machine?
- 
+
+  # TODO: Parameterize this! 
   SOURCE = os.path.abspath('/com/liveocean/current')
   TARGET = os.path.abspath('/com/liveocean/current/plots')
   FILES = nc_files(SOURCE, upstream_tasks=[fcstStatus])
@@ -377,6 +358,7 @@ with Flow('ofs workflow') as flow:
   # Start a dask scheduler on the host
   daskclient = start_dask(postmach, upstream_tasks=[pushPy])
 
+  # Make plots
   plots = daskmake_plots(daskclient, FILES, TARGET, 'temp')
   plots.set_upstream([daskclient])
 
