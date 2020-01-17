@@ -9,12 +9,13 @@ import pprint
 import subprocess
 import traceback
 import glob
+from datetime import timedelta
 
 # 3rd party dependencies
 from prefect import Flow, task, unmapped
 from prefect.triggers import all_successful, all_finished
-#from prefect.engine.executors import DaskExecutor
 from prefect.engine.task_runner import TaskRunner
+from dask.distributed import Client
 
 # Local dependencies
 from Cluster.AWSCluster import AWSCluster
@@ -212,15 +213,12 @@ def nc_files(SOURCE):
 
 
 
+
 #####################################################################
 @task
 def make_plots(filename,target,varname):
 
   print(f"{filename} {target} {varname}")
-
-  if not os.path.exists(target):
-      os.mkdir(target)
-
   plot_roms(filename,target,varname)
   return
 #####################################################################
@@ -230,32 +228,101 @@ def make_plots(filename,target,varname):
 
 #####################################################################
 @task
-def start_dask(cluster) -> str:
+def daskmake_plots(client: Client, FILES: list, target: str, varname:str ):
 
-  # For now assuming post will only run on one node
+  print("In daskmake_plots", FILES)
 
-  # get first host
-  host = cluster.getHostsCSV()[0]
+  if not os.path.exists(target):
+      os.mkdir(target)
+
+  # Testing single file! WORKS!
+  #filename = FILES[0]
+  #print(f"{filename} {target} {varname}")
+  #future = client.submit(plot_roms, filename, target, varname)
+  #print("future")
+  #print(future)
+  #print("future.result")
+  #result = future.result()
+  #print(result)
+
+  idx = 0
+  futures = []
+  for filename in FILES:
+    future = client.submit(plot_roms, filename, target, varname)
+    futures.append(future)
+    print(futures[idx])
+    idx += 1
+  
+  for future in futures:
+    result = future.result()
+    print(result)
+
+  #filenames = FILES[0:1]
+  #print("mapping plot_roms over filenames")
+  #futures = client.map(plot_roms, filenames, pure=False, target=unmapped(target), varname=unmapped(varname))
+  #print("Futures:",futures)
+  # Wait for the processes to finish, gather the results
+  #results = client.gather(futures)
+  #print("gathered results")
+  #print("Results:", results)
+
+  return
+#####################################################################
+
+
+
+#####################################################################
+@task
+def push_pyEnv(cluster):
+
+  host = cluster.getHosts()[0]
+  print(f"push_pyEnv host is {host}")
+
+  # Push and install anything in dist folder
+  dists = glob.glob(f'dist/*.tar.gz')
+  for dist in dists:
+     print("pushing python dist: ", dist)
+     subprocess.run(["scp",dist,f"{host}:~"], stderr=subprocess.STDOUT) 
+     lib = dist.split('/')[1]
+     print(f"push_pyEnv installing module: {lib}")
+     subprocess.run(["ssh",host,"pip3","install","--user",lib], stderr=subprocess.STDOUT) 
+  return
+#####################################################################
+
+
+
+#####################################################################
+@task(max_retries=1, retry_delay=timedelta(seconds=10))
+def start_dask(cluster) -> Client:
+
+  # Only single host supported currently
+  host = cluster.getHostsCSV()
 
   # Should this be specified in the Job? Possibly?
-  #nppost = cluster.nodeCount * cluster.PPN
-  nppost = cluster.PPN
+  #nprocs = cluster.nodeCount * cluster.PPN
+  nprocs = cluster.PPN
 
   # Start a dask scheduler on the host
   port = "8786"
-  tcphost = f"tcp://{host}:{port}" 
 
-  print("DEBUG: tcphost : ",tcphost)
+  print("DEBUG: host : ",host)
+
+  # Use dask-ssh instead!!!
+  # dask-ssh --nprocs 1 ip-10-0-0-7.ec2.internal
+  opts = f"dask-ssh --nprocs {nprocs} {host} &"
+  print("DEBUG: opts: ", opts)
 
   try:
-    subprocess.run(["ssh", host, "dask-scheduler", "&"], stderr=subprocess.STDOUT)
-    for i in range(0,nppost):
-      subprocess.run(["ssh", host, "dask-worker", tcphost, "&"], stderr=subprocess.STDOUT)
+    subprocess.Popen(["dask-ssh","--nprocs",str(nprocs),host], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    print("DEBUG: dask-scheduler started")
   except Exception as e:
     print("In start_dask during subprocess.run :" + str(e))
     traceback.print_stack()
 
-  return tcphost
+  print("DEBUG: attempting to create Dask client")
+  daskclient = Client(f"{host}:{port}")
+  print("DEBUG: daskclient created")
+  return daskclient
 #####################################################################
 
 
@@ -304,12 +371,15 @@ with Flow('ofs workflow') as flow:
   postmach = init_cluster(postconfig)
   pmStarted = start_cluster(postmach, upstream_tasks=[fcstStatus])
 
-  # Start a dask scheduler on the host
-  # dasksched = start_dask(postmach,upstream_tasks=[isStarted])
-  # This is overly complicated!!!!! Might be easier to just run with MPIRUN - MPMD script
+  # Push the env, install required libs on post machine
+  pushPy = push_pyEnv(postmach, upstream_tasks=[pmStarted])
 
-  plots = make_plots.map(filename=FILES, target=unmapped(TARGET), varname=unmapped('temp'))
-  plots.set_upstream([fcstStatus])
+  # Start a dask scheduler on the host
+  daskclient = start_dask(postmach, upstream_tasks=[pushPy])
+
+  plots = daskmake_plots(daskclient, FILES, TARGET, 'temp')
+  plots.set_upstream([daskclient])
+
   pmTerminated = terminate_cluster(postmach,upstream_tasks=[plots])
 
 

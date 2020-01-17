@@ -8,3 +8,4 @@ tmp
 .ipynb_checkpoints
 python/*.ipynb
 .pytest_cache/
+python/dist
