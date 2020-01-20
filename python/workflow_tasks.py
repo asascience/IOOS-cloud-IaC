@@ -13,6 +13,7 @@ from datetime import timedelta
 
 # 3rd party dependencies
 from prefect import task, unmapped
+from prefect.engine import signals
 from prefect.triggers import all_successful, all_finished
 from dask.distributed import Client
 
@@ -28,6 +29,8 @@ debug = False
 
 @task
 def init_cluster(config) -> AWSCluster :
+
+  # TODO later: implement AzureCluster
   try:
     cluster = AWSCluster(config)
   except Exception as e:
@@ -67,13 +70,12 @@ def terminate_cluster(cluster):
 
 
 @task
-# TODO: add type hints
-def job_init(cluster, jobDesc) :
+def job_init(cluster, configfile) -> dict :
 
   PPN = cluster.getCoresPN()
   totalCores = cluster.nodeCount*PPN
 
-  with open(jobDesc, 'r') as cf:
+  with open(configfile, 'r') as cf:
     jobDict = json.load(cf)
 
   if (debug) :
@@ -95,7 +97,10 @@ def job_init(cluster, jobDesc) :
     # Add stuff to the replacement dictionary 
     fdate = f"f{CDATE[0:4]}.{CDATE[4:6]}.{CDATE[6:8]}"
     template = f"templates/{OFS}.ocean.in"
-    outfile = f"/com/liveocean/{fdate}/liveocean.in"
+    outfile = f"/com/{OFS}/{fdate}/liveocean.in"
+
+    # Add this to dictionary
+    jobDict['COMOUT'] = f"/com/{OFS}/{fdate}"
 
     DSTART = util.ndays(CDATE,TIME_REF)
     # DSTART = days from TIME_REF to start of forecast day larger minus smaller date
@@ -106,7 +111,7 @@ def job_init(cluster, jobDesc) :
       "__TIME_REF__" : jobDict['TIME_REF'],
       "__DSTART__"   : DSTART,
       "__FDATE__"    : fdate,
-      "__ININAME__"  : "/com/liveocean/f2019.11.05/ocean_his_0025.nc"
+      "__ININAME__"  : jobDict['ININAME']
     }
 
   elif cluster.OFS == 'cbofs':
@@ -116,6 +121,7 @@ def job_init(cluster, jobDesc) :
     print("unsupported model")
     # TODO: Throw exception
 
+  # Make the .in file
   util.makeOceanin(totalCores,settings,template,outfile)
 
   return jobDict
@@ -138,23 +144,27 @@ def forecast_run(cluster, jobDict):
   OFS = jobDict['OFS']
 
   runscript="fcst_launcher.sh"
-
+  
   try:
     HOSTS=cluster.getHostsCSV()
   except Exception as e:
     print('In driver: execption retrieving list of hostnames:' + str(e))
-    return False
-    # TODO - check this error handling and refactor if needed
+    raise signals.FAIL()
 
   try:
-    subprocess.run([runscript,CDATE,HH,str(NPROCS),str(PPN),HOSTS,OFS], \
+    result = subprocess.run([runscript,CDATE,HH,str(NPROCS),str(PPN),HOSTS,OFS], \
       stderr=subprocess.STDOUT)
   except Exception as e:
     print('In driver: Exception during subprocess.run :' + str(e))
-    return False
+    raise signals.FAIL()
 
-  print('Forecast finished')
-  return
+
+  if result != 0 :
+    print('Forecast failed ...')
+    raise signals.FAIL()
+
+  print('Forecast finished successfully')
+  return 
 #######################################################################
 
 
@@ -200,6 +210,7 @@ def daskmake_plots(client: Client, FILES: list, target: str, varname:str ):
     result = future.result()
     print(result)
 
+  # Was unable to get it to work using client.map()
   #filenames = FILES[0:1]
   #print("mapping plot_roms over filenames")
   #futures = client.map(plot_roms, filenames, pure=False, target=unmapped(target), varname=unmapped(varname))

@@ -52,9 +52,14 @@ with Flow('ofs workflow') as flow:
   # or run concurrently on above?
   # or run on local machine?
 
-  # TODO: Parameterize this! 
-  SOURCE = os.path.abspath('/com/liveocean/current')
-  TARGET = os.path.abspath('/com/liveocean/current/plots')
+  # COMOUT is set in job_init task
+  #  but prefect is getting in the way of accessing it here
+  # TODO: Make a new task to wrap this, return FILES list
+  # Post job should contain this info
+  # TODO: Finish Job class
+  COMOUT = '/com/liveocean/current'
+  SOURCE = os.path.abspath(f"{COMOUT}")
+  TARGET = os.path.abspath(f"{COMOUT}/plots")
   FILES = tasks.ncfiles_glob(SOURCE, upstream_tasks=[fcstStatus])
 
   # Start a machine

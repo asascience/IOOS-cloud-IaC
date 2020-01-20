@@ -8,6 +8,12 @@ import matplotlib.pyplot as plt
 
 from plotting import tile
 
+
+#nc_to_xarray(ncfilelist)
+  #return xarray_object
+
+#plot_roms (xarray)
+
 def plot_roms(ncfile: str, target: str, varname: str, crop: bool = True, zoom: int = 10):
     '''Plot roms output'''
 
