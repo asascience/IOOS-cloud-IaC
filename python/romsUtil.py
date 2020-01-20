@@ -26,6 +26,25 @@ def sedoceanin ( template, outfile, settings ) :
 
 
 
+# Reuse
+#######################################################################
+def makeOceanin(totalCores,settings,template,outfile) :
+
+  # TODO - setup for NOSOFS
+
+  tiles = getTiling( totalCores )
+
+  reptiles = {
+    "__NTILEI__"   : str(tiles["NtileI"]),
+    "__NTILEJ__"   : str(tiles["NtileJ"]),
+  }
+
+  settings.update(reptiles)
+  sedoceanin(template,outfile,settings)
+  return
+#######################################################################
+
+
 
 
 #####################################################################
