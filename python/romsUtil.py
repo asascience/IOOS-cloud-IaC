@@ -154,17 +154,19 @@ def getTiling( totalCores ) :
 
 
 #####################################################################
-def get_forcing_lo( cdate, remotepath, localpath, sshuser ) :
+def get_forcing_lo( cdate, localpath, sshuser ) :
   ''' Get the atmospheric forcing and boundary layer conditions and ICs
       for LiveOcean ROMS model.
 
       This requires an account on the remote server with private key authentication.
   '''
 
+  # TODO: Parameterize this
   restart = "ocean_his_0025.nc"
+  remotepath = "/data1/parker/LiveOcean_output/cas6_v3"
+  remotepath_rst = "/data1/parker/LiveOcean_roms/output/cas6_v3_lo8b"
 
   fdate = lo_date(cdate)
-
   prevdate = ndate(cdate, -1)
   fprevdate = lo_date(prevdate) 
 
@@ -178,7 +180,7 @@ def get_forcing_lo( cdate, remotepath, localpath, sshuser ) :
   subprocess.run(["scp", "-rp", scpdir, localpath], stderr=subprocess.STDOUT)
 
   # Get the restart file from the previous day's forecast
-  scpdir = f"{sshuser}:{remotepath}/{fprevdate}"
+  scpdir = f"{sshuser}:{remotepath_rst}/{fprevdate}"
   localdir = f"{localpath}/{fprevdate}"
 
   if not os.path.exists(localdir):

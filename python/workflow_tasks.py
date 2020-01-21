@@ -110,11 +110,9 @@ def get_forcing(jobconfig, sshuser):
 
   if ofs == 'liveocean':
 
-    # TODO: Parameterize this
-    remotepath = "/data1/parker/LiveOcean_output/cas6_v3"
     localpath = f"{comrot}/{ofs}"
 
-    util.get_forcing_lo(cdate, remotepath, localpath, sshuser) 
+    util.get_forcing_lo(cdate, localpath, sshuser) 
 
     #try: 
     #  util.get_forcing_lo(cdate, remotepath, localpath, sshuser) 
