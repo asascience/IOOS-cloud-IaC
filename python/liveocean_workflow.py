@@ -5,15 +5,20 @@ import os
 
 # 3rd party dependencies
 from prefect import Flow
-#from dask.distributed import Client
 
 # Local dependencies
 import workflow_tasks as tasks
 
 
+# Set these
+#fcstconf = 'configs/test.config'
+fcstconf = 'configs/liveocean.config'
+postconf = 'configs/post.config'
+jobfile = 'jobs/liveocean.job'
+postjobfile = 'jobs/lo.plots.job'
+
 
 #######################################################################
- # Customize
 with Flow('ofs workflow') as flow:
 
   #####################################################################
@@ -21,26 +26,24 @@ with Flow('ofs workflow') as flow:
   #####################################################################
 
   # Create the cluster object
-  config='./configs/test.config'
-  #config='./configs/liveocean.config'
-  cluster = tasks.init_cluster(config)
+  cluster = tasks.init_cluster(fcstconf)
 
   # Start the cluster
   fcStarted = tasks.start_cluster(cluster)
 
   # Setup the job 
-  jobDesc = "jobs/liveocean.job"
-  job = tasks.job_init(cluster, jobDesc)
+  # TODO: Template this in npzd2o_Banas.in or copy the rivers.nc file over
+  #   SSFNAME == /com/liveocean/forcing/f2019.11.06/riv2/rivers.nc
+  fcstjob = tasks.job_init(cluster, jobfile, 'roms')
 
   # Run the forecast
-  # TODO: fix return value from this, is reporting success when failed
-  fcstStatus = tasks.forecast_run(cluster,job)
+  fcstStatus = tasks.forecast_run(cluster,fcstjob)
 
   # Terminate the cluster nodes
   fcTerminated = tasks.terminate_cluster(cluster)
 
-  flow.add_edge(fcStarted,job)
-  flow.add_edge(job,fcstStatus)
+  flow.add_edge(fcStarted,fcstjob)
+  flow.add_edge(fcstjob,fcstStatus)
   flow.add_edge(fcstStatus,fcTerminated)
 
 
@@ -49,45 +52,37 @@ with Flow('ofs workflow') as flow:
   #####################################################################
   # Spin up a new machine?
   # or launch a container?
-  # or run concurrently on above?
-  # or run on local machine?
-
-  # COMOUT is set in job_init task
-  #  but prefect is getting in the way of accessing it here
-  # TODO: Make a new task to wrap this, return FILES list
-  # Post job should contain this info
-  # TODO: Finish Job class
-  COMOUT = '/com/liveocean/current'
-  SOURCE = os.path.abspath(f"{COMOUT}")
-  TARGET = os.path.abspath(f"{COMOUT}/plots")
-  FILES = tasks.ncfiles_glob(SOURCE, upstream_tasks=[fcstStatus])
+  # or run concurrently on the forecast cluster?
+  # or run on the local machine? concurrrently? 
 
   # Start a machine
-  postconfig = './configs/post.config'
-  postmach = tasks.init_cluster(postconfig)
+  postmach = tasks.init_cluster(postconf)
   pmStarted = tasks.start_cluster(postmach, upstream_tasks=[fcstStatus])
 
   # Push the env, install required libs on post machine
   # TODO: install all of the 3rd party dependencies on AMI
   pushPy = tasks.push_pyEnv(postmach, upstream_tasks=[pmStarted])
 
-  # Start a dask scheduler on the host
+  # Start a dask scheduler on the new post machine
   daskclient = tasks.start_dask(postmach, upstream_tasks=[pushPy])
 
+  # Setup the post job
+  postjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
+
+  # Get list of files from fcstjob
+  FILES = tasks.ncfiles_from_Job(fcstjob, upstream_tasks=[fcstStatus])
+
   # Make plots
-  plots = tasks.daskmake_plots(daskclient, FILES, TARGET, 'temp')
+  plots = tasks.daskmake_plots(daskclient, FILES, postjob)
   plots.set_upstream([daskclient])
 
   pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[plots])
 
-
 #####################################################################
 
+
+
 def main():
-
-  jobDesc = "jobs/liveocean.job"
-
-  print(flow.tasks)
 
   flow.run()
 

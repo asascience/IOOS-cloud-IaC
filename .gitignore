@@ -9,3 +9,4 @@ tmp
 python/*.ipynb
 .pytest_cache/
 python/dist
+python/*.out

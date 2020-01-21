@@ -19,6 +19,10 @@ from dask.distributed import Client
 
 # Local dependencies
 from Cluster.AWSCluster import AWSCluster
+from Job import Job
+from Job.ROMSForecast import ROMSForecast
+from Job.Plotting import Plotting
+
 import romsUtil as util
 
 from plotting.plot import plot_roms
@@ -70,61 +74,21 @@ def terminate_cluster(cluster):
 
 
 @task
-def job_init(cluster, configfile) -> dict :
+def job_init(cluster, configfile, jobtype) -> Job :
 
-  PPN = cluster.getCoresPN()
-  totalCores = cluster.nodeCount*PPN
+  # We can't really separate the hardware from the job, nprocs is needed
+  NPROCS = cluster.nodeCount * cluster.PPN
 
-  with open(configfile, 'r') as cf:
-    jobDict = json.load(cf)
+  # Need to make this a factory
+  if jobtype == 'roms':
+    job = ROMSForecast(configfile, NPROCS )
+  elif jobtype == 'plotting':
+    job = Plotting(configfile,NPROCS)
+  else:
+    print("Unsupported job type")
+    raise Exception("unsupported job type : ", jobtype)
 
-  if (debug) :
-    print(json.dumps(jobDict, indent=4))
-    print(str(jobDict))
-
-  CDATE = jobDict['CDATE']
-  HH = jobDict['HH']
-  OFS = jobDict['OFS']
-  TIME_REF = jobDict['TIME_REF']
-
-  # TODO: Make ocean in for NOSOFS
-  if OFS == 'liveocean':
-
-    # TODO: NO HARDCODED PATHS!
-    # LiveOcean requires a significant amount of available RAM to run > 16GB
-    # NTIMES 90 is 1 hour for liveocean 
-    # Using f-strings
-    # Add stuff to the replacement dictionary 
-    fdate = f"f{CDATE[0:4]}.{CDATE[4:6]}.{CDATE[6:8]}"
-    template = f"templates/{OFS}.ocean.in"
-    outfile = f"/com/{OFS}/{fdate}/liveocean.in"
-
-    # Add this to dictionary
-    jobDict['COMOUT'] = f"/com/{OFS}/{fdate}"
-
-    DSTART = util.ndays(CDATE,TIME_REF)
-    # DSTART = days from TIME_REF to start of forecast day larger minus smaller date
-
-    # TODO : parameterize this ININAME
-    settings = {
-      "__NTIMES__"   : jobDict['NTIMES'],
-      "__TIME_REF__" : jobDict['TIME_REF'],
-      "__DSTART__"   : DSTART,
-      "__FDATE__"    : fdate,
-      "__ININAME__"  : jobDict['ININAME']
-    }
-
-  elif cluster.OFS == 'cbofs':
-    template = f"TODO-cbofstemplate"
-    outfile = f"TODO-template"
-  else :
-    print("unsupported model")
-    # TODO: Throw exception
-
-  # Make the .in file
-  util.makeOceanin(totalCores,settings,template,outfile)
-
-  return jobDict
+  return job
 #######################################################################
 
 
@@ -132,19 +96,20 @@ def job_init(cluster, configfile) -> dict :
 
 # TODO, make job class and use object here
 @task
-def forecast_run(cluster, jobDict):
+def forecast_run(cluster, job):
 
-  # Setup the job
   PPN = cluster.getCoresPN()
-  NPROCS = cluster.nodeCount*PPN
 
-
-  CDATE = jobDict['CDATE']
-  HH = jobDict['HH']
-  OFS = jobDict['OFS']
+  # Easier to read
+  CDATE = job.CDATE
+  HH = job.HH
+  OFS = job.OFS
+  NPROCS = job.NPROCS
 
   runscript="fcst_launcher.sh"
-  
+ 
+  result = 1
+ 
   try:
     HOSTS=cluster.getHostsCSV()
   except Exception as e:
@@ -160,7 +125,7 @@ def forecast_run(cluster, jobDict):
 
 
   if result != 0 :
-    print('Forecast failed ...')
+    print('Forecast failed ... result: ', result)
     raise signals.FAIL()
 
   print('Forecast finished successfully')
@@ -178,6 +143,13 @@ def ncfiles_glob(SOURCE):
 #####################################################################
 
 
+@task
+def ncfiles_from_Job(job : Job):
+    SOURCE = job.OUTDIR
+    return ncfiles_glob(SOURCE)
+#####################################################################
+
+
 
 @task
 def make_plots(filename,target,varname):
@@ -191,7 +163,12 @@ def make_plots(filename,target,varname):
 
 
 @task
-def daskmake_plots(client: Client, FILES: list, target: str, varname:str ):
+def daskmake_plots(client: Client, FILES: list, plotjob: Job ):
+
+  target = plotjob.OUTDIR
+
+  # TODO: implement multiple VARS in Job
+  varname = plotjob.VARS[0]
 
   print("In daskmake_plots", FILES)
 

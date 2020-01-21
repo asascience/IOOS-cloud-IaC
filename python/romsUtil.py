@@ -28,11 +28,11 @@ def sedoceanin ( template, outfile, settings ) :
 
 # Reuse
 #######################################################################
-def makeOceanin(totalCores,settings,template,outfile) :
+def makeOceanin(NPROCS,settings,template,outfile) :
 
   # TODO - setup for NOSOFS
 
-  tiles = getTiling( totalCores )
+  tiles = getTiling( NPROCS )
 
   reptiles = {
     "__NTILEI__"   : str(tiles["NtileI"]),

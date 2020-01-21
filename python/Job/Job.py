@@ -5,10 +5,15 @@ from abc import ABC, abstractmethod
 '''
 class Job(ABC) :
 
-  self.configfile = ''
-  self.OUTDIR = ''
-  self.INDIR = ''
-  self.jobtype = ''
-  self.settings = {}
+  @abstractmethod
+  def __init__(self) :
+    self.configfile = ''
+    self.jobtype = ''
+    self.CDATE = ''
+    self.HH = ''
+    self.OFS = ''
+    self.OUTDIR = ''
+    self.INDIR = ''
+    self.NPROCS = 0
+    self.settings = {}
   
-

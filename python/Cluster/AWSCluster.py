@@ -12,12 +12,12 @@ debug = False
 
 class AWSCluster(Cluster.Cluster) :
 
-  def __init__(self, configFile) :
+  def __init__(self, configfile) :
 
     # Call the parent constructor
     # Cluster.__init__(self)
 
-    self.configFile = configFile
+    self.configfile = configfile
 
     self.__state = "none"   # This could be an enumeration of none, running, stopped, error
     self.__instances = []
@@ -33,15 +33,15 @@ class AWSCluster(Cluster.Cluster) :
     self.subnet_id = ''
     self.placement_group = ''
 
-    #cfDict = self.readConfig(configFile)
+    #cfDict = self.readConfig(configfile)
     #self.__parseConfig(cfDict)
-    self.readConfig(configFile)
+    self.readConfig(configfile)
     self.PPN = nodeInfo.getPPN(self.nodeType)
 
     # print('In AWSCluster init: nodeCount: ', str(self.nodeCount), ' PPN: ', str(self.PPN))
 
     # Can do it this way also - nested functions
-    #self.__parseConfig(self.readConfig(configFile))
+    #self.__parseConfig(self.readConfig(configfile))
     
 
   ''' 
@@ -64,9 +64,9 @@ class AWSCluster(Cluster.Cluster) :
 
   ########################################################################
   ########################################################################
-  def readConfig(self, configFile) :
+  def readConfig(self, configfile) :
 
-    with open(configFile, 'r') as cf:
+    with open(configfile, 'r') as cf:
       cfDict = json.load(cf)
 
     if (debug) :
