@@ -112,14 +112,12 @@ def get_forcing(jobconfig, sshuser):
 
     localpath = f"{comrot}/{ofs}"
 
-    util.get_forcing_lo(cdate, localpath, sshuser) 
+    try: 
+      util.get_forcing_lo(cdate, localpath, sshuser) 
+    except Exception as e:
+      print('Problem encountered with downloading forcing data ...')
+      raise signals.FAIL() 
 
-    #try: 
-    #  util.get_forcing_lo(cdate, remotepath, localpath, sshuser) 
-    #except Exception as e:
-    #  print('Problem encountered with downloading forcing data ...')
-    #  traceback.print_stack()
-    #  raise signals.FAIL() 
   else:
     raise signals.FAIL()
 

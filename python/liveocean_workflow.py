@@ -17,13 +17,12 @@ postconf = 'configs/post.config'
 fcstjobfile = 'jobs/liveocean.job'
 postjobfile = 'jobs/lo.plots.job'
 
+# This is used for obtaining liveocean forcing data
 sshuser='ptripp@boiler.ocean.washington.edu'
-
 
 with Flow('test') as testflow:
 
   forcing = tasks.get_forcing(fcstjobfile,sshuser)
-
 
 
 #######################################################################
@@ -35,7 +34,9 @@ with Flow('ofs workflow') as flow:
   #####################################################################
 
   # Get forcing data
-  forcing = tasks.get_forcing(fcstjobfile,sshuser)
+  #forcing = tasks.get_forcing(fcstjobfile,sshuser)
+
+
 
   #####################################################################
   # FORECAST
