@@ -1,9 +1,9 @@
 {
   "OFS"       : "liveocean",
-  "CDATE"     : "20200121",
+  "CDATE"     : "20191106",
   "HH"        : "00",
   "TIME_REF"  : "19700101",
   "NTIMES"    : "90",
-  "ININAME"   : "/com/liveocean/f2020.01.20/ocean_his_0025.nc",
+  "ININAME"   : "/com/liveocean/f2019.11.05/ocean_his_0025.nc",
   "COMROT"    : "/com"
 }

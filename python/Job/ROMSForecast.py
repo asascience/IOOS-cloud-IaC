@@ -7,30 +7,28 @@ sys.path.insert(0, '..')
 
 import romsUtil as util
 
+
 class ROMSForecast(Job.Job):
 
 
   def __init__(self, configfile, NPROCS):
 
-    TEMPLPATH = "./templates"
     debug = True
+
+    TEMPLPATH = "./templates"
 
     self.__jobtype = 'roms'
     self.configfile = configfile
     self.NPROCS = NPROCS
 
-    with open(configfile, 'r') as cf:
-      jobDict = json.load(cf)
-    
-    if (debug) :
-      print(json.dumps(jobDict, indent=4))
-      print(str(jobDict))
+    jobDict = self.readConfig(configfile)
+
+    # TODO: Add parseConfig
 
     self.CDATE = jobDict['CDATE']
     self.HH = jobDict['HH']
     self.OFS = jobDict['OFS']
     self.COMROT = jobDict['COMROT']
-
     TIME_REF = jobDict['TIME_REF']
 
     # Easier to use 
@@ -78,4 +76,10 @@ class ROMSForecast(Job.Job):
 
     # Create the ocean.in
     util.makeOceanin(self.NPROCS,settings,template,outfile)
- 
+
+
+  ########################################################################
+  def __parseConfig(self, cfDict) : 
+    print("parseConfig stub")
+    return
+  

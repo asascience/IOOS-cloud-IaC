@@ -14,12 +14,28 @@ import workflow_tasks as tasks
 #fcstconf = 'configs/test.config'
 fcstconf = 'configs/liveocean.config'
 postconf = 'configs/post.config'
-jobfile = 'jobs/liveocean.job'
+fcstjobfile = 'jobs/liveocean.job'
 postjobfile = 'jobs/lo.plots.job'
+
+sshuser='ptripp@boiler.ocean.washington.edu'
+
+
+with Flow('test') as testflow:
+
+  forcing = tasks.get_forcing(fcstjobfile,sshuser)
+
 
 
 #######################################################################
 with Flow('ofs workflow') as flow:
+
+
+  #####################################################################
+  # Pre-Process
+  #####################################################################
+
+  # Get forcing data
+  forcing = tasks.get_forcing(fcstjobfile,sshuser)
 
   #####################################################################
   # FORECAST
@@ -34,7 +50,7 @@ with Flow('ofs workflow') as flow:
   # Setup the job 
   # TODO: Template this in npzd2o_Banas.in or copy the rivers.nc file over
   #   SSFNAME == /com/liveocean/forcing/f2019.11.06/riv2/rivers.nc
-  fcstjob = tasks.job_init(cluster, jobfile, 'roms')
+  fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
 
   # Run the forecast
   fcstStatus = tasks.forecast_run(cluster,fcstjob)
@@ -84,7 +100,8 @@ with Flow('ofs workflow') as flow:
 
 def main():
 
-  flow.run()
+  #flow.run()
+  testflow.run()
 
 #####################################################################
 

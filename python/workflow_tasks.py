@@ -39,7 +39,7 @@ def init_cluster(config) -> AWSCluster :
     cluster = AWSCluster(config)
   except Exception as e:
     print('Could not create cluster: ' + str(e))
-    sys.exit()
+    raise signals.FAIL()
   return cluster
 #######################################################################
 
@@ -53,9 +53,10 @@ def start_cluster(cluster):
     cluster.start()
   except Exception as e:
     print('In driver: Exception while creating nodes :' + str(e))
-    sys.exit()
+    raise signals.FAIL()
   return
 #######################################################################
+
 
 
 @task(trigger=all_finished)
@@ -86,7 +87,7 @@ def job_init(cluster, configfile, jobtype) -> Job :
     job = Plotting(configfile,NPROCS)
   else:
     print("Unsupported job type")
-    raise Exception("unsupported job type : ", jobtype)
+    raise signals.FAIL()
 
   return job
 #######################################################################
@@ -94,7 +95,42 @@ def job_init(cluster, configfile, jobtype) -> Job :
 
 
 
-# TODO, make job class and use object here
+@task
+def get_forcing(jobconfig, sshuser):
+
+  # Open and parse jobconfig file
+  #"OFS"       : "liveocean",
+  #"CDATE"     : "20191106",
+  #"ININAME"   : "/com/liveocean/f2019.11.05/ocean_his_0025.nc",
+
+  jobDict = Job.readConfig(jobconfig)
+  cdate = jobDict['CDATE']
+  ofs = jobDict['OFS']
+  comrot = jobDict['COMROT']
+
+  if ofs == 'liveocean':
+
+    # TODO: Parameterize this
+    remotepath = "/data1/parker/LiveOcean_output/cas6_v3"
+    localpath = f"{comrot}/{ofs}"
+
+    util.get_forcing_lo(cdate, remotepath, localpath, sshuser) 
+
+    #try: 
+    #  util.get_forcing_lo(cdate, remotepath, localpath, sshuser) 
+    #except Exception as e:
+    #  print('Problem encountered with downloading forcing data ...')
+    #  traceback.print_stack()
+    #  raise signals.FAIL() 
+  else:
+    raise signals.FAIL()
+
+  # TODO: Add NOSOFS, can also use bash scripts that already exist
+ 
+  return
+
+
+
 @task
 def forecast_run(cluster, job):
 
@@ -108,8 +144,6 @@ def forecast_run(cluster, job):
 
   runscript="fcst_launcher.sh"
  
-  result = 1
- 
   try:
     HOSTS=cluster.getHostsCSV()
   except Exception as e:
@@ -119,13 +153,13 @@ def forecast_run(cluster, job):
   try:
     result = subprocess.run([runscript,CDATE,HH,str(NPROCS),str(PPN),HOSTS,OFS], \
       stderr=subprocess.STDOUT)
+
+    if result.returncode != 0 :
+      print('Forecast failed ... result: ', result)
+      raise signals.FAIL()
+
   except Exception as e:
     print('In driver: Exception during subprocess.run :' + str(e))
-    raise signals.FAIL()
-
-
-  if result != 0 :
-    print('Forecast failed ... result: ', result)
     raise signals.FAIL()
 
   print('Forecast finished successfully')

@@ -3,6 +3,9 @@ import shutil
 import re
 import math
 import datetime
+import os
+import subprocess
+
 
 
 #####################################################################
@@ -26,7 +29,6 @@ def sedoceanin ( template, outfile, settings ) :
 
 
 
-# Reuse
 #######################################################################
 def makeOceanin(NPROCS,settings,template,outfile) :
 
@@ -49,6 +51,7 @@ def makeOceanin(NPROCS,settings,template,outfile) :
 
 #####################################################################
 def ndays( cdate1, cdate2 ) :
+
   days = datetime.timedelta(days=0)
  
   print(f"cdate1 : {cdate1}   cdate2: {cdate2}")
@@ -61,9 +64,10 @@ def ndays( cdate1, cdate2 ) :
   m2 = int(cdate2[4:6].lstrip("0"))
   d2 = int(cdate2[6:8].lstrip("0"))
 
-  date1 = datetime.datetime(y1,m1,d1)
-  date2 = datetime.datetime(y2,m2,d2)
+  date1 = datetime.date(y1,m1,d1)
+  date2 = datetime.date(y2,m2,d2)
   days = date1 - date2
+
   print(str(days.days))
   return days.days
 #####################################################################
@@ -71,7 +75,33 @@ def ndays( cdate1, cdate2 ) :
 
 
 
+def ndate( cdate, days ):
+  ''' return the YYYYMMDD for CDATE +/- days '''
+
+  y1 = int(cdate[0:4])
+  m1 = int(cdate[4:6].lstrip("0"))
+  d1 = int(cdate[6:8].lstrip("0"))
+
+  date2 = datetime.date(y1,m1, d1 + days)
+  strdate = date2.strftime("%Y%m%d")
+  return strdate
 #####################################################################
+
+
+
+
+
+def lo_date( cdate ):
+  ''' return the LiveOcean format of date e.g. f2019.11.06'''
+
+  fdate = f"f{cdate[0:4]}.{cdate[4:6]}.{cdate[6:8]}"
+
+  return fdate
+#####################################################################
+  
+
+
+
 def getTiling( totalCores ) :
   ''' Algorithm
 
@@ -121,4 +151,42 @@ def getTiling( totalCores ) :
 #####################################################################
 
 
-      
+
+
+#####################################################################
+def get_forcing_lo( cdate, remotepath, localpath, sshuser ) :
+  ''' Get the atmospheric forcing and boundary layer conditions and ICs
+      for LiveOcean ROMS model.
+
+      This requires an account on the remote server with private key authentication.
+  '''
+
+  restart = "ocean_his_0025.nc"
+
+  fdate = lo_date(cdate)
+
+  prevdate = ndate(cdate, -1)
+  fprevdate = lo_date(prevdate) 
+
+  if not os.path.exists(localpath):
+    os.mkdir(localpath)
+
+  # Get the forcing
+  scpdir = f"{sshuser}:{remotepath}/{fdate}"
+
+  # TODO: add exception handing?    
+  subprocess.run(["scp", "-rp", scpdir, localpath], stderr=subprocess.STDOUT)
+
+  # Get the restart file from the previous day's forecast
+  scpdir = f"{sshuser}:{remotepath}/{fprevdate}"
+  localdir = f"{localpath}/{fprevdate}"
+
+  if not os.path.exists(localdir):
+    os.mkdir(localdir)
+
+  subprocess.run(["scp", "-p", f"{scpdir}/{restart}", localdir], stderr=subprocess.STDOUT)  
+
+  return
+#####################################################################
+
+        
