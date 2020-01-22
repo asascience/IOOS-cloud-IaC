@@ -27,7 +27,8 @@ from Job.Plotting import Plotting
 
 import romsUtil as util
 
-from plotting.plot import plot_roms
+from plotting import plot
+#from plotting.plot import plot_roms
 
 pp = pprint.PrettyPrinter()
 debug = False
@@ -194,7 +195,7 @@ def ncfiles_from_Job(job : Job):
 def make_plots(filename,target,varname):
 
   print(f"{filename} {target} {varname}")
-  plot_roms(filename,target,varname)
+  plot.plot_roms(filename,target,varname)
   return
 #####################################################################
 
@@ -219,7 +220,7 @@ def daskmake_plots(client: Client, FILES: list, plotjob: Job ):
   futures = []
   for filename in FILES:
     print("plotting filename: ", filename)
-    future = client.submit(plot_roms, filename, target, varname)
+    future = client.submit(plot.plot_roms, filename, target, varname)
     futures.append(future)
     print(futures[idx])
     idx += 1
@@ -277,11 +278,12 @@ def start_dask(cluster) -> Client:
   # Start a dask scheduler on the host
   port = "8786"
 
-  # Use dask-ssh 
-  opts = f"dask-ssh --nprocs {nprocs} {host} &"
-
+  # Use dask-ssh instead of multiple ssh calls
+  # TODO: Refactor this, make Dask an optional part of the cluster
+  # TODO: scale this to multiple hosts
   try:
-    subprocess.Popen(["dask-ssh","--nprocs",str(nprocs),host], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    proc = subprocess.Popen(["dask-ssh","--nprocs",str(nprocs),host], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    cluster.setDaskScheduler(proc)
   except Exception as e:
     print("In start_dask during subprocess.run :" + str(e))
     traceback.print_stack()

@@ -272,9 +272,12 @@ class AWSCluster(Cluster.Cluster) :
   ''' Function: terminate_nodes '''
   ########################################################################
   def __AWSterminateCluster(self) :
-  
+
+    # Terminate any running dask scheduler 
+    self.terminateDaskScheduler()
+
     print('Terminating instances: ',self.__instances)
-  
+    
     ec2 = boto3.resource('ec2',region_name=self.region)
   
     responses = []

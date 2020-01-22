@@ -23,8 +23,8 @@ class LocalCluster(Cluster.Cluster) :
     self.nodeCount = 1
 
     self.readConfig(configfile)
-    #self.PPN = os.cpu_count()
-    self.PPN = len(os.sched_getaffinity(0))
+    self.PPN = os.cpu_count()
+    #self.PPN = len(os.sched_getaffinity(0))
 
   ''' 
   Function  Definitions
@@ -75,10 +75,12 @@ class LocalCluster(Cluster.Cluster) :
     return self.PPN
 
   def start(self) :
-     return
+    return
 
   def terminate(self) :
-     return
+    # Terminate any running dask scheduler 
+    self.terminateDaskScheduler()
+    return ["LocalCluster"]
 
   def getHosts(self) :
     return [os.uname().nodename]

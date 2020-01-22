@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
+from subprocess import Popen
 
 ''' This is an abstract base class for cloud clusters.
     It defines a generic interface to implement
 '''
 class Cluster(ABC) :
+
+  __daskscheduler: Popen
 
   #  __configFile = ''
   #  __instances = []
@@ -17,9 +20,27 @@ class Cluster(ABC) :
   #self.nodeType = nodeType
   #self.__state = "none"   # This should be an enumeration of none, running, stopped, error
   #self.__instances = []
-  
-  # dependency here on nodeInfo - nodeType must be defined there
-  #self.PPN = nodeInfo.getPPN(nodeType)
+
+  # This assumes scheduler is on only one node ... 
+  # TODO: Make this scalable to multiple nodes
+  # If the daskScheduler will be this closely coupled to the architecture it could be here
+  def setDaskScheduler(self,  proc: Popen ):
+    print('............................................  In setDaskScheduler')
+    self.__daskscheduler = proc
+    return proc
+
+
+  def terminateDaskScheduler(self):
+    print('............................................  In terminateDaskScheduler')
+
+    poll = self.__daskscheduler.poll()
+
+    if poll == None:
+      # Process hasn't terminated yet, terminate it
+      self.__daskscheduler.terminate()
+
+    return
+
 
   ## getPPN - get the number of processors per node 
   @abstractmethod
