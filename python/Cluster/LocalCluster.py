@@ -83,8 +83,10 @@ class LocalCluster(Cluster.Cluster) :
     return ["LocalCluster"]
 
   def getHosts(self) :
-    return [os.uname().nodename]
+    #return [os.uname().nodename]
+    return 'localhost'
 
   def getHostsCSV(self) :
-    return os.uname().nodename
+    #return os.uname().nodename
+    return 'localhost'
 

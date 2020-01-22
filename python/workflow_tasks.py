@@ -278,17 +278,25 @@ def start_dask(cluster) -> Client:
   # Start a dask scheduler on the host
   port = "8786"
 
-  # Use dask-ssh instead of multiple ssh calls
-  # TODO: Refactor this, make Dask an optional part of the cluster
-  # TODO: scale this to multiple hosts
-  try:
-    proc = subprocess.Popen(["dask-ssh","--nprocs",str(nprocs),host], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    cluster.setDaskScheduler(proc)
-  except Exception as e:
-    print("In start_dask during subprocess.run :" + str(e))
-    traceback.print_stack()
+  print(f"host is {host}")
 
-  daskclient = Client(f"{host}:{port}")
+  if host == 'localhost':
+    print(f"in host == localhost")
+    daskclient = Client()
+  else:
+    # Use dask-ssh instead of multiple ssh calls
+    # TODO: Refactor this, make Dask an optional part of the cluster
+    # TODO: scale this to multiple hosts
+    try:
+      proc = subprocess.Popen(["dask-ssh","--nprocs",str(nprocs),host], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+      print('Connecting a dask client ')
+      cluster.setDaskScheduler(proc)
+      daskclient = Client(f"{host}:{port}")
+    except Exception as e:
+      print("In start_dask during subprocess.run :" + str(e))
+      traceback.print_stack()
+
   return daskclient
 #####################################################################
 
