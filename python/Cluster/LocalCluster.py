@@ -23,7 +23,8 @@ class LocalCluster(Cluster.Cluster) :
     self.nodeCount = 1
 
     self.readConfig(configfile)
-    self.PPN = os.cpu_count()
+    #self.PPN = os.cpu_count()
+    self.PPN = 2
     #self.PPN = len(os.sched_getaffinity(0))
 
   ''' 
@@ -84,9 +85,9 @@ class LocalCluster(Cluster.Cluster) :
 
   def getHosts(self) :
     #return [os.uname().nodename]
-    return 'localhost'
+    return '127.0.0.1'
 
   def getHostsCSV(self) :
     #return os.uname().nodename
-    return 'localhost'
+    return '127.0.0.1'
 

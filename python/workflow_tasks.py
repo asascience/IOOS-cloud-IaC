@@ -9,6 +9,8 @@ import pprint
 import subprocess
 import traceback
 import glob
+import time
+
 from datetime import timedelta
 
 # 3rd party dependencies
@@ -265,7 +267,8 @@ def push_pyEnv(cluster):
 
 
 
-@task(max_retries=1, retry_delay=timedelta(seconds=10))
+#@task(max_retries=0, retry_delay=timedelta(seconds=10))
+@task
 def start_dask(cluster) -> Client:
 
   # Only single host supported currently
@@ -280,17 +283,21 @@ def start_dask(cluster) -> Client:
 
   print(f"host is {host}")
 
-  if host == 'localhost':
+  #if host == '127.0.0.1':
+  if host == '127.0.0.1':
     print(f"in host == localhost")
-    daskclient = Client()
+    daskclient = Client(f"127.0.0.1:{port}")
   else:
     # Use dask-ssh instead of multiple ssh calls
     # TODO: Refactor this, make Dask an optional part of the cluster
     # TODO: scale this to multiple hosts
     try:
-      proc = subprocess.Popen(["dask-ssh","--nprocs",str(nprocs),host], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+      proc = subprocess.Popen(["dask-ssh","--nprocs",str(nprocs),"--scheduler-port", port, host], \
+               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
       print('Connecting a dask client ')
+
+      # Keep a reference to this process so we can kill it later
       cluster.setDaskScheduler(proc)
       daskclient = Client(f"{host}:{port}")
     except Exception as e:

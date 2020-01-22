@@ -16,7 +16,7 @@ fcstconf = 'configs/liveocean.config'
 postconf = 'configs/post.config'
 #fcstjobfile = 'jobs/liveocean.job'
 fcstjobfile = 'jobs/20191106.liveocean.job'
-postjobfile = 'jobs/lo.plots.job'
+postjobfile = 'jobs/plots.local.job'
 
 # This is used for obtaining liveocean forcing data
 sshuser='ptripp@boiler.ocean.washington.edu'
