@@ -14,18 +14,48 @@ import workflow_tasks as tasks
 #fcstconf = 'configs/test.config'
 fcstconf = 'configs/liveocean.config'
 postconf = 'configs/post.config'
-fcstjobfile = 'jobs/liveocean.job'
+#fcstjobfile = 'jobs/liveocean.job'
+fcstjobfile = 'jobs/20191106.liveocean.job'
 postjobfile = 'jobs/lo.plots.job'
 
 # This is used for obtaining liveocean forcing data
 sshuser='ptripp@boiler.ocean.washington.edu'
 
-with Flow('test') as testflow:
+#with Flow('test') as testflow:
+  #forcing = tasks.get_forcing(fcstjobfile,sshuser)
 
-  forcing = tasks.get_forcing(fcstjobfile,sshuser)
+
+with Flow('plot only') as plotonly:
 
 
+  # Start a machine
+  postmach = tasks.init_cluster(postconf,'Local')
+  pmStarted = tasks.start_cluster(postmach)
+
+  # Push the env, install required libs on post machine
+  # TODO: install all of the 3rd party dependencies on AMI
+  #pushPy = tasks.push_pyEnv(postmach, upstream_tasks=[pmStarted])
+
+  # Start a dask scheduler on the new post machine
+  daskclient = tasks.start_dask(postmach, upstream_tasks=[pmStarted])
+
+  # Setup the post job
+  postjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
+
+  # Get list of files from fcstjob
+  FILES = tasks.ncfiles_from_Job(postjob)
+
+  # Make plots
+  plots = tasks.daskmake_plots(daskclient, FILES, postjob)
+  plots.set_upstream([daskclient])
+
+  pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[plots])
 #######################################################################
+
+
+
+
+
 with Flow('ofs workflow') as flow:
 
 
@@ -43,7 +73,7 @@ with Flow('ofs workflow') as flow:
   #####################################################################
 
   # Create the cluster object
-  cluster = tasks.init_cluster(fcstconf, 'AWS')
+  cluster = tasks.init_cluster(fcstconf,'Local')
 
   # Start the cluster
   fcStarted = tasks.start_cluster(cluster)
@@ -73,7 +103,7 @@ with Flow('ofs workflow') as flow:
   # or run on the local machine? concurrrently? 
 
   # Start a machine
-  postmach = tasks.init_cluster(postconf,'AWS')
+  postmach = tasks.init_cluster(postconf,'Local')
   pmStarted = tasks.start_cluster(postmach, upstream_tasks=[fcstStatus])
 
   # Push the env, install required libs on post machine
@@ -87,7 +117,7 @@ with Flow('ofs workflow') as flow:
   postjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
 
   # Get list of files from fcstjob
-  FILES = tasks.ncfiles_from_Job(fcstjob, upstream_tasks=[fcstStatus])
+  FILES = tasks.ncfiles_from_Job(postjob, upstream_tasks=[fcstStatus])
 
   # Make plots
   plots = tasks.daskmake_plots(daskclient, FILES, postjob)
@@ -102,7 +132,8 @@ with Flow('ofs workflow') as flow:
 def main():
 
   #flow.run()
-  testflow.run()
+  #testflow.run()
+  plotonly.run()
 
 #####################################################################
 

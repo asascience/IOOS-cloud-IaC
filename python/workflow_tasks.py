@@ -19,6 +19,8 @@ from dask.distributed import Client
 
 # Local dependencies
 from Cluster.AWSCluster import AWSCluster
+from Cluster.LocalCluster import LocalCluster
+from Cluster.Cluster import Cluster
 from Job import Job
 from Job.ROMSForecast import ROMSForecast
 from Job.Plotting import Plotting
@@ -32,14 +34,20 @@ debug = False
 
 
 @task
-def init_cluster(config) -> AWSCluster :
+def init_cluster(config, provider) -> Cluster :
 
-  # TODO later: implement AzureCluster
-  try:
-    cluster = AWSCluster(config)
-  except Exception as e:
-    print('Could not create cluster: ' + str(e))
-    raise signals.FAIL()
+  if provider == 'AWS':
+
+    # TODO later: implement AzureCluster
+    try:
+      cluster = AWSCluster(config)
+    except Exception as e:
+      print('Could not create cluster: ' + str(e))
+      raise signals.FAIL()
+
+  elif provider == 'Local':
+    cluster = LocalCluster(config)
+
   return cluster
 #######################################################################
 
@@ -175,8 +183,9 @@ def ncfiles_glob(SOURCE):
 
 @task
 def ncfiles_from_Job(job : Job):
-    SOURCE = job.OUTDIR
-    return ncfiles_glob(SOURCE)
+    SOURCE = job.INDIR
+    FILES = sorted(glob.glob(f'{SOURCE}/*.nc'))
+    return FILES
 #####################################################################
 
 
@@ -202,12 +211,14 @@ def daskmake_plots(client: Client, FILES: list, plotjob: Job ):
 
   print("In daskmake_plots", FILES)
 
+  print("Target is : ", target)
   if not os.path.exists(target):
-      os.mkdir(target)
+    os.makedirs(target)
 
   idx = 0
   futures = []
   for filename in FILES:
+    print("plotting filename: ", filename)
     future = client.submit(plot_roms, filename, target, varname)
     futures.append(future)
     print(futures[idx])

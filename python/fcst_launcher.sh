@@ -45,7 +45,7 @@ case $OFS in
     ;;
 esac
  
-export MPIOPTS="-nolocal -launcher ssh -hosts $HOSTS -np $NPROCS -ppn $PPN"
+export MPIOPTS="-launcher ssh -hosts $HOSTS -np $NPROCS -ppn $PPN"
 cd $JOBDIR
 
 #$JOBDIR/fcstrun.sh $CDATE $HH

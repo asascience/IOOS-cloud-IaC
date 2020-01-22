@@ -39,9 +39,9 @@ class Job(ABC) :
   ######################################################################## 
 
 
-  @abstractmethod
-  def __parseConfig(self, cfDict) : 
-    pass
+  #@abstractmethod
+  #def __parseConfig(self, cfDict) : 
+  #pass
 
 
 def readConfig(configfile) :

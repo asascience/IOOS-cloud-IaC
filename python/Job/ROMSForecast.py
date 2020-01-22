@@ -1,5 +1,6 @@
 import sys
 import json
+import os
 
 from Job import Job
 
@@ -36,7 +37,7 @@ class ROMSForecast(Job.Job):
     HH = self.HH
     OFS = self.OFS
     COMROT = self.COMROT
-
+    
     # Create the ocean.in file from a template 
     # TODO: Make ocean in for NOSOFS
     if OFS == 'liveocean':
@@ -53,6 +54,9 @@ class ROMSForecast(Job.Job):
 
       # Add this to dictionary
       jobDict['COMOUT'] = self.OUTDIR
+
+      if not os.path.exists(self.OUTDIR):
+        os.mkdir(self.OUTDIR)
   
       DSTART = util.ndays(CDATE,TIME_REF)
       # DSTART = days from TIME_REF to start of forecast day larger minus smaller date
