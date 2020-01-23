@@ -10,3 +10,6 @@ python/*.ipynb
 .pytest_cache/
 python/dist
 python/*.out
+**/worker-*.dirlock
+**/purge.lock
+**/global.lock

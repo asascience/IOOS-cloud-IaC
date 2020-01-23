@@ -266,6 +266,11 @@ def push_pyEnv(cluster):
 
 
 
+@task
+def dask_client_close( daskclient : Client ):
+  daskclient.close()
+  return
+
 
 #@task(max_retries=0, retry_delay=timedelta(seconds=10))
 @task

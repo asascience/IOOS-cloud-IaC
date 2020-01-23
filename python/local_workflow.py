@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import multiprocessing as mp
+from dask.distributed import Client
 
 # keep things cloud platform agnostic at this layer
 
@@ -17,7 +18,8 @@ fcstconf = 'configs/liveocean.config'
 postconf = 'configs/local.post'
 #fcstjobfile = 'jobs/liveocean.job'
 fcstjobfile = 'jobs/20191106.liveocean.job'
-postjobfile = 'jobs/plots.local.job'
+#postjobfile = 'jobs/plots.local.job'
+postjobfile = 'jobs/lo.plots.job'
 
 # This is used for obtaining liveocean forcing data
 sshuser='ptripp@boiler.ocean.washington.edu'
@@ -38,7 +40,7 @@ with Flow('plot only') as plotonly:
   #pushPy = tasks.push_pyEnv(postmach, upstream_tasks=[pmStarted])
 
   # Start a dask scheduler on the new post machine
-  daskclient = tasks.start_dask(postmach, upstream_tasks=[pmStarted])
+  daskclient : Client = tasks.start_dask(postmach, upstream_tasks=[pmStarted])
 
   # Setup the post job
   postjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
@@ -50,7 +52,11 @@ with Flow('plot only') as plotonly:
   plots = tasks.daskmake_plots(daskclient, FILES, postjob)
   plots.set_upstream([daskclient])
 
-  pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[plots])
+  closedask = tasks.dask_client_close(daskclient, upstream_tasks=[plots])
+
+  pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[plots,closedask])
+
+  
   #pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[FILES])
 #######################################################################
 

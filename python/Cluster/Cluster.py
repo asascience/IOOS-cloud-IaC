@@ -42,7 +42,8 @@ class Cluster(ABC) :
     if poll == None:
       # Process hasn't terminated yet, terminate it
       print("In Cluster.terminateDaskScheduler")
-      self.__daskscheduler.terminate()
+      #self.__daskscheduler.terminate()
+      self.__daskscheduler.kill()
       time.sleep(3)
 
     return
@@ -61,7 +62,8 @@ class Cluster(ABC) :
     if poll == None:
       # Process hasn't terminated yet, terminate it
       print("In Cluster.terminateDaskScheduler")
-      self.__daskworker.terminate()
+      #self.__daskworker.terminate()
+      self.__daskworker.kill()
       time.sleep(3)
 
     return
