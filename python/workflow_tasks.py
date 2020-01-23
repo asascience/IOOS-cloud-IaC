@@ -40,8 +40,7 @@ log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
-
-formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcName)s %(message)s')
+formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcName)s | %(message)s')
 ch.setFormatter(formatter)
 log.addHandler(ch)
 
@@ -222,16 +221,16 @@ def daskmake_plots(client: Client, FILES: list, plotjob: Job ):
   # TODO: implement multiple VARS in Job
   varname = plotjob.VARS[0]
 
-  log.info("In daskmake_plots", FILES)
+  log.info(f"In daskmake_plots {FILES}")
 
-  log.info("Target is : ", target)
+  log.info(f"Target is : {target}")
   if not os.path.exists(target):
     os.makedirs(target)
 
   idx = 0
   futures = []
   for filename in FILES:
-    log.info("plotting filename: ", filename)
+    log.info(f"plotting filename: {filename}")
     future = client.submit(plot.plot_roms, filename, target, varname)
     futures.append(future)
     log.info(futures[idx])
@@ -266,7 +265,7 @@ def push_pyEnv(cluster):
   # Push and install anything in dist folder
   dists = glob.glob(f'dist/*.tar.gz')
   for dist in dists:
-     log.info("pushing python dist: ", dist)
+     log.info(f"pushing python dist: {dist}")
      subprocess.run(["scp",dist,f"{host}:~"], stderr=subprocess.STDOUT) 
      lib = dist.split('/')[1]
      log.info(f"push_pyEnv installing module: {lib}")

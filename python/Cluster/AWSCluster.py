@@ -15,11 +15,11 @@ debug = False
 
 log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcName)s %(message)s')
-ch.setFormatter(formatter)
-log.addHandler(ch)
+#ch = logging.StreamHandler()
+#ch.setLevel(logging.DEBUG)
+#formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcName)s | %(message)s')
+#ch.setFormatter(formatter)
+#log.addHandler(ch)
 
 class AWSCluster(Cluster.Cluster) :
 
@@ -27,10 +27,9 @@ class AWSCluster(Cluster.Cluster) :
 
     # Call the parent constructor??
     # Cluster.__init__(self)
-    self.__daskscheduler: Popen
-
+    self.daskscheduler = None
+    
     self.configfile = configfile
-
     self.__state = "none"   # This could be an enumeration of none, running, stopped, error
     self.__instances = []
     self.platform  = 'AWS'

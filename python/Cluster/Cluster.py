@@ -9,8 +9,8 @@ class Cluster(ABC) :
 
   def __init__(self):
 
-    __daskscheduler: Popen
-    __daskworker: Popen
+    self.daskscheduler = None
+    self.daskworker = None
 
   #  __configFile = ''
   #  __instances = []
@@ -30,42 +30,42 @@ class Cluster(ABC) :
   # If the daskScheduler will be this closely coupled to the architecture it could be here
   def setDaskScheduler(self,  proc: Popen ):
     print('............................................  In setDaskScheduler')
-    self.__daskscheduler = proc
+    self.daskscheduler = proc
     return proc
 
 
   def terminateDaskScheduler(self):
     print('............................................  In terminateDaskScheduler')
 
-    poll = self.__daskscheduler.poll()
+    if self.daskscheduler != None: 
+      poll = self.daskscheduler.poll()
 
-    if poll == None:
-      # Process hasn't terminated yet, terminate it
-      print("In Cluster.terminateDaskScheduler")
-      #self.__daskscheduler.terminate()
-      self.__daskscheduler.kill()
-      time.sleep(3)
-
+      if poll == None:
+        # Process hasn't terminated yet, terminate it
+        print("In Cluster.terminateDaskScheduler")
+        #self.__daskscheduler.terminate()
+        self.daskscheduler.kill()
+        time.sleep(3)
     return
 
   def setDaskWorker(self,  proc: Popen ):
     print('............................................  In setDaskScheduler')
-    self.__daskworker = proc
+    self.daskworker = proc
     return proc
 
 
   def terminateDaskWorker(self):
     print('............................................  In terminateDaskScheduler')
 
-    poll = self.__daskworker.poll()
+    if self.daskworker != None: 
+      poll = self.daskworker.poll()
 
-    if poll == None:
-      # Process hasn't terminated yet, terminate it
-      print("In Cluster.terminateDaskScheduler")
-      #self.__daskworker.terminate()
-      self.__daskworker.kill()
-      time.sleep(3)
-
+      if poll == None:
+        # Process hasn't terminated yet, terminate it
+        print("In Cluster.terminateDaskScheduler")
+        #self.daskworker.terminate()
+        self.daskworker.kill()
+        time.sleep(3)
     return
 
   ## getPPN - get the number of processors per node 
