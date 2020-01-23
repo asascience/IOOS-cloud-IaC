@@ -13,19 +13,26 @@ debug = False
 
 class LocalCluster(Cluster.Cluster) :
 
+
   def __init__(self, configfile) :
+
+    self.__daskscheduler: Popen
+    self.__daskworker: Popen
 
     self.configfile = configfile
 
     self.__state = "none"   # This could be an enumeration of none, running, stopped, error
     self.platform  = 'Local'
     self.nodeType  = os.uname().sysname
-    self.nodeCount = 1
 
-    self.readConfig(configfile)
+    cfDict = self.readConfig(configfile)
+
+    # TODO: Move this to parse
+    self.PPN = cfDict['PPN']
+    self.nodeCount = cfDict['nodeCount']
+
     #self.PPN = os.cpu_count()
-    self.PPN = 2
-    #self.PPN = len(os.sched_getaffinity(0))
+    #self.PPN = len(os.sched_getaffinity(0))  # Not supported or implemented on some platforms
 
   ''' 
   Function  Definitions
@@ -60,7 +67,7 @@ class LocalCluster(Cluster.Cluster) :
     #return cfDict
     self.__parseConfig(cfDict)
 
-    return
+    return cfDict
   ########################################################################
 
 
@@ -80,6 +87,8 @@ class LocalCluster(Cluster.Cluster) :
 
   def terminate(self) :
     # Terminate any running dask scheduler 
+    print("In LocalCluster.terminate ..........................")
+    self.terminateDaskWorker()
     self.terminateDaskScheduler()
     return ["LocalCluster"]
 

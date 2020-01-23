@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import multiprocessing as mp
 
 # keep things cloud platform agnostic at this layer
 
@@ -13,7 +14,7 @@ import workflow_tasks as tasks
 # Set these
 #fcstconf = 'configs/test.config'
 fcstconf = 'configs/liveocean.config'
-postconf = 'configs/post.config'
+postconf = 'configs/local.post'
 #fcstjobfile = 'jobs/liveocean.job'
 fcstjobfile = 'jobs/20191106.liveocean.job'
 postjobfile = 'jobs/plots.local.job'
@@ -50,6 +51,7 @@ with Flow('plot only') as plotonly:
   plots.set_upstream([daskclient])
 
   pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[plots])
+  #pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[FILES])
 #######################################################################
 
 
@@ -131,6 +133,12 @@ with Flow('ofs workflow') as flow:
 
 def main():
 
+ 
+  # Potential fix for Mac OS, fixed one thing but still wont run
+  #mp.set_start_method('spawn')
+  #mp.set_start_method('forkserver')
+
+  # matplotlib Mac OS issues
   #flow.run()
   #testflow.run()
   plotonly.run()

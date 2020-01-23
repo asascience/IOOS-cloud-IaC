@@ -11,6 +11,29 @@ drwxrwxr-x.  2 parker parker  4096 Jan 20 07:04 merhab_P_tracks_ps_cas6_v3_lo8b
 drwxrwxr-x.  2 parker parker  4096 Jan 20 07:09 forecast_P_willapa_omega_cas6_v3_lo8b
 drwxrwxr-x.  2 parker parker  4096 Jan 20 07:20 forecast_P_rho_cas6_v3_lo8b
 
+/data1/parker/LiveOcean_output/plots/forecast_P_rho_cas6_v3_lo8b
+
+-rw-rw-r--.  1 parker parker 211792 Jan 22 06:21 plot_0000.png
+-rw-rw-r--.  1 parker parker 223534 Jan 22 06:22 plot_0001.png
+...
+-rw-rw-r--.  1 parker parker 227225 Jan 22 06:38 plot_0070.png
+-rw-rw-r--.  1 parker parker 227340 Jan 22 06:39 plot_0071.png
+-rw-rw-r--.  1 parker parker 225258 Jan 22 06:39 plot_0072.png
+-rw-rw-r--.  1 parker parker 329797 Jan 22 06:39 movie.mp4
+
+
+/data1/parker/LiveOcean_output/cas6_v3/f2020.01.22
+active_forecast
+atm1
+azu1
+carbon
+ocn4
+riv2
+surface
+tide2
+ubc2
+
+
 
 Model forcing data:
 

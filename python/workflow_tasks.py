@@ -283,10 +283,22 @@ def start_dask(cluster) -> Client:
 
   print(f"host is {host}")
 
-  #if host == '127.0.0.1':
   if host == '127.0.0.1':
-    print(f"in host == localhost")
-    daskclient = Client(f"127.0.0.1:{port}")
+    print(f"in host == {host}")
+    proc = subprocess.Popen(["dask-scheduler","--host", host, "--port", port], \
+             #stderr=subprocess.DEVNULL)
+             stderr=subprocess.STDOUT)
+    time.sleep(3)
+    cluster.setDaskScheduler(proc)
+
+    wrkrproc = subprocess.Popen(["dask-worker","--nprocs",str(nprocs),"--nthreads", "1", f"{host}:{port}"], \
+             stderr=subprocess.STDOUT)
+      #stderr=subprocess.DEVNULL)
+    time.sleep(3)
+    cluster.setDaskWorker(wrkrproc)
+
+
+    daskclient = Client(f"{host}:{port}")
   else:
     # Use dask-ssh instead of multiple ssh calls
     # TODO: Refactor this, make Dask an optional part of the cluster
