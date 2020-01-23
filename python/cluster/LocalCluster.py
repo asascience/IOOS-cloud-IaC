@@ -5,9 +5,9 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 
-import Cluster.nodeInfo as nodeInfo
+import cluster.nodeInfo as nodeInfo
 
-from Cluster import Cluster
+from cluster import Cluster
 
 debug = False
 
