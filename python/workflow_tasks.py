@@ -10,6 +10,7 @@ import subprocess
 import traceback
 import glob
 import time
+import logging
 
 from datetime import timedelta
 
@@ -35,17 +36,25 @@ from plotting import plot
 pp = pprint.PrettyPrinter()
 debug = False
 
+log = logging.getLogger('workflow')
+log.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcName)s %(message)s')
+ch.setFormatter(formatter)
+log.addHandler(ch)
+
 
 @task
 def init_cluster(config, provider) -> Cluster :
 
   if provider == 'AWS':
 
-    # TODO later: implement AzureCluster
     try:
       cluster = AWSCluster(config)
     except Exception as e:
-      print('Could not create cluster: ' + str(e))
+      log.exception('Could not create cluster: ' + str(e))
       raise signals.FAIL()
 
   elif provider == 'Local':
@@ -59,11 +68,11 @@ def init_cluster(config, provider) -> Cluster :
 @task
 def start_cluster(cluster):
 
-  print('Starting ' + str(cluster.nodeCount) + ' instances ...')
+  log.info('Starting ' + str(cluster.nodeCount) + ' instances ...')
   try:
     cluster.start()
   except Exception as e:
-    print('In driver: Exception while creating nodes :' + str(e))
+    log.exception('In driver: Exception while creating nodes :' + str(e))
     raise signals.FAIL()
   return
 #######################################################################
@@ -75,7 +84,7 @@ def terminate_cluster(cluster):
 
   responses = cluster.terminate()
   # Just check the state
-  print('Responses from terminate: ')
+  log.info('Responses from terminate: ')
   for response in responses :
     pp.pprint(response)
 
@@ -97,7 +106,7 @@ def job_init(cluster, configfile, jobtype) -> Job :
   elif jobtype == 'plotting':
     job = Plotting(configfile,NPROCS)
   else:
-    print("Unsupported job type")
+    log.error("Unsupported job type")
     raise signals.FAIL()
 
   return job
@@ -126,7 +135,7 @@ def get_forcing(jobconfig, sshuser):
     try: 
       util.get_forcing_lo(cdate, localpath, sshuser) 
     except Exception as e:
-      print('Problem encountered with downloading forcing data ...')
+      log.exception('Problem encountered with downloading forcing data ...')
       raise signals.FAIL() 
 
   else:
@@ -154,7 +163,7 @@ def forecast_run(cluster, job):
   try:
     HOSTS=cluster.getHostsCSV()
   except Exception as e:
-    print('In driver: execption retrieving list of hostnames:' + str(e))
+    log.exception('In driver: execption retrieving list of hostnames:' + str(e))
     raise signals.FAIL()
 
   try:
@@ -162,14 +171,14 @@ def forecast_run(cluster, job):
       stderr=subprocess.STDOUT)
 
     if result.returncode != 0 :
-      print('Forecast failed ... result: ', result)
+      log.exception('Forecast failed ... result: ', result)
       raise signals.FAIL()
 
   except Exception as e:
-    print('In driver: Exception during subprocess.run :' + str(e))
+    log.exception('In driver: Exception during subprocess.run :' + str(e))
     raise signals.FAIL()
 
-  print('Forecast finished successfully')
+  log.info('Forecast finished successfully')
   return 
 #######################################################################
 
@@ -179,6 +188,7 @@ def forecast_run(cluster, job):
 def ncfiles_glob(SOURCE):
     FILES = sorted(glob.glob(f'{SOURCE}/*.nc'))
     for f in FILES:
+      log.info('found the following files:')
       print(f)
     return FILES
 #####################################################################
@@ -196,7 +206,7 @@ def ncfiles_from_Job(job : Job):
 @task
 def make_plots(filename,target,varname):
 
-  print(f"{filename} {target} {varname}")
+  log.info(f"plotting {filename} {target} {varname}")
   plot.plot_roms(filename,target,varname)
   return
 #####################################################################
@@ -212,24 +222,24 @@ def daskmake_plots(client: Client, FILES: list, plotjob: Job ):
   # TODO: implement multiple VARS in Job
   varname = plotjob.VARS[0]
 
-  print("In daskmake_plots", FILES)
+  log.info("In daskmake_plots", FILES)
 
-  print("Target is : ", target)
+  log.info("Target is : ", target)
   if not os.path.exists(target):
     os.makedirs(target)
 
   idx = 0
   futures = []
   for filename in FILES:
-    print("plotting filename: ", filename)
+    log.info("plotting filename: ", filename)
     future = client.submit(plot.plot_roms, filename, target, varname)
     futures.append(future)
-    print(futures[idx])
+    log.info(futures[idx])
     idx += 1
   
   for future in futures:
     result = future.result()
-    print(result)
+    log.info(result)
 
   # Was unable to get it to work using client.map()
   #filenames = FILES[0:1]
@@ -251,15 +261,15 @@ def daskmake_plots(client: Client, FILES: list, plotjob: Job ):
 def push_pyEnv(cluster):
 
   host = cluster.getHosts()[0]
-  print(f"push_pyEnv host is {host}")
+  log.info(f"push_pyEnv host is {host}")
 
   # Push and install anything in dist folder
   dists = glob.glob(f'dist/*.tar.gz')
   for dist in dists:
-     print("pushing python dist: ", dist)
+     log.info("pushing python dist: ", dist)
      subprocess.run(["scp",dist,f"{host}:~"], stderr=subprocess.STDOUT) 
      lib = dist.split('/')[1]
-     print(f"push_pyEnv installing module: {lib}")
+     log.info(f"push_pyEnv installing module: {lib}")
      subprocess.run(["ssh",host,"pip3","install","--user",lib], stderr=subprocess.STDOUT) 
   return
 #####################################################################
@@ -286,10 +296,10 @@ def start_dask(cluster) -> Client:
   # Start a dask scheduler on the host
   port = "8786"
 
-  print(f"host is {host}")
+  log.info(f"host is {host}")
 
   if host == '127.0.0.1':
-    print(f"in host == {host}")
+    log.info(f"in host == {host}")
     proc = subprocess.Popen(["dask-scheduler","--host", host, "--port", port], \
              #stderr=subprocess.DEVNULL)
              stderr=subprocess.STDOUT)
@@ -302,7 +312,6 @@ def start_dask(cluster) -> Client:
     time.sleep(3)
     cluster.setDaskWorker(wrkrproc)
 
-
     daskclient = Client(f"{host}:{port}")
   else:
     # Use dask-ssh instead of multiple ssh calls
@@ -312,13 +321,13 @@ def start_dask(cluster) -> Client:
       proc = subprocess.Popen(["dask-ssh","--nprocs",str(nprocs),"--scheduler-port", port, host], \
                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-      print('Connecting a dask client ')
+      log.info('Connecting a dask client ')
 
       # Keep a reference to this process so we can kill it later
       cluster.setDaskScheduler(proc)
       daskclient = Client(f"{host}:{port}")
     except Exception as e:
-      print("In start_dask during subprocess.run :" + str(e))
+      log.info("In start_dask during subprocess.run :" + str(e))
       traceback.print_stack()
 
   return daskclient

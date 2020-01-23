@@ -1,5 +1,6 @@
 import time
 import json
+import logging
 
 import boto3
 from botocore.exceptions import ClientError
@@ -10,20 +11,32 @@ from Cluster import Cluster
 
 debug = False
 
+#logging.basicConfig(format='%(asctime)s %(levelname)s - %(funcName)s %(message)s', level=logging.DEBUG)
+
+log = logging.getLogger('workflow')
+log.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcName)s %(message)s')
+ch.setFormatter(formatter)
+log.addHandler(ch)
+
 class AWSCluster(Cluster.Cluster) :
 
   def __init__(self, configfile) :
 
-    # Call the parent constructor
+    # Call the parent constructor??
     # Cluster.__init__(self)
+    self.__daskscheduler: Popen
 
     self.configfile = configfile
 
     self.__state = "none"   # This could be an enumeration of none, running, stopped, error
     self.__instances = []
-    self.platform  = ''   # Only AWS implemented
+    self.platform  = 'AWS'
     self.nodeType  = ''
     self.nodeCount = 0
+    self.NPROCS    = 0
     self.tags      = []
     self.image_id  = ''
     self.key_name  = ''
@@ -36,9 +49,11 @@ class AWSCluster(Cluster.Cluster) :
     #cfDict = self.readConfig(configfile)
     #self.__parseConfig(cfDict)
     self.readConfig(configfile)
-    self.PPN = nodeInfo.getPPN(self.nodeType)
 
-    # print('In AWSCluster init: nodeCount: ', str(self.nodeCount), ' PPN: ', str(self.PPN))
+    self.PPN = nodeInfo.getPPN(self.nodeType)
+    self.NPROCS = self.nodeCount * self.PPN
+
+    log.info(f"nodeCount: {self.nodeCount}  PPN: {self.PPN}")
 
     # Can do it this way also - nested functions
     #self.__parseConfig(self.readConfig(configfile))
@@ -113,10 +128,11 @@ class AWSCluster(Cluster.Cluster) :
     return self.PPN
 
   def start(self) :
-     return self.__AWScreateCluster()
+    return self.__AWScreateCluster()
 
   def terminate(self) :
-     return self.__AWSterminateCluster()
+    self.terminateDaskScheduler()
+    return self.__AWSterminateCluster()
 
   def getHosts(self) :
     return self.__AWSgetHosts()
@@ -134,7 +150,6 @@ class AWSCluster(Cluster.Cluster) :
 
     for instance in self.__instances :
       hosts.append(instance.private_dns_name)
-
     return hosts
   ########################################################################
 
@@ -225,7 +240,7 @@ class AWSCluster(Cluster.Cluster) :
         
       )
     except ClientError as e:
-      print('ClientError exception in createCluster' + str(e))
+      log.exception('ClientError exception in createCluster' + str(e))
       raise Exception() from e
   
  
@@ -276,7 +291,7 @@ class AWSCluster(Cluster.Cluster) :
     # Terminate any running dask scheduler 
     self.terminateDaskScheduler()
 
-    print('Terminating instances: ',self.__instances)
+    log.info(f"Terminating instances: {self.__instances}")
     
     ec2 = boto3.resource('ec2',region_name=self.region)
   

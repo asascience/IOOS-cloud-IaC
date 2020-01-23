@@ -1,8 +1,8 @@
 {
   "OFS"       : "liveocean",
-  "CDATE"     : "20191106",
+  "CDATE"     : "20200121",
   "HH"        : "00",
-  "INDIR"     : "/com/liveocean/f2019.11.06",
-  "OUTDIR"    : "/com/liveocean/plots/f2019.11.06",
+  "INDIR"     : "/com/liveocean/f2020.01.21",
+  "OUTDIR"    : "/com/liveocean/plots/f2020.01.21",
   "VARS"      : ["temp"]
 }

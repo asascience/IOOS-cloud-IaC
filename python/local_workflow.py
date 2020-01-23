@@ -12,32 +12,37 @@ from prefect import Flow
 import workflow_tasks as tasks
 
 
-# Set these
-#fcstconf = 'configs/test.config'
-fcstconf = 'configs/liveocean.config'
-postconf = 'configs/local.post'
-#fcstjobfile = 'jobs/liveocean.job'
-fcstjobfile = 'jobs/20191106.liveocean.job'
-#postjobfile = 'jobs/plots.local.job'
-postjobfile = 'jobs/lo.plots.job'
+# Set these for specific use
+
+provider = 'Local'
+#provider = 'AWS'
+
+if provider == 'AWS':
+  fcstconf = 'configs/liveocean.config'
+  fcstjobfile = 'jobs/20191106.liveocean.job'
+  postconf = 'configs/post.config'
+  postjobfile = 'jobs/lo.plots.job'
+
+elif provider == 'Local':
+  fcstconf = 'configs/local.config'
+  fcstjobfile = 'jobs/liveocean.job'
+  postconf = 'configs/local.post'
+  postjobfile = 'jobs/plots.local.job'
+
 
 # This is used for obtaining liveocean forcing data
 sshuser='ptripp@boiler.ocean.washington.edu'
 
-#with Flow('test') as testflow:
-  #forcing = tasks.get_forcing(fcstjobfile,sshuser)
-
 
 with Flow('plot only') as plotonly:
 
-
   # Start a machine
-  postmach = tasks.init_cluster(postconf,'Local')
+  postmach = tasks.init_cluster(postconf,provider)
   pmStarted = tasks.start_cluster(postmach)
 
   # Push the env, install required libs on post machine
   # TODO: install all of the 3rd party dependencies on AMI
-  #pushPy = tasks.push_pyEnv(postmach, upstream_tasks=[pmStarted])
+  pushPy = tasks.push_pyEnv(postmach, upstream_tasks=[pmStarted])
 
   # Start a dask scheduler on the new post machine
   daskclient : Client = tasks.start_dask(postmach, upstream_tasks=[pmStarted])
@@ -53,13 +58,9 @@ with Flow('plot only') as plotonly:
   plots.set_upstream([daskclient])
 
   closedask = tasks.dask_client_close(daskclient, upstream_tasks=[plots])
-
   pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[plots,closedask])
 
-  
-  #pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[FILES])
 #######################################################################
-
 
 
 
@@ -75,20 +76,17 @@ with Flow('ofs workflow') as flow:
   #forcing = tasks.get_forcing(fcstjobfile,sshuser)
 
 
-
   #####################################################################
   # FORECAST
   #####################################################################
 
   # Create the cluster object
-  cluster = tasks.init_cluster(fcstconf,'Local')
+  cluster = tasks.init_cluster(fcstconf,'AWS')
 
   # Start the cluster
   fcStarted = tasks.start_cluster(cluster)
 
   # Setup the job 
-  # TODO: Template this in npzd2o_Banas.in or copy the rivers.nc file over
-  #   SSFNAME == /com/liveocean/forcing/f2019.11.06/riv2/rivers.nc
   fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
 
   # Run the forecast
@@ -111,7 +109,7 @@ with Flow('ofs workflow') as flow:
   # or run on the local machine? concurrrently? 
 
   # Start a machine
-  postmach = tasks.init_cluster(postconf,'Local')
+  postmach = tasks.init_cluster(postconf,provider)
   pmStarted = tasks.start_cluster(postmach, upstream_tasks=[fcstStatus])
 
   # Push the env, install required libs on post machine
@@ -131,7 +129,8 @@ with Flow('ofs workflow') as flow:
   plots = tasks.daskmake_plots(daskclient, FILES, postjob)
   plots.set_upstream([daskclient])
 
-  pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[plots])
+  closedask = tasks.dask_client_close(daskclient, upstream_tasks=[plots])
+  pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[plots,closedask])
 
 #####################################################################
 
@@ -147,7 +146,7 @@ def main():
   # matplotlib Mac OS issues
   #flow.run()
   #testflow.run()
-  plotonly.run()
+  #plotonly.run()
 
 #####################################################################
 
