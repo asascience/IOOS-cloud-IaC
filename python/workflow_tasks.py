@@ -113,7 +113,7 @@ def job_init(cluster, configfile, jobtype) -> Job :
 
 
 
-
+# TODO: make sshuser an optional Job parameter
 @task
 def get_forcing(jobconfig, sshuser):
 
@@ -156,8 +156,10 @@ def forecast_run(cluster, job):
   HH = job.HH
   OFS = job.OFS
   NPROCS = job.NPROCS
+  COMOUT = job.COMOUT
+  EXEC = job.EXEC
 
-  runscript="fcst_launcher.sh"
+  runscript="./fcst_launcher.sh"
  
   try:
     HOSTS=cluster.getHostsCSV()
@@ -166,7 +168,7 @@ def forecast_run(cluster, job):
     raise signals.FAIL()
 
   try:
-    result = subprocess.run([runscript,CDATE,HH,str(NPROCS),str(PPN),HOSTS,OFS], \
+    result = subprocess.run([runscript,CDATE,HH,COMOUT,str(NPROCS),str(PPN),HOSTS,OFS,EXEC], \
       stderr=subprocess.STDOUT)
 
     if result.returncode != 0 :

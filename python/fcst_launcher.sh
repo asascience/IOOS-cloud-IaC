@@ -4,8 +4,8 @@ ulimit -c unlimited
 ulimit -s unlimited
 
 
-if [ $# -ne 6 ] ; then
-  echo "Usage: $0 YYYYMMDD HH NPROCS PPN HOSTS <cbofs|ngofs|liveocean>"
+if [ $# -ne 8 ] ; then
+  echo "Usage: $0 YYYYMMDD HH COMOUT NPROCS PPN HOSTS <cbofs|ngofs|liveocean|adnoc>"
   exit 1
 fi
 
@@ -22,11 +22,14 @@ fi
 
 export CDATE=$1
 export HH=$2
-export NPROCS=$3
-export PPN=$4
-export HOSTS=$5
-export OFS=$6
+export COMOUT=$3
+export NPROCS=$4
+export PPN=$5
+export HOSTS=$6
+export OFS=$7
+export EXEC=$8
 
+export MPIOPTS="-launcher ssh -hosts $HOSTS -np $NPROCS -ppn $PPN"
 
 # Can put domain specific options here
 case $OFS in
@@ -35,6 +38,14 @@ case $OFS in
     export JOBDIR=$HOMEnos/jobs
     export JOBSCRIPT=$JOBDIR/fcstrun.sh
     export JOBARGS="$CDATE"
+    cd $JOBDIR
+    $JOBSCRIPT $JOBARGS
+    ;;
+  adnoc)
+    export JOBDIR=$COMOUT
+    cd $JOBDIR
+    export JOBARGS="ocean.in > ocean.out"
+    mpirun $MPIOPTS $EXEC $JOBARGS
     ;;
   *)
     export HOMEnos=/save/nosofs-NCO
@@ -42,11 +53,8 @@ case $OFS in
     export JOBSCRIPT=$JOBDIR/fcstrun.sh
     export cyc=$HH
     export JOBARGS="$CDATE $HH"
+    cd $JOBDIR
+    $JOBSCRIPT $JOBARGS
     ;;
 esac
  
-export MPIOPTS="-launcher ssh -hosts $HOSTS -np $NPROCS -ppn $PPN"
-cd $JOBDIR
-
-#$JOBDIR/fcstrun.sh $CDATE $HH
-$JOBSCRIPT $JOBARGS
