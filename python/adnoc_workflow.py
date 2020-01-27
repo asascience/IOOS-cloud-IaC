@@ -60,16 +60,16 @@ with Flow('ofs workflow') as flow:
 
   # Setup the job 
   fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
+  flow.add_edge(fcStarted,fcstjob)
 
   # Run the forecast
   fcstStatus = tasks.forecast_run(cluster,fcstjob)
+  flow.add_edge(fcstjob,fcstStatus)
 
   # Terminate the cluster nodes
-  #fcTerminated = tasks.terminate_cluster(cluster)
+  fcTerminated = tasks.terminate_cluster(cluster)
+  flow.add_edge(fcstStatus,fcTerminated)
 
-  flow.add_edge(fcStarted,fcstjob)
-  flow.add_edge(fcstjob,fcstStatus)
-  #flow.add_edge(fcstStatus,fcTerminated)
 
   #####################################################################
   # Post-Process

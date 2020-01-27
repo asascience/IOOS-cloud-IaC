@@ -29,7 +29,34 @@ export HOSTS=$6
 export OFS=$7
 export EXEC=$8
 
-export MPIOPTS="-launcher ssh -hosts $HOSTS -np $NPROCS -ppn $PPN"
+#OpenMPI
+#mpirun --version
+#mpirun (Open MPI) 2.1.0
+
+#IntelMPI
+#mpirun --version
+#Intel(R) MPI Library for Linux* OS, Version 2017 Update 2 Build 20170125 (id: 16752)
+#Copyright (C) 2003-2017, Intel Corporation. All rights reserved.
+
+mpirun --version | grep Intel
+impi=$?
+
+mpirun --version | grep "Open MPI"
+openmpi=$?
+
+
+if [ $impi -eq 0 ]; then
+  export MPIOPTS="-launcher ssh -hosts $HOSTS -np $NPROCS -ppn $PPN"
+elif [ $openmpi -eq 0 ]; then
+  #export MPIOPTS="-launch-agent ssh -host $HOSTS -n $NPROCS -npernode $PPN"
+  export MPIOPTS="-host $HOSTS -np $NPROCS -npernode $PPN -oversubscribe"
+else
+  echo "ERROR: Unsupported mpirun version ..."
+  exit 1
+fi
+
+#export MPIOPTS="-launcher ssh -hosts $HOSTS -np $NPROCS -ppn $PPN"
+#export MPIOPTS="-hosts $HOSTS -np $NPROCS -ppn $PPN"
 
 # Can put domain specific options here
 case $OFS in
@@ -43,9 +70,9 @@ case $OFS in
     ;;
   adnoc)
     export JOBDIR=$COMOUT
+    mkdir -p $JOBDIR/output
     cd $JOBDIR
-    export JOBARGS="ocean.in > ocean.out"
-    mpirun $MPIOPTS $EXEC $JOBARGS
+    mpirun $MPIOPTS $EXEC ocean.in > ocean.log
     ;;
   *)
     export HOMEnos=/save/nosofs-NCO
