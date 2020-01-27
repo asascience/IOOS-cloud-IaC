@@ -2,10 +2,11 @@ from abc import ABC, abstractmethod
 from subprocess import Popen
 import time
 
-''' This is an abstract base class for cloud clusters.
-    It defines a generic interface to implement
-'''
+
 class Cluster(ABC) :
+  ''' This is an abstract base class for cloud clusters.
+      It defines a generic interface to implement
+  '''
 
   def __init__(self):
 

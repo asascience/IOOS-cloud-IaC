@@ -4,5 +4,7 @@
   "HH"        : "00",
   "INDIR"     : "/com/liveocean/f2020.01.21",
   "OUTDIR"    : "/com/liveocean/plots/f2020.01.21",
-  "VARS"      : ["temp"]
+  "VARS"      : ["temp"],
+  "BUCKET"    : "ioos-cloud-sandbox",
+  "BCKTFLDR"  : "LiveOcean/plots"
 }

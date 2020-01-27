@@ -6,5 +6,8 @@
   "NTIMES"    : "2",
   "ININAME"   : "/com/liveocean/f2020.01.20/ocean_his_0025.nc",
   "COMROT"    : "/com",
+  "OUTDIR"    : "auto",
+  "BUCKET"    : "ioos-cloud-sandbox",
+  "BCKTFLDR"  : "/LiveOcean/output",
   "EXEC"      : ""
 }

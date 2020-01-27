@@ -35,6 +35,11 @@ elif provider == 'Local':
 sshuser='ptripp@boiler.ocean.washington.edu'
 
 
+with Flow('test') as testflow:
+  postmach = tasks.init_cluster(postconf,provider)
+  plotjob = tasks.job_init(postmach, postjobfile, 'plotting')
+  savetocloud = tasks.save_to_s3(plotjob)
+
 with Flow('plot only') as plotonly:
 
   # Start a machine
@@ -49,16 +54,19 @@ with Flow('plot only') as plotonly:
   daskclient : Client = tasks.start_dask(postmach, upstream_tasks=[pmStarted])
 
   # Setup the post job
-  postjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
+  plotjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
 
-  # Get list of files from fcstjob
-  FILES = tasks.ncfiles_from_Job(postjob)
+  # Get list of files from job specified directory
+  FILES = tasks.ncfiles_from_Job(plotjob)
 
   # Make plots
-  plots = tasks.daskmake_plots(daskclient, FILES, postjob)
+  plots = tasks.daskmake_plots(daskclient, FILES, plotjob)
   plots.set_upstream([daskclient])
-
   closedask = tasks.dask_client_close(daskclient, upstream_tasks=[plots])
+
+  savetocloud = tasks.save_to_s3(plotjob)
+  savetocloud.set_upstream(plots)
+
   pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[plots,closedask])
 
 #######################################################################
@@ -146,13 +154,13 @@ with Flow('ofs workflow') as flow:
   daskclient = tasks.start_dask(postmach, upstream_tasks=[pushPy])
 
   # Setup the post job
-  postjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
+  plotjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
 
   # Get list of files from fcstjob
-  FILES = tasks.ncfiles_from_Job(postjob, upstream_tasks=[fcstStatus])
+  FILES = tasks.ncfiles_from_Job(plotjob, upstream_tasks=[fcstStatus])
 
   # Make plots
-  plots = tasks.daskmake_plots(daskclient, FILES, postjob)
+  plots = tasks.daskmake_plots(daskclient, FILES, plotjob)
   plots.set_upstream([daskclient])
 
   closedask = tasks.dask_client_close(daskclient, upstream_tasks=[plots])
@@ -171,9 +179,9 @@ def main():
 
   # matplotlib Mac OS issues
   #flow.run()
-  #testflow.run()
+  testflow.run()
   #plotonly.run()
-  fcstflow.run()
+  #fcstflow.run()
 
 #####################################################################
 

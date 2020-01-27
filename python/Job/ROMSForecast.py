@@ -24,7 +24,7 @@ class ROMSForecast(Job.Job):
 
     jobDict = self.readConfig(configfile)
 
-    # TODO: Add parseConfig
+    # TODO: Implement in parseConfig
 
     self.OFS = jobDict['OFS']
     self.CDATE = jobDict['CDATE']
@@ -32,6 +32,9 @@ class ROMSForecast(Job.Job):
     self.COMROT = jobDict['COMROT']
     self.EXEC = jobDict['EXEC']
     TIME_REF = jobDict['TIME_REF']
+
+    self.BUCKET = jobDict['BUCKET']
+    self.BCKTFLDR = jobDict['BCKTFLDR']
 
     # Easier to use 
     CDATE = self.CDATE
@@ -52,11 +55,6 @@ class ROMSForecast(Job.Job):
   
       self.OUTDIR = f"{COMROT}/{OFS}/{fdate}"
       outfile = f"{self.OUTDIR}/liveocean.in"
-
-      # Add this to dictionary WHY? Is it ever used again"
-      # TODO: Fix this, not using the parser currently
-      jobDict['COMOUT'] = self.OUTDIR
-      self.COMOUT = self.OUTDIR
 
       if not os.path.exists(self.OUTDIR):
         os.makedirs(self.OUTDIR)
@@ -80,8 +78,8 @@ class ROMSForecast(Job.Job):
       self.OUTDIR = f"{COMROT}/{OFS}/{CDATE}"
 
       # TODO: fix this - don't need two variables for the same thing do we?
-      jobDict['COMOUT'] = self.OUTDIR
-      self.COMOUT = self.OUTDIR
+      jobDict['OUTDIR'] = self.OUTDIR
+      self.OUTDIR = self.OUTDIR
 
 
       if not os.path.exists(self.OUTDIR):

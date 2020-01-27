@@ -31,5 +31,7 @@ class Plotting(Job.Job):
     self.INDIR = jobDict['INDIR']
     self.OUTDIR = jobDict['OUTDIR']
     self.VARS = jobDict['VARS']
+    self.BUCKET = jobDict['BUCKET']
+    self.BCKTFLDR = jobDict['BCKTFLDR']
 
     # TODO: use a read config and parse config subroutine as in AWSCluster

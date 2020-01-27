@@ -11,10 +11,11 @@ import traceback
 import glob
 import time
 import logging
-
 from datetime import timedelta
 
 # 3rd party dependencies
+import boto3
+
 from prefect import task, unmapped
 from prefect.engine import signals
 from prefect.triggers import all_successful, all_finished
@@ -43,6 +44,59 @@ ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcName)s | %(message)s')
 ch.setFormatter(formatter)
 log.addHandler(ch)
+
+
+# TODO: Parameterize
+# TODO: implement cloud agnostic interface
+@task
+def save_to_s3(job):
+  ''' takes a job object that contains a "OUTDIR" directory and a bucket name or other location OUTDIR is the path to the local data 
+
+  BUCKET is the cloud bucket name to save the results to
+  filespecs is a list of filenames with wildcards accepted for files to copy
+  '''
+
+  # For now do for S3
+  # Read config
+  # Create an S3 client
+  # For each filespec
+  #   copy the files to the bucket
+  # s3 = boto3.resource('s3')
+  # s3.meta.client.upload_file('/tmp/hello.txt', 'mybucket', 'hello.txt')
+
+  BUCKET = job.BUCKET
+  BCKTFLDR = job.BCKTFLDR
+  CDATE = job.CDATE
+
+  # Forecast output
+  # ocean_his_0002.nc
+  #folder = f"output/{job.CDATE}"
+  #filespec = ['ocean_his_*.nc']
+  # BCKTFLDR = '/LiveOcean/output'
+
+  # Plots output
+  inpath = job.OUTDIR
+  filespec = ['*.png']   # TODO: put this in config ???
+
+  s3 = boto3.client('s3')
+
+  for spec in filespec:
+    FILES = sorted(glob.glob(f"{inpath}/{spec}"))
+    log.info('Uploading the following files:')
+
+    for f in FILES:
+      print(f)
+      fhead, ftail = os.path.split(f)
+      key=f"{BCKTFLDR}/{CDATE}/{ftail}"
+       
+      try:
+        s3.upload_file(f, BUCKET, key)
+      except ClientError as e:
+        logging.error(e) 
+
+  return
+#######################################################################
+
 
 
 @task
@@ -91,8 +145,6 @@ def terminate_cluster(cluster):
 #######################################################################
 
 
-
-
 @task
 def job_init(cluster, configfile, jobtype) -> Job :
 
@@ -114,6 +166,7 @@ def job_init(cluster, configfile, jobtype) -> Job :
 
 
 # TODO: make sshuser an optional Job parameter
+# TODO: ??? maybe take in a job object instead of a config file ??
 @task
 def get_forcing(jobconfig, sshuser):
 
@@ -156,7 +209,7 @@ def forecast_run(cluster, job):
   HH = job.HH
   OFS = job.OFS
   NPROCS = job.NPROCS
-  COMOUT = job.COMOUT
+  OUTDIR = job.OUTDIR
   EXEC = job.EXEC
 
   runscript="./fcst_launcher.sh"
@@ -168,7 +221,7 @@ def forecast_run(cluster, job):
     raise signals.FAIL()
 
   try:
-    result = subprocess.run([runscript,CDATE,HH,COMOUT,str(NPROCS),str(PPN),HOSTS,OFS,EXEC], \
+    result = subprocess.run([runscript,CDATE,HH,OUTDIR,str(NPROCS),str(PPN),HOSTS,OFS,EXEC], \
       stderr=subprocess.STDOUT)
 
     if result.returncode != 0 :
