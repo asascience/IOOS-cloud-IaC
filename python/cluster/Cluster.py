@@ -29,21 +29,17 @@ class Cluster(ABC) :
   # TODO: Make this scalable to multiple nodes
   # If the daskScheduler will be this closely coupled to the architecture it could be here
   def setDaskScheduler(self,  proc: Popen ):
-    print('............................................  In setDaskScheduler')
     self.daskscheduler = proc
     return proc
 
 
   def terminateDaskScheduler(self):
-    print('............................................  In terminateDaskScheduler')
-
     if self.daskscheduler != None: 
       poll = self.daskscheduler.poll()
 
       if poll == None:
         # Process hasn't terminated yet, terminate it
         print("In Cluster.terminateDaskScheduler")
-        #self.__daskscheduler.terminate()
         self.daskscheduler.kill()
         time.sleep(3)
     return
@@ -63,7 +59,6 @@ class Cluster(ABC) :
       if poll == None:
         # Process hasn't terminated yet, terminate it
         print("In Cluster.terminateDaskScheduler")
-        #self.daskworker.terminate()
         self.daskworker.kill()
         time.sleep(3)
     return

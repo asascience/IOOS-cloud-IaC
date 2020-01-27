@@ -64,6 +64,31 @@ with Flow('plot only') as plotonly:
 #######################################################################
 
 
+with Flow('fcst workflow') as fcstflow:
+  #####################################################################
+  # FORECAST
+  #####################################################################
+
+  # Create the cluster object
+  cluster = tasks.init_cluster(fcstconf,provider)
+
+  # Start the cluster
+  fcStarted = tasks.start_cluster(cluster)
+
+  # Setup the job 
+  fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
+
+  # Run the forecast
+  fcstStatus = tasks.forecast_run(cluster,fcstjob)
+
+  # Terminate the cluster nodes
+  fcTerminated = tasks.terminate_cluster(cluster)
+
+  fcstflow.add_edge(fcStarted,fcstjob)
+  fcstflow.add_edge(fcstjob,fcstStatus)
+  fcstflow.add_edge(fcstStatus,fcTerminated)
+
+
 
 
 with Flow('ofs workflow') as flow:
@@ -147,7 +172,8 @@ def main():
   # matplotlib Mac OS issues
   #flow.run()
   #testflow.run()
-  plotonly.run()
+  #plotonly.run()
+  fcstflow.run()
 
 #####################################################################
 
