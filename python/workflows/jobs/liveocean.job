@@ -1,10 +1,10 @@
 {
   "OFS"       : "liveocean",
-  "CDATE"     : "20200121",
+  "CDATE"     : "20200128",
   "HH"        : "00",
   "TIME_REF"  : "19700101",
-  "NTIMES"    : "2",
-  "ININAME"   : "/com/liveocean/f2020.01.20/ocean_his_0025.nc",
+  "NTIMES"    : "90",
+  "ININAME"   : "/com/liveocean/f2020.01.27/ocean_his_0025.nc",
   "COMROT"    : "/com",
   "OUTDIR"    : "auto",
   "BUCKET"    : "ioos-cloud-sandbox",

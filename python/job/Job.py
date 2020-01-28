@@ -44,18 +44,4 @@ class Job(ABC) :
   #pass
 
 
-def readConfig(configfile) :
-
-  with open(configfile, 'r') as cf:
-    cfDict = json.load(cf)
-
-  if (debug) :
-    print(json.dumps(cfDict, indent=4))
-    print(str(cfDict))
-
-  # Could do the parse here instead also, more than one way to do it
-  return cfDict
-
-  ######################################################################## 
-
 

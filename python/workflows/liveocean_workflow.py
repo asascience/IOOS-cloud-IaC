@@ -18,10 +18,9 @@ provider = 'AWS'
 
 if provider == 'AWS':
   fcstconf = 'configs/liveocean.config'
-  #fcstjobfile = 'jobs/20191106.liveocean.job'
   fcstjobfile = 'jobs/liveocean.job'
   postconf = 'configs/post.config'
-  postjobfile = 'jobs/lo.plots.job'
+  postjobfile = 'jobs/liveocean.plots.job'
 
 elif provider == 'Local':
   fcstconf = 'configs/local.config'
@@ -35,7 +34,14 @@ elif provider == 'Local':
 sshuser='ptripp@boiler.ocean.washington.edu'
 
 
-with Flow('test') as testflow:
+with Flow('test forcing') as testforce:
+  # Get forcing data
+
+  forcing = tasks.get_forcing(fcstjobfile,sshuser)
+
+
+
+with Flow('testplot') as testplot:
 
   storage_service = tasks.storage_init(provider)
   postmach = tasks.cluster_init(postconf,provider)
@@ -106,13 +112,12 @@ with Flow('fcst workflow') as fcstflow:
 
 with Flow('ofs workflow') as flow:
 
-
   #####################################################################
   # Pre-Process
   #####################################################################
 
   # Get forcing data
-  #forcing = tasks.get_forcing(fcstjobfile,sshuser)
+  forcing = tasks.get_forcing(fcstjobfile,sshuser)
 
 
   #####################################################################
@@ -138,14 +143,9 @@ with Flow('ofs workflow') as flow:
   flow.add_edge(fcstjob,fcstStatus)
   flow.add_edge(fcstStatus,fcTerminated)
 
-
   #####################################################################
   # POST Processing
   #####################################################################
-  # Spin up a new machine?
-  # or launch a container?
-  # or run concurrently on the forecast cluster?
-  # or run on the local machine? concurrrently? 
 
   # Start a machine
   postmach = tasks.cluster_init(postconf,provider)
@@ -184,9 +184,10 @@ def main():
 
   # matplotlib Mac OS issues
   #flow.run()
-  testflow.run()
+  #testflow.run()
   #plotonly.run()
   #fcstflow.run()
+  testforce.run()
 
 #####################################################################
 

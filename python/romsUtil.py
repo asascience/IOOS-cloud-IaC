@@ -5,7 +5,23 @@ import math
 import datetime
 import os
 import subprocess
+import json
 
+
+debug = True
+
+def readConfig(configfile) :
+  ''' converts a JSON document to a python dictionary '''
+
+  with open(configfile, 'r') as cf:
+    cfDict = json.load(cf)
+
+  if (debug) :
+    print(json.dumps(cfDict, indent=4))
+    print(str(cfDict))
+
+  return cfDict
+#####################################################################
 
 
 

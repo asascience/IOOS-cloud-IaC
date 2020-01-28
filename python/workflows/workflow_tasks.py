@@ -181,16 +181,16 @@ def job_init(cluster, configfile, jobtype) -> Job :
 
 
 # TODO: make sshuser an optional Job parameter
-# TODO: ??? maybe take in a job object instead of a config file ??
 @task
-def get_forcing(jobconfig, sshuser):
+def get_forcing(jobconfig: str, sshuser):
+  ''' jobconfig - filename of json file '''
 
   # Open and parse jobconfig file
   #"OFS"       : "liveocean",
   #"CDATE"     : "20191106",
   #"ININAME"   : "/com/liveocean/f2019.11.05/ocean_his_0025.nc",
 
-  jobDict = Job.readConfig(jobconfig)
+  jobDict = util.readConfig(jobconfig)
   cdate = jobDict['CDATE']
   ofs = jobDict['OFS']
   comrot = jobDict['COMROT']
@@ -261,6 +261,7 @@ def ncfiles_glob(SOURCE):
       print(f)
     return FILES
 #####################################################################
+
 
 
 @task
