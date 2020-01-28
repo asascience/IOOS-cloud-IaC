@@ -5,13 +5,14 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 
-import cluster.nodeInfo as nodeInfo
+#import cluster.nodeInfo as nodeInfo
+from cluster import nodeInfo
 
-from cluster import Cluster
+from cluster.Cluster import Cluster
 
 debug = False
 
-class LocalCluster(Cluster.Cluster) :
+class LocalCluster(Cluster) :
 
 
   def __init__(self, configfile) :

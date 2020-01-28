@@ -19,9 +19,10 @@ from prefect.triggers import all_successful, all_finished
 from dask.distributed import Client
 
 # Local dependencies
+from cluster.Cluster import Cluster
 from cluster.AWSCluster import AWSCluster
 from cluster.LocalCluster import LocalCluster
-from cluster.Cluster import Cluster
+
 from Job import Job
 from Job.ROMSForecast import ROMSForecast
 from Job.Plotting import Plotting

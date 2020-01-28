@@ -7,7 +7,7 @@ from botocore.exceptions import ClientError
 
 import cluster.nodeInfo as nodeInfo
 
-from cluster import Cluster
+from cluster.Cluster import Cluster
 
 debug = False
 
@@ -21,7 +21,7 @@ log.setLevel(logging.DEBUG)
 #ch.setFormatter(formatter)
 #log.addHandler(ch)
 
-class AWSCluster(Cluster.Cluster) :
+class AWSCluster(Cluster) :
 
   def __init__(self, configfile) :
 
