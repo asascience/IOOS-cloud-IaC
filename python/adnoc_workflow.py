@@ -53,10 +53,10 @@ with Flow('ofs workflow') as flow:
   #####################################################################
 
   # Create the cluster object
-  cluster = tasks.init_cluster(fcstconf,provider)
+  cluster = tasks.cluster_init(fcstconf,provider)
 
   # Start the cluster
-  fcStarted = tasks.start_cluster(cluster)
+  fcStarted = tasks.cluster_start(cluster)
 
   # Setup the job 
   fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
@@ -67,7 +67,7 @@ with Flow('ofs workflow') as flow:
   flow.add_edge(fcstjob,fcstStatus)
 
   # Terminate the cluster nodes
-  fcTerminated = tasks.terminate_cluster(cluster)
+  fcTerminated = tasks.cluster_terminate(cluster)
   flow.add_edge(fcstStatus,fcTerminated)
 
 

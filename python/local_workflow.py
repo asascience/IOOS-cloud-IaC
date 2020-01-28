@@ -37,8 +37,8 @@ sshuser='ptripp@boiler.ocean.washington.edu'
 with Flow('plot only') as plotonly:
 
   # Start a machine
-  postmach = tasks.init_cluster(postconf,provider)
-  pmStarted = tasks.start_cluster(postmach)
+  postmach = tasks.cluster_init(postconf,provider)
+  pmStarted = tasks.cluster_start(postmach)
 
   # Push the env, install required libs on post machine
   # TODO: install all of the 3rd party dependencies on AMI
@@ -58,7 +58,7 @@ with Flow('plot only') as plotonly:
   plots.set_upstream([daskclient])
 
   closedask = tasks.dask_client_close(daskclient, upstream_tasks=[plots])
-  pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[plots,closedask])
+  pmTerminated = tasks.cluster_terminate(postmach,upstream_tasks=[plots,closedask])
 
 #######################################################################
 
@@ -81,10 +81,10 @@ with Flow('ofs workflow') as flow:
   #####################################################################
 
   # Create the cluster object
-  cluster = tasks.init_cluster(fcstconf,'AWS')
+  cluster = tasks.cluster_init(fcstconf,'AWS')
 
   # Start the cluster
-  fcStarted = tasks.start_cluster(cluster)
+  fcStarted = tasks.cluster_start(cluster)
 
   # Setup the job 
   fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
@@ -93,7 +93,7 @@ with Flow('ofs workflow') as flow:
   fcstStatus = tasks.forecast_run(cluster,fcstjob)
 
   # Terminate the cluster nodes
-  fcTerminated = tasks.terminate_cluster(cluster)
+  fcTerminated = tasks.cluster_terminate(cluster)
 
   flow.add_edge(fcStarted,fcstjob)
   flow.add_edge(fcstjob,fcstStatus)
@@ -109,8 +109,8 @@ with Flow('ofs workflow') as flow:
   # or run on the local machine? concurrrently? 
 
   # Start a machine
-  postmach = tasks.init_cluster(postconf,provider)
-  pmStarted = tasks.start_cluster(postmach, upstream_tasks=[fcstStatus])
+  postmach = tasks.cluster_init(postconf,provider)
+  pmStarted = tasks.cluster_start(postmach, upstream_tasks=[fcstStatus])
 
   # Push the env, install required libs on post machine
   # TODO: install all of the 3rd party dependencies on AMI
@@ -130,7 +130,7 @@ with Flow('ofs workflow') as flow:
   plots.set_upstream([daskclient])
 
   closedask = tasks.dask_client_close(daskclient, upstream_tasks=[plots])
-  pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[plots,closedask])
+  pmTerminated = tasks.cluster_terminate(postmach,upstream_tasks=[plots,closedask])
 
 #####################################################################
 

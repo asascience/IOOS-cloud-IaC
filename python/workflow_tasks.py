@@ -13,9 +13,6 @@ import time
 import logging
 from datetime import timedelta
 
-# 3rd party dependencies
-import boto3
-
 from prefect import task, unmapped
 from prefect.engine import signals
 from prefect.triggers import all_successful, all_finished
@@ -29,10 +26,11 @@ from Job import Job
 from Job.ROMSForecast import ROMSForecast
 from Job.Plotting import Plotting
 
-import romsUtil as util
+from services.CloudStorage import CloudStorage
+from services.S3Storage import S3Storage
 
+import romsUtil as util
 from plotting import plot
-#from plotting.plot import plot_roms
 
 pp = pprint.PrettyPrinter()
 debug = False
@@ -46,27 +44,47 @@ ch.setFormatter(formatter)
 log.addHandler(ch)
 
 
-# TODO: Parameterize
-# TODO: implement cloud agnostic interface
+#######################################################################
+
 @task
-def save_to_s3(job):
-  ''' takes a job object that contains a "OUTDIR" directory and a bucket name or other location OUTDIR is the path to the local data 
+def storage_init(provider: str) -> CloudStorage :
 
-  BUCKET is the cloud bucket name to save the results to
-  filespecs is a list of filenames with wildcards accepted for files to copy
+  if provider == 'AWS':
+    service = S3Storage()
+  
+  elif provider == 'Local':
+    log.error('Coming soon ...')
+    raise signals.FAIL()
+  else:
+    log.error('Unsupported provider')
+    raise signals.FAIL()
+
+  return service
+#######################################################################
+
+
+# TODO: Parameterize filespecs?
+@task
+def save_to_cloud(job: Job, service: CloudStorage, filespecs: list, public=False):
+  ''' 
+
+  job - Job object that contains the required parameters
+    BUCKET - bucket name
+    BCKTFOLDER - bucket folder
+    CDATE - simulation date
+    OUTDIR - source path 
+
+  service - a CloudStorage service, provider agnostic interface
+
+  filespecs - a list of filenames with wildcards accepted for files to copy
+
+  This is a working example of Dependency Injection
   '''
-
-  # For now do for S3
-  # Read config
-  # Create an S3 client
-  # For each filespec
-  #   copy the files to the bucket
-  # s3 = boto3.resource('s3')
-  # s3.meta.client.upload_file('/tmp/hello.txt', 'mybucket', 'hello.txt')
-
+  
   BUCKET = job.BUCKET
   BCKTFLDR = job.BCKTFLDR
   CDATE = job.CDATE
+  path = job.OUTDIR
 
   # Forecast output
   # ocean_his_0002.nc
@@ -75,32 +93,26 @@ def save_to_s3(job):
   # BCKTFLDR = '/LiveOcean/output'
 
   # Plots output
-  inpath = job.OUTDIR
-  filespec = ['*.png']   # TODO: put this in config ???
+  #filespec = ['*.png']   # TODO: put this in config ???
 
-  s3 = boto3.client('s3')
+  for spec in filespecs:
+    FILES = sorted(glob.glob(f"{path}/{spec}"))
 
-  for spec in filespec:
-    FILES = sorted(glob.glob(f"{inpath}/{spec}"))
     log.info('Uploading the following files:')
-
-    for f in FILES:
-      print(f)
-      fhead, ftail = os.path.split(f)
-      key=f"{BCKTFLDR}/{CDATE}/{ftail}"
-       
-      try:
-        s3.upload_file(f, BUCKET, key)
-      except ClientError as e:
-        logging.error(e) 
-
+    
+    for filename in FILES:
+      print(filename)
+      fhead, ftail = os.path.split(filename)
+      key = f"{BCKTFLDR}/{CDATE}/{ftail}"
+      
+      service.upload_file(filename, BUCKET, key, public)
   return
 #######################################################################
 
 
 
 @task
-def init_cluster(config, provider) -> Cluster :
+def cluster_init(config, provider) -> Cluster :
 
   if provider == 'AWS':
 
@@ -119,7 +131,7 @@ def init_cluster(config, provider) -> Cluster :
 
 
 @task
-def start_cluster(cluster):
+def cluster_start(cluster):
 
   log.info('Starting ' + str(cluster.nodeCount) + ' instances ...')
   try:
@@ -133,7 +145,7 @@ def start_cluster(cluster):
 
 
 @task(trigger=all_finished)
-def terminate_cluster(cluster):
+def cluster_terminate(cluster):
 
   responses = cluster.terminate()
   # Just check the state

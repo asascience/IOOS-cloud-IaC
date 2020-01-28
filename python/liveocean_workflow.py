@@ -32,19 +32,24 @@ elif provider == 'Local':
 
 
 # This is used for obtaining liveocean forcing data
+# Users other than ptripp will need to obtain credentials from UW
 sshuser='ptripp@boiler.ocean.washington.edu'
 
 
 with Flow('test') as testflow:
-  postmach = tasks.init_cluster(postconf,provider)
+
+  storage_service = tasks.storage_init(provider)
+  postmach = tasks.cluster_init(postconf,provider)
   plotjob = tasks.job_init(postmach, postjobfile, 'plotting')
-  savetocloud = tasks.save_to_s3(plotjob)
+  #savetocloud = tasks.save_to_cloud(plotjob, storage_service, ['*.png'])
+  savetocloud = tasks.save_to_cloud(plotjob, storage_service, ['*.png'], public=True)
+
 
 with Flow('plot only') as plotonly:
 
   # Start a machine
-  postmach = tasks.init_cluster(postconf,provider)
-  pmStarted = tasks.start_cluster(postmach)
+  postmach = tasks.cluster_init(postconf,provider)
+  pmStarted = tasks.cluster_start(postmach)
 
   # Push the env, install required libs on post machine
   # TODO: install all of the 3rd party dependencies on AMI
@@ -64,10 +69,11 @@ with Flow('plot only') as plotonly:
   plots.set_upstream([daskclient])
   closedask = tasks.dask_client_close(daskclient, upstream_tasks=[plots])
 
-  savetocloud = tasks.save_to_s3(plotjob)
+  storage_service = tasks.storage_init(provider)
+  savetocloud = tasks.save_to_cloud(plotjob, storage_service, '*.png')
   savetocloud.set_upstream(plots)
 
-  pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[plots,closedask])
+  pmTerminated = tasks.cluster_terminate(postmach,upstream_tasks=[plots,closedask])
 
 #######################################################################
 
@@ -78,10 +84,10 @@ with Flow('fcst workflow') as fcstflow:
   #####################################################################
 
   # Create the cluster object
-  cluster = tasks.init_cluster(fcstconf,provider)
+  cluster = tasks.cluster_init(fcstconf,provider)
 
   # Start the cluster
-  fcStarted = tasks.start_cluster(cluster)
+  fcStarted = tasks.cluster_start(cluster)
 
   # Setup the job 
   fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
@@ -90,7 +96,7 @@ with Flow('fcst workflow') as fcstflow:
   fcstStatus = tasks.forecast_run(cluster,fcstjob)
 
   # Terminate the cluster nodes
-  fcTerminated = tasks.terminate_cluster(cluster)
+  fcTerminated = tasks.cluster_terminate(cluster)
 
   fcstflow.add_edge(fcStarted,fcstjob)
   fcstflow.add_edge(fcstjob,fcstStatus)
@@ -115,10 +121,10 @@ with Flow('ofs workflow') as flow:
   #####################################################################
 
   # Create the cluster object
-  cluster = tasks.init_cluster(fcstconf,provider)
+  cluster = tasks.cluster_init(fcstconf,provider)
 
   # Start the cluster
-  fcStarted = tasks.start_cluster(cluster)
+  fcStarted = tasks.cluster_start(cluster)
 
   # Setup the job 
   fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
@@ -127,7 +133,7 @@ with Flow('ofs workflow') as flow:
   fcstStatus = tasks.forecast_run(cluster,fcstjob)
 
   # Terminate the cluster nodes
-  fcTerminated = tasks.terminate_cluster(cluster)
+  fcTerminated = tasks.cluster_terminate(cluster)
 
   flow.add_edge(fcStarted,fcstjob)
   flow.add_edge(fcstjob,fcstStatus)
@@ -143,8 +149,8 @@ with Flow('ofs workflow') as flow:
   # or run on the local machine? concurrrently? 
 
   # Start a machine
-  postmach = tasks.init_cluster(postconf,provider)
-  pmStarted = tasks.start_cluster(postmach, upstream_tasks=[fcstStatus])
+  postmach = tasks.cluster_init(postconf,provider)
+  pmStarted = tasks.cluster_start(postmach, upstream_tasks=[fcstStatus])
 
   # Push the env, install required libs on post machine
   # TODO: install all of the 3rd party dependencies on AMI
@@ -164,7 +170,7 @@ with Flow('ofs workflow') as flow:
   plots.set_upstream([daskclient])
 
   closedask = tasks.dask_client_close(daskclient, upstream_tasks=[plots])
-  pmTerminated = tasks.terminate_cluster(postmach,upstream_tasks=[plots,closedask])
+  pmTerminated = tasks.cluster_terminate(postmach,upstream_tasks=[plots,closedask])
 
 #####################################################################
 
