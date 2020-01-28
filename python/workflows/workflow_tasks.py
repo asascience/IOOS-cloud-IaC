@@ -25,9 +25,9 @@ from cluster.Cluster import Cluster
 from cluster.AWSCluster import AWSCluster
 from cluster.LocalCluster import LocalCluster
 
-from Job import Job
-from Job.ROMSForecast import ROMSForecast
-from Job.Plotting import Plotting
+from job.Job import Job
+from job.ROMSForecast import ROMSForecast
+from job.Plotting import Plotting
 
 from services.CloudStorage import CloudStorage
 from services.S3Storage import S3Storage

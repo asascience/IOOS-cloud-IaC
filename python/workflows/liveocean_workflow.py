@@ -11,7 +11,6 @@ from prefect import Flow
 # Local dependencies
 import workflow_tasks as tasks
 
-
 # Set these for specific use
 
 #provider = 'Local'

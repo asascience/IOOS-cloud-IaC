@@ -2,14 +2,15 @@ import sys
 import json
 import os
 
-from Job import Job
+if os.path.abspath('..') not in sys.path:
+    sys.path.append(os.path.abspath('..'))
 
-sys.path.insert(0, '..') 
+from job.Job import Job
 
 import romsUtil as util
 
 
-class ROMSForecast(Job.Job):
+class ROMSForecast(Job):
 
 
   def __init__(self, configfile, NPROCS):
