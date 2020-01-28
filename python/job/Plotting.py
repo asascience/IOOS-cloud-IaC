@@ -38,3 +38,6 @@ class Plotting(Job):
     self.BCKTFLDR = jobDict['BCKTFLDR']
 
     # TODO: use a read config and parse config subroutine as in AWSCluster
+
+if __name__ == '__main__':
+  pass

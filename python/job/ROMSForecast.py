@@ -109,4 +109,6 @@ class ROMSForecast(Job):
   def __parseConfig(self, cfDict) : 
     print("parseConfig stub")
     return
-  
+ 
+if __name__ == '__main__':
+  pass 

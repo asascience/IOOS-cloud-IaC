@@ -1,3 +1,8 @@
+"""
+
+Cluster implementation for AWS EC2 clusters.
+
+"""
 import time
 import json
 import logging
@@ -11,8 +16,6 @@ from cluster.Cluster import Cluster
 
 debug = False
 
-#logging.basicConfig(format='%(asctime)s %(levelname)s - %(funcName)s %(message)s', level=logging.DEBUG)
-
 log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)
 #ch = logging.StreamHandler()
@@ -22,20 +25,113 @@ log.setLevel(logging.DEBUG)
 #log.addHandler(ch)
 
 class AWSCluster(Cluster) :
+  """
+  Implementation of the Cluster interface for AWS
+
+  Attributes
+  ----------
+  platform  : str 
+    This will always be 'AWS' for this implementation.
+
+  nodeType  : str
+    EC2 instance type.
+
+  nodeCount : int
+    Number of instances in this cluster.
+
+  NPROCS    : int
+    Total number of processors in this cluster.
+
+  PPN       : int
+    Number of processors (physical cores) per node.
+
+  tags      : list of dictionary/s of str
+    Specific tags to attach to the resources provisioned.
+
+  image_id  : str
+    AWS EC2 AMI - Amazon Machine Image
+
+  key_name  : str
+    Private key used for SSH access to the instance. This should be configured when creating the AMI.
+
+  TODO: Put security groups in a list 
+  sg_id1    : str
+    Security group id 1
+
+  sg_id2    : str
+    Security group id 2
+
+  sg_id3    : str
+    Security group id 3
+
+  subnet_id : str
+    VPC subnet ID to run in
+
+  placement_group : str
+    The cluster placement group to use.
+
+  Methods
+  -------
+
+  AWSCluster(configfile : str)
+    Constructor. Returns a new AWSCluster object initialized with the settings in `configfile`.
+
+  getCoresPN()
+    Returns the number of cores per node in this cluster. Assumes a heterogenous cluster.
+
+  getState()
+    Returns the cluster state. Not currently used.
+
+  setState(state: str)
+    Set the cluster state. Not currently used.
+
+    TODO: Can use a class property instead.
+
+  readConfig(configfile : str)
+    Reads a JSON configuration file `configfile` into a dictionary.
+
+  parseConfig()
+    Parse the cluster configuration. This contains parameters that are specific to AWS.
+
+  start()
+    Start the cluster. This will provision the configured cluster in the cloud.
+    Returns a list of AWS Instances. See boto3 documentation.
+
+  terminate()
+    Terminate the cluster. Terminate the EC2 instances in this cluster.
+    Returns a list of AWS Results. See boto3 documentation.
+
+  getHosts()
+    Get the list of hosts in this cluster 
+
+  getHostsCSV() :
+    Get a comma separated list of hosts in this cluster
+     
+  """
+
+  self.platform  = 'AWS'
 
   def __init__(self, configfile) :
-
-    # Call the parent constructor??
-    # Cluster.__init__(self)
-    self.daskscheduler = None
-    
-    self.configfile = configfile
+    """ The config file contains the required parameters in JSON 
+  
+    Parameters
+    ----------
+    configfile : str
+      A JSON configuration file containing the required parameters for this class.
+  
+    Returns
+    -------
+    An initialized instance of AWSCluster
+    """
+  
+    self.__configfile = configfile
     self.__state = "none"   # This could be an enumeration of none, running, stopped, error
     self.__instances = []
-    self.platform  = 'AWS'
+
     self.nodeType  = ''
     self.nodeCount = 0
     self.NPROCS    = 0
+    self.PPN       = 0
     self.tags      = []
     self.image_id  = ''
     self.key_name  = ''
@@ -45,40 +141,43 @@ class AWSCluster(Cluster) :
     self.subnet_id = ''
     self.placement_group = ''
 
-    #cfDict = self.readConfig(configfile)
-    #self.__parseConfig(cfDict)
-    self.readConfig(configfile)
+    cfDict = self.readConfig(configfile)
+    self.parseConfig(cfDict)
 
     self.PPN = nodeInfo.getPPN(self.nodeType)
     self.NPROCS = self.nodeCount * self.PPN
 
     log.info(f"nodeCount: {self.nodeCount}  PPN: {self.PPN}")
 
-    # Can do it this way also - nested functions
-    #self.__parseConfig(self.readConfig(configfile))
-    
 
   ''' 
   Function  Definitions
   =====================
   '''
 
-  # Implement these interfaces
-
-  ## getState
   def getState(this) :
     return this.__state
 
-
-  ## setState
   def setState(this, state) :
     this.__state = state
     return this.__state
+  ########################################################################
 
 
-  ########################################################################
-  ########################################################################
   def readConfig(self, configfile) :
+    """
+    Reads a JSON configuration file `configfile` into a dictionary.
+
+    Parameters
+    ----------
+    configfile : string
+      Should be a full path and filename of a JSON configuration file for this cluster.
+
+    Returns
+    -------
+    cfDict : dict
+      Dictionary containing this cluster parameterized settings.
+    """
 
     with open(configfile, 'r') as cf:
       cfDict = json.load(cf)
@@ -87,23 +186,15 @@ class AWSCluster(Cluster) :
       print(json.dumps(cfDict, indent=4))
       print(str(cfDict))
 
-    # Could do the parse here instead also, more than one way to do it
-    #return cfDict
-    self.__parseConfig(cfDict)
-
-    return
-  ########################################################################
-
-
+    # Single responsibility says I should only read it here
+    return cfDict
 
   ########################################################################
-  def __parseConfig(self, cfDict) :
 
-# Moved to job config
-#    self.OFS       = cfDict['OFS']
-#    self.CDATE     = cfDict['CDATE']
-#    self.HH        = cfDict['HH']
-   
+
+
+  def parseConfig(self, cfDict) :
+
     self.platform  = cfDict['platform']
     self.region    = cfDict['region']
     self.nodeType  = cfDict['nodeType']
@@ -121,8 +212,7 @@ class AWSCluster(Cluster) :
   ########################################################################
 
 
-  # TODO: make this consistent
-  # TODO: add nprocs field
+  """ Implemented abstract methods """
   def getCoresPN(self) :
     return self.PPN
 
@@ -139,11 +229,9 @@ class AWSCluster(Cluster) :
   def getHostsCSV(self) :
     return self.__AWSgetHostsCSV()
 
-#  def getState(self) :
-#    return self.__state
-
-
   ########################################################################
+
+
   def __AWSgetHosts(self) :
     hosts = []
 
@@ -153,8 +241,7 @@ class AWSCluster(Cluster) :
   ########################################################################
 
 
-  
-  ########################################################################
+
   def __AWSgetHostsCSV(self) :
     hosts = ''
 
@@ -211,8 +298,6 @@ class AWSCluster(Cluster) :
   
   
   
-  
-  ########################################################################
   def __AWScreateCluster(self) :
   
     ec2 = boto3.resource('ec2',region_name=self.region)
@@ -277,14 +362,11 @@ class AWSCluster(Cluster) :
       raise Exception('Nodes did not start within time limit... terminating them...')    
   
     return self.__instances
-   
   ########################################################################
   
   
   
   
-  ''' Function: terminate_nodes '''
-  ########################################################################
   def __AWSterminateCluster(self) :
 
     # Terminate any running dask scheduler 
@@ -302,3 +384,6 @@ class AWSCluster(Cluster) :
   
     return responses
   ########################################################################
+
+if __name__ == '__main__':
+  pass

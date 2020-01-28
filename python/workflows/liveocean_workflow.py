@@ -176,8 +176,6 @@ with Flow('ofs workflow') as flow:
 
 
 def main():
-
- 
   # Potential fix for Mac OS, fixed one thing but still wont run
   #mp.set_start_method('spawn')
   #mp.set_start_method('forkserver')

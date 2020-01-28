@@ -216,4 +216,5 @@ def get_forcing_lo( cdate, localpath, sshuser ) :
   return
 #####################################################################
 
-        
+if __name__ == '__main__':
+  pass 

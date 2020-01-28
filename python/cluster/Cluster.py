@@ -8,26 +8,25 @@ from abc import ABC, abstractmethod
 from subprocess import Popen
 import time
 
-  """
-  Parameters
-  ----------
-  var : type
-    Desc
+'''
+Parameters
+----------
+var : type
+  Desc
 
-  Returns
-  -------
-  var : type
-    Desc
+Returns
+-------
+var : type
+  Desc
 
-  Raises
-  ------
-  excep
-    Desc
+Raises
+------
+excep
+  Desc
 
-  Notes
-  -----
-  
-  """
+Notes
+-----
+'''  
 
 class Cluster(ABC) :
   """ 
@@ -58,33 +57,44 @@ class Cluster(ABC) :
 
   getCoresPN()
     Get the number of cores per node in this cluster. Assumes a heterogenous cluster.
+
   getState()
     Get the cluster state.
+
   setState()
     Set the cluster state.
     TODO: Can use a class property instead.
+
   readConfig()
     Read the cluster configuration.
+
+  parseConfig()
+    Parse the cluster configuration. This might contain parameters that are required by 
+    specific cloud providers.
+
   start()
     Start the cluster.
+
   terminate()
     Terminate the cluster.
+
   getHosts()
     Get the list of hosts in this cluster 
+
   getHostsCSV() :
     Get a comma separated list of hosts in this cluster
 
   """
 
   def __init__(self):
+    """"""
     self.daskscheduler = None
     self.daskworker = None
 
 
-  # This assumes scheduler is on only one node ... 
-  # TODO: Make this scalable to multiple nodes
-  # If the daskScheduler will be this closely coupled to the architecture it could be here
-  def setDaskScheduler(self,  proc: Popen ):
+
+  def setDaskScheduler(self, proc: Popen ):
+    """"""
     self.daskscheduler = proc
     return proc
 
@@ -95,7 +105,6 @@ class Cluster(ABC) :
       if poll == None:
         self.daskscheduler.kill()
     return
-
 
 
   def setDaskWorker(self,  proc: Popen ):
@@ -135,6 +144,10 @@ class Cluster(ABC) :
     pass
 
   @abstractmethod
+  def parseConfig() :
+    pass
+
+  @abstractmethod
   def start() :
     pass
 
@@ -142,13 +155,15 @@ class Cluster(ABC) :
   def terminate() :
     pass
 
-  ## get the list of hostnames or IPs in this cluster 
+  ''' get the list of hostnames or IPs in this cluster  '''
   @abstractmethod
   def getHosts() :
     pass
 
-  ## get a comma separated list of hosts in this cluster
+  ''' get a comma separated list of hosts in this cluster '''
   @abstractmethod
   def getHostsCSV() :
     pass
 
+if __name__ == '__main__':
+  pass

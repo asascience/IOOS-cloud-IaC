@@ -53,27 +53,6 @@ formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcNa
 ch.setFormatter(formatter)
 log.addHandler(ch)
 
-  """
-  Parameters
-  ----------
-  var : type
-    Desc
-
-  Returns
-  -------
-  var : type
-    Desc
-
-  Raises
-  ------
-  excep
-    Desc
-
-  Notes
-  -----
-  
-  """
-
 #######################################################################
 
 @task
@@ -434,9 +413,8 @@ def start_dask(cluster) -> Client:
     time.sleep(3)
     cluster.setDaskScheduler(proc)
 
-    wrkrproc = subprocess.Popen(["dask-worker","--nprocs",str(nprocs),"--nthreads", "1", f"{host}:{port}"], \
-             stderr=subprocess.STDOUT)
-      #stderr=subprocess.DEVNULL)
+    wrkrproc = subprocess.Popen(["dask-worker","--nprocs",str(nprocs),"--nthreads", "1",\
+      f"{host}:{port}"], stderr=subprocess.STDOUT)
     time.sleep(3)
     cluster.setDaskWorker(wrkrproc)
 
@@ -462,11 +440,6 @@ def start_dask(cluster) -> Client:
 #####################################################################
 
 
-def main() :
-  return
-#####################################################################
-
-
 if __name__ == '__main__':
-  main()
+  pass
 #####################################################################

@@ -43,5 +43,7 @@ class Job(ABC) :
   #def __parseConfig(self, cfDict) : 
   #pass
 
+if __name__ == '__main__':
+  pass
 
 

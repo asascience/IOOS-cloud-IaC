@@ -28,3 +28,6 @@ class S3Storage(CloudStorage):
     except ClientError as e:
       log.error(e)
       raise Exception from e
+
+if __name__ == '__main__':
+  pass
