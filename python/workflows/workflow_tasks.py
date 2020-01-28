@@ -1,4 +1,11 @@
-# keep things cloud platform agnostic at this layer
+"""
+
+Module of Prefect @task annotated functions for use in cloud based numerical 
+weather modelling workflows. These tasks are basically wrappers around other
+functions. Prefect forces some design choices.
+
+Keep things cloud platform agnostic at this layer.
+"""
 
 # Python dependencies
 import sys
@@ -46,11 +53,57 @@ formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcNa
 ch.setFormatter(formatter)
 log.addHandler(ch)
 
+  """
+  Parameters
+  ----------
+  var : type
+    Desc
+
+  Returns
+  -------
+  var : type
+    Desc
+
+  Raises
+  ------
+  excep
+    Desc
+
+  Notes
+  -----
+  
+  """
 
 #######################################################################
 
 @task
 def storage_init(provider: str) -> CloudStorage :
+  """Class factory that returns an implementation of CloudStorage.
+
+  CloudStorage is the abstract base class that provides a generic interface for
+  multiple cloud platforms. 
+  
+  Parameters
+  ----------
+  provider : str
+    Name of an implemented provider.
+
+  Returns
+  -------
+  service : CloudStorage
+    Returns a specific implementation of the CloudStorage interface.
+
+  Raises
+  ------
+  signals.FAIL
+    Triggers and exception if `provider` is not supported.
+
+  Notes
+  -----
+  The following providers are implemented:
+    AWS S3 - S3Storage
+  
+  """
 
   if provider == 'AWS':
     service = S3Storage()
@@ -69,34 +122,37 @@ def storage_init(provider: str) -> CloudStorage :
 # TODO: Parameterize filespecs?
 @task
 def save_to_cloud(job: Job, service: CloudStorage, filespecs: list, public=False):
-  ''' 
+  """ Save stuff to cloud storage.
 
-  job - Job object that contains the required parameters
-    BUCKET - bucket name
-    BCKTFOLDER - bucket folder
-    CDATE - simulation date
-    OUTDIR - source path 
+  Parameters
+  ----------
+  job : Job
+    A Job object that contains the required attributes:
+      BUCKET - bucket name
+      BCKTFOLDER - bucket folder
+      CDATE - simulation date
+      OUTDIR - source path 
 
-  service - a CloudStorage service, provider agnostic interface
+  service : CloudStorage
+    An implemented service for your cloud provider.
 
-  filespecs - a list of filenames with wildcards accepted for files to copy
+  filespec : list of strings
+    file specifications to match using glob.glob
+    Example: ["*.nc", "*.png"]
 
-  This is a working example of Dependency Injection
-  '''
+  public : bool, optional
+    Whether the files should be made public. Default: False
+  """
   
   BUCKET = job.BUCKET
   BCKTFLDR = job.BCKTFLDR
   CDATE = job.CDATE
   path = job.OUTDIR
 
-  # Forecast output
-  # ocean_his_0002.nc
+  #Forecast output
+  #ocean_his_0002.nc
   #folder = f"output/{job.CDATE}"
   #filespec = ['ocean_his_*.nc']
-  # BCKTFLDR = '/LiveOcean/output'
-
-  # Plots output
-  #filespec = ['*.png']   # TODO: put this in config ???
 
   for spec in filespecs:
     FILES = sorted(glob.glob(f"{path}/{spec}"))
@@ -184,7 +240,7 @@ def job_init(cluster, configfile, jobtype) -> Job :
 # TODO: make this model agnostic
 @task
 def get_forcing(jobconfig: str, sshuser):
-  ''' jobconfig - filename of json file '''
+  """ jobconfig - filename of json file """
 
   # Open and parse jobconfig file
   #"OFS"       : "liveocean",

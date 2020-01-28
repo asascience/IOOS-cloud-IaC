@@ -13,3 +13,4 @@ python/*.out
 **/worker-*.dirlock
 **/purge.lock
 **/global.lock
+python/workflows/lo.out
