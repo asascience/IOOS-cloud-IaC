@@ -183,11 +183,11 @@ def main():
   #mp.set_start_method('forkserver')
 
   # matplotlib Mac OS issues
-  #flow.run()
+  flow.run()
   #testflow.run()
   #plotonly.run()
   #fcstflow.run()
-  testforce.run()
+  #testforce.run()
 
 #####################################################################
 

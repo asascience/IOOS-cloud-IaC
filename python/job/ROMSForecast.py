@@ -5,19 +5,20 @@ import os
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
 
+curdir = os.path.dirname(os.path.abspath(__file__))
+
 from job.Job import Job
 
 import romsUtil as util
 
+debug = False
 
 class ROMSForecast(Job):
 
 
   def __init__(self, configfile, NPROCS):
 
-    debug = True
-
-    TEMPLPATH = "./templates"
+    TEMPLPATH = f"{curdir}/templates"
 
     self.__jobtype = 'roms'
     self.configfile = configfile

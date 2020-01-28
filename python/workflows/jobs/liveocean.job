@@ -3,7 +3,7 @@
   "CDATE"     : "20200128",
   "HH"        : "00",
   "TIME_REF"  : "19700101",
-  "NTIMES"    : "90",
+  "NTIMES"    : "6480",
   "ININAME"   : "/com/liveocean/f2020.01.27/ocean_his_0025.nc",
   "COMROT"    : "/com",
   "OUTDIR"    : "auto",

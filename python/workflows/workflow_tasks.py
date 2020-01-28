@@ -181,6 +181,7 @@ def job_init(cluster, configfile, jobtype) -> Job :
 
 
 # TODO: make sshuser an optional Job parameter
+# TODO: make this model agnostic
 @task
 def get_forcing(jobconfig: str, sshuser):
   ''' jobconfig - filename of json file '''
@@ -206,6 +207,7 @@ def get_forcing(jobconfig: str, sshuser):
       raise signals.FAIL() 
 
   else:
+    log.error("Unsupported forecast: ", ofs)
     raise signals.FAIL()
 
   # TODO: Add NOSOFS, can also use bash scripts that already exist
