@@ -1,9 +1,11 @@
-#!/usr/bin/env python3
-
 # keep things cloud platform agnostic at this layer
+
 # Python dependencies
 import sys
 import os
+if os.path.abspath('..') not in sys.path:
+    sys.path.append(os.path.abspath('..'))
+
 import json
 import pprint
 import subprocess
