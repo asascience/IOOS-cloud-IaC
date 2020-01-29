@@ -34,6 +34,16 @@ elif provider == 'Local':
 sshuser='ptripp@boiler.ocean.washington.edu'
 
 
+with Flow('test mpeg') as testmpeg:
+  postmach = tasks.cluster_init(postconf,provider)
+  plotjob = tasks.job_init(postmach, postjobfile, 'plotting')
+  mpegs = tasks.make_mpegs(plotjob)
+
+  storage_service = tasks.storage_init(provider)
+  savetocloud = tasks.save_to_cloud(plotjob, storage_service, ['*.mp4'], public=True)
+  savetocloud.set_upstream(mpegs)
+
+
 with Flow('test forcing') as testforce:
   # Get forcing data
   forcing = tasks.get_forcing(fcstjobfile,sshuser)
@@ -103,12 +113,16 @@ with Flow('plotting') as plotflow:
   plots = tasks.daskmake_plots(daskclient, FILES, plotjob)
   plots.set_upstream([daskclient])
   closedask = tasks.dask_client_close(daskclient, upstream_tasks=[plots])
+  pmTerminated = tasks.cluster_terminate(postmach,upstream_tasks=[plots,closedask])
 
   storage_service = tasks.storage_init(provider)
-  savetocloud = tasks.save_to_cloud(plotjob, storage_service, ['*.png'], public=True)
-  savetocloud.set_upstream(plots)
 
-  pmTerminated = tasks.cluster_terminate(postmach,upstream_tasks=[plots,closedask])
+  pngtocloud = tasks.save_to_cloud(plotjob, storage_service, ['*.png'], public=True)
+  pngtocloud.set_upstream(plots)
+
+  mpegs = tasks.make_mpegs(plotjob, upstream_tasks=[plots])
+  mp4tocloud = tasks.save_to_cloud(plotjob, storage_service, ['*.mp4'], public=True)
+  mp4tocloud.set_upstream(mpegs)
 
 #######################################################################
 
@@ -120,11 +134,16 @@ def main():
   #mp.set_start_method('forkserver')
   #plotstate = plotflow.run()
 
+  #test()
+  
   fcststate = fcstflow.run()
   if fcststate.is_successful()
     plotstate = plotflow.run()
 
 #####################################################################
+
+def test():
+  testmpeg.run()
 
  
 if __name__ == '__main__':

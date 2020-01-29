@@ -6,8 +6,8 @@ import PIL.Image
 import numpy as np
 import matplotlib.pyplot as plt
 
-# from plotting import tile
-import tile
+from plotting import tile
+#import tile
 
 
 def png_ffmpeg(source, target):

@@ -320,6 +320,17 @@ def make_plots(filename,target,varname):
 #####################################################################
 
 
+@task
+def make_mpegs(job : Job):
+
+  # TODO: make the filespec a function parameter
+  for var in job.VARS:
+    source = f"{job.OUTDIR}/ocean_his_%04d_{var}.png"
+    target = f"{job.OUTDIR}/{var}.mp4"
+    plot.png_ffmpeg(source, target)
+
+  return
+
 
 
 @task

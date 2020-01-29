@@ -17,36 +17,14 @@ import workflow_tasks as tasks
 provider = 'AWS'
 
 if provider == 'AWS':
-  #fcstconf = 'configs/liveocean.config'
-  #fcstjobfile = 'jobs/20191106.liveocean.job'
   fcstconf = 'configs/adnoc.config'
   fcstjobfile = 'jobs/adnoc.job'
-  postconf = 'configs/post.config'
-  postjobfile = 'jobs/lo.plots.job'
-
 elif provider == 'Local':
   fcstconf = 'configs/local.config'
-  fcstjobfile = 'jobs/liveocean.job'
-  postconf = 'configs/local.post'
-  postjobfile = 'jobs/plots.local.job'
+  fcstjobfile = 'jobs/adnoc.job'
 
-
-# This is used for obtaining liveocean forcing data
-sshuser='ptripp@boiler.ocean.washington.edu'
 
 with Flow('ofs workflow') as flow:
- 
-  #####################################################################
-  # Build Model
-  #####################################################################
-
-  #####################################################################
-  # Pre-Process
-  #####################################################################
-
-  # Get forcing data
-  # TODO: make sshuser a Job parameter
-  #forcing = tasks.get_forcing(fcstjobfile,sshuser)
 
   #####################################################################
   # FORECAST
@@ -70,28 +48,11 @@ with Flow('ofs workflow') as flow:
   fcTerminated = tasks.cluster_terminate(cluster)
   flow.add_edge(fcstStatus,fcTerminated)
 
-
-  #####################################################################
-  # Post-Process
-  #####################################################################
-
 #######################################################################
-
-
 
 
 def main():
-
- 
-  # Potential fix for Mac OS, fixed one thing but still wont run
-  #mp.set_start_method('spawn')
-  #mp.set_start_method('forkserver')
-
-  # matplotlib Mac OS issues
   flow.run()
 
-#######################################################################
-
- 
 if __name__ == '__main__':
   main()
