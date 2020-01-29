@@ -36,81 +36,10 @@ sshuser='ptripp@boiler.ocean.washington.edu'
 
 with Flow('test forcing') as testforce:
   # Get forcing data
-
   forcing = tasks.get_forcing(fcstjobfile,sshuser)
 
 
-
-with Flow('testplot') as testplot:
-
-  storage_service = tasks.storage_init(provider)
-  postmach = tasks.cluster_init(postconf,provider)
-  plotjob = tasks.job_init(postmach, postjobfile, 'plotting')
-  #savetocloud = tasks.save_to_cloud(plotjob, storage_service, ['*.png'])
-  savetocloud = tasks.save_to_cloud(plotjob, storage_service, ['*.png'], public=True)
-
-
-with Flow('plot only') as plotonly:
-
-  # Start a machine
-  postmach = tasks.cluster_init(postconf,provider)
-  pmStarted = tasks.cluster_start(postmach)
-
-  # Push the env, install required libs on post machine
-  # TODO: install all of the 3rd party dependencies on AMI
-  pushPy = tasks.push_pyEnv(postmach, upstream_tasks=[pmStarted])
-
-  # Start a dask scheduler on the new post machine
-  daskclient : Client = tasks.start_dask(postmach, upstream_tasks=[pmStarted])
-
-  # Setup the post job
-  plotjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
-
-  # Get list of files from job specified directory
-  FILES = tasks.ncfiles_from_Job(plotjob)
-
-  # Make plots
-  plots = tasks.daskmake_plots(daskclient, FILES, plotjob)
-  plots.set_upstream([daskclient])
-  closedask = tasks.dask_client_close(daskclient, upstream_tasks=[plots])
-
-  storage_service = tasks.storage_init(provider)
-  savetocloud = tasks.save_to_cloud(plotjob, storage_service, '*.png')
-  savetocloud.set_upstream(plots)
-
-  pmTerminated = tasks.cluster_terminate(postmach,upstream_tasks=[plots,closedask])
-
-#######################################################################
-
-
 with Flow('fcst workflow') as fcstflow:
-  #####################################################################
-  # FORECAST
-  #####################################################################
-
-  # Create the cluster object
-  cluster = tasks.cluster_init(fcstconf,provider)
-
-  # Start the cluster
-  fcStarted = tasks.cluster_start(cluster)
-
-  # Setup the job 
-  fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
-
-  # Run the forecast
-  fcstStatus = tasks.forecast_run(cluster,fcstjob)
-
-  # Terminate the cluster nodes
-  fcTerminated = tasks.cluster_terminate(cluster)
-
-  fcstflow.add_edge(fcStarted,fcstjob)
-  fcstflow.add_edge(fcstjob,fcstStatus)
-  fcstflow.add_edge(fcstStatus,fcTerminated)
-
-
-
-
-with Flow('ofs workflow') as flow:
 
   #####################################################################
   # Pre-Process
@@ -139,9 +68,15 @@ with Flow('ofs workflow') as flow:
   # Terminate the cluster nodes
   fcTerminated = tasks.cluster_terminate(cluster)
 
-  flow.add_edge(fcStarted,fcstjob)
-  flow.add_edge(fcstjob,fcstStatus)
-  flow.add_edge(fcstStatus,fcTerminated)
+  fcstflow.add_edge(fcStarted,fcstjob)
+  fcstflow.add_edge(fcstjob,fcstStatus)
+  fcstflow.add_edge(fcstStatus,fcTerminated)
+
+#####################################################################
+
+
+
+with Flow('plotting') as plotflow:
 
   #####################################################################
   # POST Processing
@@ -149,43 +84,45 @@ with Flow('ofs workflow') as flow:
 
   # Start a machine
   postmach = tasks.cluster_init(postconf,provider)
-  pmStarted = tasks.cluster_start(postmach, upstream_tasks=[fcstStatus])
+  pmStarted = tasks.cluster_start(postmach)
 
   # Push the env, install required libs on post machine
   # TODO: install all of the 3rd party dependencies on AMI
   pushPy = tasks.push_pyEnv(postmach, upstream_tasks=[pmStarted])
 
   # Start a dask scheduler on the new post machine
-  daskclient = tasks.start_dask(postmach, upstream_tasks=[pushPy])
+  daskclient : Client = tasks.start_dask(postmach, upstream_tasks=[pmStarted])
 
   # Setup the post job
   plotjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
 
-  # Get list of files from fcstjob
-  FILES = tasks.ncfiles_from_Job(plotjob, upstream_tasks=[fcstStatus])
+  # Get list of files from job specified directory
+  FILES = tasks.ncfiles_from_Job(plotjob,"ocean_his_*.nc")
 
   # Make plots
   plots = tasks.daskmake_plots(daskclient, FILES, plotjob)
   plots.set_upstream([daskclient])
-
   closedask = tasks.dask_client_close(daskclient, upstream_tasks=[plots])
+
+  storage_service = tasks.storage_init(provider)
+  savetocloud = tasks.save_to_cloud(plotjob, storage_service, ['*.png'], public=True)
+  savetocloud.set_upstream(plots)
+
   pmTerminated = tasks.cluster_terminate(postmach,upstream_tasks=[plots,closedask])
 
-#####################################################################
-
+#######################################################################
 
 
 def main():
+  # matplotlib Mac OS issues
   # Potential fix for Mac OS, fixed one thing but still wont run
   #mp.set_start_method('spawn')
   #mp.set_start_method('forkserver')
+  #plotstate = plotflow.run()
 
-  # matplotlib Mac OS issues
-  flow.run()
-  #testflow.run()
-  #plotonly.run()
-  #fcstflow.run()
-  #testforce.run()
+  fcststate = fcstflow.run()
+  if fcststate.is_successful()
+    plotstate = plotflow.run()
 
 #####################################################################
 

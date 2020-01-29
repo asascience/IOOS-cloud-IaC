@@ -134,6 +134,7 @@ def save_to_cloud(job: Job, service: CloudStorage, filespecs: list, public=False
   #filespec = ['ocean_his_*.nc']
 
   for spec in filespecs:
+
     FILES = sorted(glob.glob(f"{path}/{spec}"))
 
     log.info('Uploading the following files:')
@@ -291,8 +292,8 @@ def forecast_run(cluster, job):
 
 
 @task
-def ncfiles_glob(SOURCE):
-    FILES = sorted(glob.glob(f'{SOURCE}/*.nc'))
+def ncfiles_glob(SOURCE, filespec: str = "*.nc"):
+    FILES = sorted(glob.glob(f'{SOURCE}/{filespec}'))
     for f in FILES:
       log.info('found the following files:')
       print(f)
@@ -302,9 +303,9 @@ def ncfiles_glob(SOURCE):
 
 
 @task
-def ncfiles_from_Job(job : Job):
+def ncfiles_from_Job(job : Job, filespec: str = "*.nc"):
     SOURCE = job.INDIR
-    FILES = sorted(glob.glob(f'{SOURCE}/*.nc'))
+    FILES = sorted(glob.glob(f'{SOURCE}/{filespec}'))
     return FILES
 #####################################################################
 
@@ -326,9 +327,6 @@ def daskmake_plots(client: Client, FILES: list, plotjob: Job ):
 
   target = plotjob.OUTDIR
 
-  # TODO: implement multiple VARS in Job
-  varname = plotjob.VARS[0]
-
   log.info(f"In daskmake_plots {FILES}")
 
   log.info(f"Target is : {target}")
@@ -337,18 +335,23 @@ def daskmake_plots(client: Client, FILES: list, plotjob: Job ):
 
   idx = 0
   futures = []
+
+  # Submit all jobs to the dask scheduler
+  # TODO - parameterize filespec and get files here?
   for filename in FILES:
-    log.info(f"plotting filename: {filename}")
-    future = client.submit(plot.plot_roms, filename, target, varname)
-    futures.append(future)
-    log.info(futures[idx])
-    idx += 1
-  
+    for varname in plotjob.VARS:
+      log.info(f"plotting file: {filename} var: {varname}")
+      future = client.submit(plot.plot_roms, filename, target, varname)
+      futures.append(future)
+      log.info(futures[idx])
+      idx += 1
+ 
+  # Wait for the jobs to complete
   for future in futures:
     result = future.result()
     log.info(result)
 
-  # Was unable to get it to work using client.map()
+  # Was unable to get it to work using client.map() gather
   #filenames = FILES[0:1]
   #print("mapping plot_roms over filenames")
   #futures = client.map(plot_roms, filenames, pure=False, target=unmapped(target), varname=unmapped(varname))
@@ -371,12 +374,14 @@ def push_pyEnv(cluster):
   log.info(f"push_pyEnv host is {host}")
 
   # Push and install anything in dist folder
-  dists = glob.glob(f'dist/*.tar.gz')
+  dists = glob.glob(f'../dist/*.tar.gz')
   for dist in dists:
      log.info(f"pushing python dist: {dist}")
      subprocess.run(["scp",dist,f"{host}:~"], stderr=subprocess.STDOUT) 
-     lib = dist.split('/')[1]
+
+     path, lib = os.path.split(dist)
      log.info(f"push_pyEnv installing module: {lib}")
+
      subprocess.run(["ssh",host,"pip3","install","--user",lib], stderr=subprocess.STDOUT) 
   return
 #####################################################################

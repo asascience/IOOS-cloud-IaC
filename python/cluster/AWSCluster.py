@@ -109,7 +109,6 @@ class AWSCluster(Cluster) :
      
   """
 
-  self.platform  = 'AWS'
 
   def __init__(self, configfile) :
     """ The config file contains the required parameters in JSON 
@@ -124,6 +123,7 @@ class AWSCluster(Cluster) :
     An initialized instance of AWSCluster
     """
   
+    self.platform  = 'AWS'
     self.__configfile = configfile
     self.__state = "none"   # This could be an enumeration of none, running, stopped, error
     self.__instances = []

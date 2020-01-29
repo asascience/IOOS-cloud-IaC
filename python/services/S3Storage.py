@@ -19,6 +19,11 @@ class S3Storage(CloudStorage):
 
   def upload_file(self, filename: str, bucket: str, key: str, public: bool = False):
 
+    if debug:
+      print("DEBUG: filename: ", filename)
+      print("DEBUG: key: ", key)
+      print("DEBUG: bucket: ", bucket)
+
     s3 = boto3.client('s3')
     try:
       if public:
