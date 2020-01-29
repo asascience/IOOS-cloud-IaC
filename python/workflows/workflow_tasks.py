@@ -322,21 +322,50 @@ def make_plots(filename,target,varname):
 
 @task
 def make_mpegs(job : Job):
-
   # TODO: make the filespec a function parameter
   for var in job.VARS:
     source = f"{job.OUTDIR}/ocean_his_%04d_{var}.png"
     target = f"{job.OUTDIR}/{var}.mp4"
     plot.png_ffmpeg(source, target)
+  return
+
+
+@task
+def daskmake_mpegs(client: Client, job: Job):
+
+  log.info(f"In daskmake_mpegs")
+
+  # TODO: make the filespec a function parameter
+  if not os.path.exists(job.OUTDIR):
+    os.makedirs(job.OUTDIR)
+
+  idx = 0
+  futures = []
+
+  for var in job.VARS:
+    source = f"{job.OUTDIR}/ocean_his_%04d_{var}.png"
+    target = f"{job.OUTDIR}/{var}.mp4"
+
+    log.info(f"Creating movie for {var}")
+    log.info(f"source:{source} target:{target}")
+    future = client.submit(plot.png_ffmpeg, source, target)
+    futures.append(future)
+    log.info(futures[idx])
+    idx += 1
+
+  # Wait for the jobs to complete
+  for future in futures:
+    result = future.result()
+    log.info(result)
 
   return
 
 
 
 @task
-def daskmake_plots(client: Client, FILES: list, plotjob: Job ):
+def daskmake_plots(client: Client, FILES: list, job: Job ):
 
-  target = plotjob.OUTDIR
+  target = job.OUTDIR
 
   log.info(f"In daskmake_plots {FILES}")
 
@@ -350,7 +379,7 @@ def daskmake_plots(client: Client, FILES: list, plotjob: Job ):
   # Submit all jobs to the dask scheduler
   # TODO - parameterize filespec and get files here?
   for filename in FILES:
-    for varname in plotjob.VARS:
+    for varname in job.VARS:
       log.info(f"plotting file: {filename} var: {varname}")
       future = client.submit(plot.plot_roms, filename, target, varname)
       futures.append(future)
@@ -393,7 +422,7 @@ def push_pyEnv(cluster):
      path, lib = os.path.split(dist)
      log.info(f"push_pyEnv installing module: {lib}")
 
-     subprocess.run(["ssh",host,"pip3","install","--user",lib], stderr=subprocess.STDOUT) 
+     subprocess.run(["ssh",host,"pip3","install","--upgrade","--user",lib], stderr=subprocess.STDOUT) 
   return
 #####################################################################
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import sys
 import multiprocessing as mp
 from dask.distributed import Client
 
@@ -110,19 +111,21 @@ with Flow('plotting') as plotflow:
   FILES = tasks.ncfiles_from_Job(plotjob,"ocean_his_*.nc")
 
   # Make plots
-  plots = tasks.daskmake_plots(daskclient, FILES, plotjob)
-  plots.set_upstream([daskclient])
-  closedask = tasks.dask_client_close(daskclient, upstream_tasks=[plots])
-  pmTerminated = tasks.cluster_terminate(postmach,upstream_tasks=[plots,closedask])
+  #plots = tasks.daskmake_plots(daskclient, FILES, plotjob)
+  #plots.set_upstream([daskclient])
 
   storage_service = tasks.storage_init(provider)
+  #pngtocloud = tasks.save_to_cloud(plotjob, storage_service, ['*.png'], public=True)
+  #pngtocloud.set_upstream(plots)
 
-  pngtocloud = tasks.save_to_cloud(plotjob, storage_service, ['*.png'], public=True)
-  pngtocloud.set_upstream(plots)
-
-  mpegs = tasks.make_mpegs(plotjob, upstream_tasks=[plots])
+  # Make movies
+  #mpegs = tasks.daskmake_mpegs(plotjob, upstream_tasks=[plots])
+  mpegs = tasks.daskmake_mpegs(daskclient, plotjob, upstream_tasks=[daskclient])
   mp4tocloud = tasks.save_to_cloud(plotjob, storage_service, ['*.mp4'], public=True)
   mp4tocloud.set_upstream(mpegs)
+
+  closedask = tasks.dask_client_close(daskclient, upstream_tasks=[mpegs])
+  pmTerminated = tasks.cluster_terminate(postmach,upstream_tasks=[mpegs,closedask])
 
 #######################################################################
 
@@ -134,16 +137,18 @@ def main():
   #mp.set_start_method('forkserver')
   #plotstate = plotflow.run()
 
-  #test()
+  test()
+  sys.exit()
   
   fcststate = fcstflow.run()
-  if fcststate.is_successful()
+  if fcststate.is_successful():
     plotstate = plotflow.run()
 
 #####################################################################
 
 def test():
-  testmpeg.run()
+  plotstate = plotflow.run()
+  #testmpeg.run()
 
  
 if __name__ == '__main__':

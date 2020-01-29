@@ -1,4 +1,7 @@
 import os
+import traceback
+import subprocess
+
 import pyproj
 import cmocean
 import netCDF4
@@ -7,8 +10,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from plotting import tile
-#import tile
-
 
 def png_ffmpeg(source, target):
     '''Make a movie from a set of sequential png files
@@ -23,16 +24,25 @@ def png_ffmpeg(source, target):
         Example: '/path/to/output/prefix_varname.mp4'
     '''
 
-    ff_str = f'ffmpeg -start_number 30 -r 1 -i {source} -vcodec libx264 -pix_fmt yuv420p -crf 25 {target}'
+    print(f"DEBUG: in png_ffmpeg. source: {source} target: {target}")
 
+    #ff_str = f'ffmpeg -y -start_number 30 -r 1 -i {source} -vcodec libx264 -pix_fmt yuv420p -crf 25 {target}'
+    #ff_str = f'ffmpeg -y -r 8 -i {source} -vcodec libx264 -pix_fmt yuv420p -crf 23 {target}'
+
+    # TODO: ffmpeg is currently installed in user home directory. Install to standard location.
     try:
-        state = os.system(ff_str)
-        assert state == 0
-        print('That worked')
-    except AssertionError:
-        print(f'That did not work: {state}')
-        print(ff_str)
-
+        proc = subprocess.run(['/home/centos/bin/ffmpeg','-y','-r','8','-i',source,'-vcodec','libx264',\
+                               '-pix_fmt','yuv420p','-crf','23',target], \
+                              stderr=subprocess.STDOUT)
+        assert proc.returncode == 0
+        print(f'Created animation: {target}')
+    except AssertionError as e:
+        print(f'Creating animation failed for {target}. Return code: {proc.returncode}')
+        raise Exception(e)
+    except Exception as e:
+        print('Exception from ffmpeg', e)
+        traceback.print_stack()
+        raise Exception(e)
 
 
 def plot_png(source='dubai', target='figs'):
