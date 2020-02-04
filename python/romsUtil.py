@@ -8,10 +8,12 @@ import subprocess
 import json
 
 
-debug = True
+debug = False
 
 def readConfig(configfile) :
   ''' converts a JSON document to a python dictionary '''
+
+  if debug: print(f"DEBUG: in romsUtil : configfile is: {configfile}")
 
   with open(configfile, 'r') as cf:
     cfDict = json.load(cf)

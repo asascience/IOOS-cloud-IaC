@@ -147,6 +147,9 @@ class AWSCluster(Cluster) :
     self.PPN = nodeInfo.getPPN(self.nodeType)
     self.NPROCS = self.nodeCount * self.PPN
 
+    self.daskscheduler = None
+    self.daskworker = None
+
     log.info(f"nodeCount: {self.nodeCount}  PPN: {self.PPN}")
 
 

@@ -12,6 +12,7 @@ import sys
 import os
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
+curdir = os.path.dirname(os.path.abspath(__file__))
 
 import json
 import pprint
@@ -41,6 +42,7 @@ from services.S3Storage import S3Storage
 
 import romsUtil as util
 from plotting import plot
+
 
 pp = pprint.PrettyPrinter()
 debug = False
@@ -202,9 +204,15 @@ def job_init(cluster, configfile, jobtype) -> Job :
   # We can't really separate the hardware from the job, nprocs is needed
   NPROCS = cluster.nodeCount * cluster.PPN
 
+  if debug: print(f"DEBUG: in tasks job_init configfile: {configfile}")
+  # This is opposite of the way resources are usually allocated
+  # Normally, NPROCs comes from the job and will use that much compute resources
+  # Here, we fit the job to the desired on-demand resources.
+  # TODO ?: set it up so that the best machine(s) for the job are provisioned based on 
+  # the resource request.
   # Need to make this a factory
   if jobtype == 'roms':
-    job = ROMSForecast(configfile, NPROCS )
+    job = ROMSForecast(configfile, NPROCS)
   elif jobtype == 'plotting':
     job = Plotting(configfile,NPROCS)
   else:
@@ -265,7 +273,7 @@ def forecast_run(cluster, job):
   OUTDIR = job.OUTDIR
   EXEC = job.EXEC
 
-  runscript="./fcst_launcher.sh"
+  runscript = f"{curdir}/fcst_launcher.sh"
  
   try:
     HOSTS=cluster.getHostsCSV()
