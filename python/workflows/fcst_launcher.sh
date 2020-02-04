@@ -3,8 +3,6 @@ set -xa
 ulimit -c unlimited
 ulimit -s unlimited
 
-
-
 if [ $# -ne 8 ] ; then
   echo "Usage: $0 YYYYMMDD HH COMOUT NPROCS PPN HOSTS <cbofs|ngofs|liveocean|adnoc>"
   exit 1

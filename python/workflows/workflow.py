@@ -19,8 +19,8 @@ import flows
 # Set these for specific use
 curdir = os.path.dirname(os.path.abspath(__file__))
 
-#provider = 'Local'
-provider = 'AWS'
+# provider = 'Local'
+# provider = 'AWS'
 fcstconf = f'{curdir}/../configs/liveocean.config'
 postconf = f'{curdir}/../configs/post.config'
 
@@ -47,12 +47,12 @@ def main():
 
   for jobfile in joblist:
     jobdict = util.readConfig(jobfile)
-    jobtype = jobdict['JOBTYPE']
+    jobtype = jobdict["JOBTYPE"]
     print('JOBTYPE: ',jobtype)
 
     # Add the forecast flow
     if jobtype == 'forecast':
-      fcstflow = flows.fcst_flow(fcstconf, jobfile)
+      fcstflow = flows.fcst_flow(fcstconf, jobfile, sshuser)
       flowdeq.appendleft(fcstflow)
 
     # Add the plot flow
@@ -72,6 +72,7 @@ def main():
     aflow = flowdeq.pop()
     idx += 1 
     state = aflow.run()
+    print(f"DEBUG: state is: {state}")
     if state.is_successful(): continue
     else: break
         

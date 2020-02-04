@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-
+import os
 import romsUtil as util
 import datetime
 
@@ -25,7 +25,18 @@ def templatetest() :
   util.sedoceanin ( template, outfile, settings )
 
 
+def todaytest():
+  CDATE = "today"
 
+  if CDATE == "today":
+    today = datetime.date.today().strftime("%Y%m%d")
+    #print(f"today is: {today.year}{today.month}{today.day}")
+    print(f"today is: {today}")
+
+def pathsize():
+  path = '/mnt/efs/com/liveocean/forcing/f2020.01.28'
+  size = os.path.getsize(path)
+  print(f"size is : {size}")
 
 def ndaystest() :
             
@@ -36,4 +47,7 @@ def ndaystest() :
   print ("ndays is", days)
 
 
-ndaystest()
+#ndaystest()
+#todaytest()
+pathsize()
+

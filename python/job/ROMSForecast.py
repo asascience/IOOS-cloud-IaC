@@ -1,7 +1,7 @@
 import sys
 import json
 import os
-import
+import datetime
 
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
@@ -9,7 +9,6 @@ if os.path.abspath('..') not in sys.path:
 curdir = os.path.dirname(os.path.abspath(__file__))
 
 from job.Job import Job
-
 import romsUtil as util
 
 debug = False
@@ -32,7 +31,7 @@ class ROMSForecast(Job):
 
     cfDict = self.readConfig(configfile)
     self.__parseConfig(cfDict)
-    self.make_oceanin(cfDict)
+    self.make_oceanin()
 
 
 
@@ -53,27 +52,29 @@ class ROMSForecast(Job):
     self.OCEANIN = cfDict['OCEANIN']
     self.OCNINTMPL = cfDict['OCNINTMPL']
 
+    if self.CDATE == "today":
+      today = datetime.date.today().strftime("%Y%m%d")
+      self.CDATE = today
+
+    if self.OCNINTMPL == "auto":
+      self.OCNINTMPL = f"{self.TEMPLPATH}/{OFS}.ocean.in"
+
     return
+  ########################################################################
 
 
-  def make_oceanin(self, cfDict) :
+
+
+  def make_oceanin(self) :
     
-    # Easier to use 
-    CDATE = self.CDATE
-
-    if CDATE == "today":
-      self.CDATE = "20200203"
-    
-    HH = self.HH
     OFS = self.OFS
-    COMROT = self.COMROT
     
     # Create the ocean.in file from a template 
     # TODO: Make ocean in for NOSOFS
     if OFS == 'liveocean':
-      self.__make_oceanin_lo(cfDict)
+      self.__make_oceanin_lo()
     elif OFS == 'adnoc':
-      self.__make_oceanin_adnoc(cfDict)
+      self.__make_oceanin_adnoc()
     elif OFS == 'cbofs':
       template = f"TODO-cbofstemplate"
       outfile = f"TODO-template"
@@ -81,67 +82,66 @@ class ROMSForecast(Job):
       raise Exception(f"{OFS} is not a supported forecast")
 
     return
+  ########################################################################
 
 
 
 
-  def __make_oceanin_lo(self, cfDict):
+  def __make_oceanin_lo(self):
 
     CDATE = self.CDATE
     HH = self.HH
     OFS = self.OFS
     COMROT = self.COMROT
-    TEMPLPATH = self.TEMPLPATH
 
-    # LiveOcean requires a significant amount of available RAM to run > 16GB
-    # NTIMES 90 is 1 hour for liveocean 
-    # Using f-strings
-    # Add stuff to the replacement dictionary 
-    if self.OCNINTMPL == "auto":
-      template = f"{TEMPLPATH}/{OFS}.ocean.in"
-    else:
-      template = self.OCNINTMPL
+    template = self.OCNINTMPL
 
-    fdate = f"f{CDATE[0:4]}.{CDATE[4:6]}.{CDATE[6:8]}"
+    #fdate = f"f{CDATE[0:4]}.{CDATE[4:6]}.{CDATE[6:8]}"
+    fdate = util.lo_date(CDATE)
+    prevdate = util.ndate(CDATE, -1)
+    fprevdate = util.lo_date(prevdate)
 
-    self.OUTDIR = f"{COMROT}/{OFS}/{fdate}"
-    outfile = f"{self.OUTDIR}/liveocean.in"
+    if self.OUTDIR == "auto":
+      self.OUTDIR = f"{COMROT}/{OFS}/{fdate}"
+      outfile = f"{self.OUTDIR}/liveocean.in"
 
     if not os.path.exists(self.OUTDIR):
       os.makedirs(self.OUTDIR)
+
+    if self.ININAME == "auto":
+      self.ININAME = f"/com/liveocean/{fprevdate}/ocean_his_0025.nc"
 
     DSTART = util.ndays(CDATE,self.TIME_REF)
     # DSTART = days from TIME_REF to start of forecast day larger minus smaller date
 
     settings = {
-      "__NTIMES__"   : cfDict['NTIMES'],
-      "__TIME_REF__" : cfDict['TIME_REF'],
+      "__NTIMES__"   : self.NTIMES,
+      "__TIME_REF__" : self.TIME_REF,
       "__DSTART__"   : DSTART,
       "__FDATE__"    : fdate,
-      "__ININAME__"  : cfDict['ININAME']
+      "__ININAME__"  : self.ININAME
     }
 
     # Create the ocean.in
-    util.makeOceanin(self.NPROCS,settings,template,outfile)
+    if self.OCEANIN == "auto":
+      util.makeOceanin(self.NPROCS,settings,template,outfile)
+
+    return
+  ########################################################################
 
 
 
 
 
-  def __make_oceanin_adnoc(self, cfDict):
+  def __make_oceanin_adnoc(self):
     
     CDATE = self.CDATE
     HH = self.HH
     OFS = self.OFS
     COMROT = self.COMROT
-    TEMPLPATH = self.TEMPLPATH
 
     if self.OUTDIR == "auto":
       self.OUTDIR = f"{COMROT}/{OFS}/{CDATE}"
-
-    # TODO: fix this - don't need two variables for the same thing do we?
-    cfDict['OUTDIR'] = self.OUTDIR
-    self.OUTDIR = self.OUTDIR
 
     if not os.path.exists(self.OUTDIR):
       os.makedirs(self.OUTDIR)
@@ -151,10 +151,7 @@ class ROMSForecast(Job):
       "__TIME_REF__" : cfDict['TIME_REF'],
     }
 
-    if self.OCNINTMPL == "auto":
-      template = f"{TEMPLPATH}/{OFS}.ocean.in"
-    else:
-      template = self.OCNINTMPL
+    template = self.OCNINTMPL
 
     outfile = f"{self.OUTDIR}/ocean.in"
 
@@ -163,6 +160,7 @@ class ROMSForecast(Job):
       util.makeOceanin(self.NPROCS,settings,template,outfile)
 
     return
+  ########################################################################
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 import sys
 import json
 import os
+import datetime
 
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
@@ -9,35 +10,61 @@ from job.Job import Job
 
 import romsUtil as util
 
+debug = True
 
 class Plotting(Job):
 
 
   def __init__(self, configfile, NPROCS):
 
-    debug = True
 
     self.__jobtype = 'plotting'
     self.configfile = configfile
     self.NPROCS = NPROCS
 
     with open(configfile, 'r') as cf:
-      jobDict = json.load(cf)
+      cfDict = json.load(cf)
     
     if (debug) :
-      print(json.dumps(jobDict, indent=4))
-      print(str(jobDict))
+      print(json.dumps(cfDict, indent=4))
+      print(str(cfDict))
 
-    self.OFS = jobDict['OFS']
-    self.CDATE = jobDict['CDATE']
-    self.HH = jobDict['HH']
-    self.INDIR = jobDict['INDIR']
-    self.OUTDIR = jobDict['OUTDIR']
-    self.VARS = jobDict['VARS']
-    self.BUCKET = jobDict['BUCKET']
-    self.BCKTFLDR = jobDict['BCKTFLDR']
+    self.__parseConfig(cfDict)
 
-    # TODO: use a read config and parse config subroutine as in AWSCluster
+  ########################################################################
+
+
+  def __parseConfig(self, cfDict) :
+
+    self.OFS = cfDict['OFS']
+    self.CDATE = cfDict['CDATE']
+    self.HH = cfDict['HH']
+    self.INDIR = cfDict['INDIR']
+    self.OUTDIR = cfDict['OUTDIR']
+    self.VARS = cfDict['VARS']
+    self.BUCKET = cfDict['BUCKET']
+    self.BCKTFLDR = cfDict['BCKTFLDR']
+
+    if self.CDATE == "today":
+      today = datetime.date.today().strftime("%Y%m%d")
+      self.CDATE = today
+
+    CDATE = self.CDATE
+
+    fdate = f"f{CDATE[0:4]}.{CDATE[4:6]}.{CDATE[6:8]}"
+
+    # "INDIR"     : "/com/liveocean/f2020.01.28",
+    if self.INDIR == "auto":
+      self.INDIR = f"/com/liveocean/{fdate}"
+
+    # "OUTDIR"    : "/com/liveocean/plots/f2020.01.28",
+    if self.OUTDIR == "auto":
+      self.OUTDIR = f"/com/liveocean/plots/{fdate}"
+
+    return
+  ########################################################################
+
+
 
 if __name__ == '__main__':
   pass

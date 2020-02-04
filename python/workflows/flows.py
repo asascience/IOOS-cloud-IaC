@@ -1,21 +1,15 @@
 from prefect import Flow
 import workflow_tasks as tasks
 
-def fcst_flow(fcstconf, fcstjobfile) -> Flow:
+provider = 'AWS'
 
-  provider = 'AWS'
+def fcst_flow(fcstconf, fcstjobfile, sshuser) -> Flow:
+
   #fcstconf = f'{curdir}/configs/liveocean.config'
-  print(f"DEBUG: fcstconf is {fcstconf}")
+  #print(f"DEBUG: fcstconf is {fcstconf}")
   #fcstjobfile = 'garbage'
 
   with Flow('fcst workflow') as fcstflow:
-
-    #####################################################################
-    # Pre-Process
-    #####################################################################
-
-    # Get forcing data
-    #forcing = tasks.get_forcing(fcstjobfile,sshuser)
 
     #####################################################################
     # FORECAST
@@ -23,23 +17,31 @@ def fcst_flow(fcstconf, fcstjobfile) -> Flow:
 
     # Create the cluster object
     cluster = tasks.cluster_init(fcstconf,provider)
-  
-    # Start the cluster
-    fcStarted = tasks.cluster_start(cluster)
-  
+
     # Setup the job 
     fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
+ 
+    # Get forcing data
+    forcing = tasks.get_forcing(fcstjob,sshuser)
+ 
+    # Start the cluster
+    cluster_start = tasks.cluster_start(cluster)
   
     # Run the forecast
-    fcstStatus = tasks.forecast_run(cluster,fcstjob)
+    fcst_run = tasks.forecast_run(cluster,fcstjob)
   
     # Terminate the cluster nodes
-    fcTerminated = tasks.cluster_terminate(cluster)
-  
-    fcstflow.add_edge(fcStarted,fcstjob)
-    fcstflow.add_edge(fcstjob,fcstStatus)
-    fcstflow.add_edge(fcstStatus,fcTerminated)
-  
+    cluster_stop = tasks.cluster_terminate(cluster)
+ 
+    fcstflow.add_edge(cluster, fcstjob)
+    fcstflow.add_edge(fcstjob, forcing)
+    fcstflow.add_edge(forcing, cluster_start)
+    fcstflow.add_edge(cluster_start, fcst_run)
+    fcstflow.add_edge(fcst_run, cluster_stop)
+
+    # If the fcst fails, then set the whole flow to fail 
+    fcstflow.set_reference_tasks([fcst_run,cluster_stop])
+
   return fcstflow
 
 

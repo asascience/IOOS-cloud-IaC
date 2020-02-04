@@ -227,18 +227,18 @@ def job_init(cluster, configfile, jobtype) -> Job :
 # TODO: make sshuser an optional Job parameter
 # TODO: make this model agnostic
 @task
-def get_forcing(jobconfig: str, sshuser):
-  """ jobconfig - filename of json file """
+def get_forcing(job: Job, sshuser):
+  """ job - Job object """
 
   # Open and parse jobconfig file
   #"OFS"       : "liveocean",
   #"CDATE"     : "20191106",
   #"ININAME"   : "/com/liveocean/f2019.11.05/ocean_his_0025.nc",
 
-  jobDict = util.readConfig(jobconfig)
-  cdate = jobDict['CDATE']
-  ofs = jobDict['OFS']
-  comrot = jobDict['COMROT']
+  #jobDict = util.readConfig(jobconfig)
+  cdate = job.CDATE
+  ofs = job.OFS
+  comrot = job.COMROT
 
   if ofs == 'liveocean':
 
@@ -286,7 +286,7 @@ def forecast_run(cluster, job):
       stderr=subprocess.STDOUT)
 
     if result.returncode != 0 :
-      log.exception('Forecast failed ... result: ', result)
+      log.exception(f'Forecast failed ... result: {result.returncode}')
       raise signals.FAIL()
 
   except Exception as e:
@@ -311,10 +311,17 @@ def ncfiles_glob(SOURCE, filespec: str = "*.nc"):
 
 
 @task
-def ncfiles_from_Job(job : Job, filespec: str = "*.nc"):
+def ncfiles_from_Job(job: Job, filespec: str = "*.nc"):
     SOURCE = job.INDIR
     FILES = sorted(glob.glob(f'{SOURCE}/{filespec}'))
     return FILES
+#####################################################################
+
+
+@task
+def clean_up_forecast(job: Job):
+  print("cleanup stub")
+  return
 #####################################################################
 
 
