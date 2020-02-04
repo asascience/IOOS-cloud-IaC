@@ -429,7 +429,7 @@ def push_pyEnv(cluster):
   log.info(f"push_pyEnv host is {host}")
 
   # Push and install anything in dist folder
-  dists = glob.glob(f'../dist/*.tar.gz')
+  dists = glob.glob(f'{curdir}/../dist/*.tar.gz')
   for dist in dists:
      log.info(f"pushing python dist: {dist}")
      subprocess.run(["scp",dist,f"{host}:~"], stderr=subprocess.STDOUT) 
