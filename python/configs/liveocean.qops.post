@@ -5,7 +5,7 @@
 "nodeCount" : 1,
 "tags"      : [ 
                 { "Key": "Name", "Value": "IOOS-cloud-sandbox" },
-                { "Key": "NAME", "Value": "liveocean-post-20191106" }
+                { "Key": "NAME", "Value": "liveocean-post" }
               ],
 "image_id"  : "ami-036c6254b1f08d282",
 "key_name"  : "patrick-ioos-cloud-sandbox",
