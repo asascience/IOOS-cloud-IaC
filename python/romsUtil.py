@@ -50,8 +50,6 @@ def sedoceanin ( template, outfile, settings ) :
 
 def makeOceanin(NPROCS,settings,template,outfile) :
 
-  # TODO - setup for NOSOFS
-
   tiles = getTiling( NPROCS )
 
   reptiles = {
@@ -70,10 +68,8 @@ def makeOceanin(NPROCS,settings,template,outfile) :
 
 def ndays( cdate1, cdate2 ) :
 
-  days = datetime.timedelta(days=0)
+  dt = datetime.timedelta(days=0)
  
-  print(f"cdate1 : {cdate1}   cdate2: {cdate2}")
-
   y1 = int(cdate1[0:4])
   m1 = int(cdate1[4:6].lstrip("0"))
   d1 = int(cdate1[6:8].lstrip("0"))
@@ -82,15 +78,60 @@ def ndays( cdate1, cdate2 ) :
   m2 = int(cdate2[4:6].lstrip("0"))
   d2 = int(cdate2[6:8].lstrip("0"))
 
-  date1 = datetime.date(y1,m1,d1)
-  date2 = datetime.date(y2,m2,d2)
-  days = date1 - date2
+  # extended to include optional hours
 
-  print(str(days.days))
-  return days.days
+  if len(cdate1) == 10:
+    hh = cdate1[8:10]
+    if hh == '00':
+      h1 = 0
+    else:
+      h1 = int(cdate1[8:10].lstrip("0"))
+  else:
+    h1 = 0
+
+  if len(cdate2) == 10:
+    hh = cdate2[8:10]
+    if hh == '00':
+      h2 = 0
+    else:
+      h2 = int(cdate2[8:10].lstrip("0"))
+  else:
+    h2 = 0
+
+  date1 = datetime.datetime(y1,m1,d1,h1)
+  date2 = datetime.datetime(y2,m2,d2,h2)
+  dt = date1 - date2
+
+  days = dt.days   
+
+  hour = dt.seconds/3600
+  daysdec = hour / 24
+  days = days + daysdec
+
+  return str(days)
 #####################################################################
   
 
+def ndate_hrs( cdate, hours ):
+  ''' return the YYYYMMDD for CDATE +/- hours '''
+
+  y1 = int(cdate[0:4])
+  m1 = int(cdate[4:6].lstrip("0"))
+  d1 = int(cdate[6:8].lstrip("0"))
+
+  hh = cdate[8:10]
+  if hh == '00':
+    h1 = 0
+  else:
+    h1 = int(cdate[8:10].lstrip("0"))
+
+  dt = datetime.timedelta(hours=hours)
+
+  date2 = datetime.datetime(y1,m1,d1,h1) + dt
+  strdate = date2.strftime("%Y%m%d%H")
+
+  return strdate
+#####################################################################
 
 
 def ndate( cdate, days ):
@@ -100,7 +141,9 @@ def ndate( cdate, days ):
   m1 = int(cdate[4:6].lstrip("0"))
   d1 = int(cdate[6:8].lstrip("0"))
 
-  date2 = datetime.date(y1,m1, d1 + days)
+  dt = datetime.timedelta(days=days)
+   
+  date2 = datetime.date(y1,m1, d1) + dt
   strdate = date2.strftime("%Y%m%d")
   return strdate
 #####################################################################
@@ -124,6 +167,8 @@ def getTiling( totalCores ) :
   ''' Algorithm
 
     prefer a square or closest to it
+
+    It might be more optimal to have a ratio similar to the grid ratio
 
     if sqrt of total is an integer then use it for I and J
     if not find factorization closest to square
@@ -169,10 +214,16 @@ def getTiling( totalCores ) :
 #####################################################################
 
 
+def get_ICs_roms (ofs, cdate, cycle, localpath):
+
+  # There is a shell script that already exists to do this
+  # Can maybe re write it in Python later
+
+  return
 
 
 
-def get_forcing_lo( cdate, localpath, sshuser ) :
+def get_ICs_lo( cdate, localpath, sshuser):
   ''' Get the atmospheric forcing and boundary layer conditions and ICs
       for LiveOcean ROMS model.
 

@@ -92,6 +92,51 @@ def plot_flow(postconf, postjobfile) -> Flow:
   
   return plotflow
  
+
+
+
+def test_flow(fcstconf, fcstjobfile ) -> Flow:
+
+  with Flow('fcst workflow') as testflow:
+
+    # Create the cluster object
+    cluster = tasks.cluster_init(fcstconf,provider)
+
+    # Setup the job 
+    fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
+
+    # Get forcing data
+    forcing = tasks.get_forcing(fcstjob)
+
+    # Start the cluster
+    cluster_start = tasks.cluster_start(cluster)
+
+    # Run the forecast
+    fcst_run = tasks.forecast_run(cluster,fcstjob)
+
+    # Terminate the cluster nodes
+    cluster_stop = tasks.cluster_terminate(cluster)
+
+    testflow.add_edge(cluster, fcstjob)
+    testflow.add_edge(fcstjob, forcing)
+    testflow.add_edge(forcing, cluster_start)
+    testflow.add_edge(cluster_start, fcst_run)
+    testflow.add_edge(fcst_run, cluster_stop)
+
+    # If the fcst fails, then set the whole flow to fail 
+    testflow.set_reference_tasks([fcst_run,cluster_stop])
+
+  return testflow
+
+
  
 if __name__ == '__main__':
-  pass
+
+  
+  fcstconf = f'../configs/cbofs.config'
+  jobfile = f'../jobs/cbofs.00z.fcst'
+
+  fcstflow = test_flow(fcstconf, jobfile)
+  fcstflow.run()
+ 
+  

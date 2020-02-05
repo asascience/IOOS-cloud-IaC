@@ -227,7 +227,7 @@ def job_init(cluster, configfile, jobtype) -> Job :
 # TODO: make sshuser an optional Job parameter
 # TODO: make this model agnostic
 @task
-def get_forcing(job: Job, sshuser):
+def get_forcing(job: Job, sshuser=None):
   """ job - Job object """
 
   # Open and parse jobconfig file
@@ -239,24 +239,32 @@ def get_forcing(job: Job, sshuser):
   cdate = job.CDATE
   ofs = job.OFS
   comrot = job.COMROT
+  hh = job.HH
 
   if ofs == 'liveocean':
-
-    localpath = f"{comrot}/{ofs}"
-
+    comdir = f"{comrot}/{ofs}"
     try: 
-      util.get_forcing_lo(cdate, localpath, sshuser) 
+      util.get_ICs_lo(cdate, comdir, sshuser) 
     except Exception as e:
       log.exception('Problem encountered with downloading forcing data ...')
       raise signals.FAIL() 
 
+  elif ofs in ('cbofs','dbofs'):
+    comdir = f"{comrot}/{ofs}.{cdate}"
+    script=f"{curdir}/../../scripts/getICsROMS.sh"
+
+    # echo "Usage: $0 YYYYMMDD HH cbofs|(other ROMS model) COMDIR"
+    result = subprocess.run([script,cdate,hh,ofs,comdir], stderr=subprocess.STDOUT)
+    if result.returncode != 0 :
+      log.exception(f'Retrieving ICs failed ... result: {result.returncode}')
+      raise signals.FAIL()
+ 
   else:
     log.error("Unsupported forecast: ", ofs)
     raise signals.FAIL()
 
-  # TODO: Add NOSOFS, can also use bash scripts that already exist
- 
   return
+#######################################################################
 
 
 

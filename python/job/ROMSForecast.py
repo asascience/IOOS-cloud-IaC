@@ -76,14 +76,14 @@ class ROMSForecast(Job):
     elif OFS == 'adnoc':
       self.__make_oceanin_adnoc()
     elif OFS == 'cbofs':
-      template = f"TODO-cbofstemplate"
-      outfile = f"TODO-template"
+      self.__make_oceanin_nosofs()
+    elif OFS == 'dbofs':
+      self.__make_oceanin_nosofs()
     else :
       raise Exception(f"{OFS} is not a supported forecast")
 
     return
   ########################################################################
-
 
 
 
@@ -129,6 +129,66 @@ class ROMSForecast(Job):
     return
   ########################################################################
 
+
+
+
+  def __make_oceanin_nosofs(self):
+
+    CDATE = self.CDATE
+    HH = self.HH
+    OFS = self.OFS
+    COMROT = self.COMROT
+    template = self.OCNINTMPL
+
+    if self.OUTDIR == "auto":
+      self.OUTDIR = f"{COMROT}/{OFS}.{CDATE}"
+
+    if not os.path.exists(self.OUTDIR):
+      os.makedirs(self.OUTDIR)
+
+#      ININAME == nos.cbofs.rst.nowcast.20200204.t00z.nc
+#      BRYNAME == nos.cbofs.obc.20200204.t00z.nc
+#      SSFNAME == nos.cbofs.river.20200204.t00z.nc
+#      FRCNAME == nos.cbofs.met.forecast.20200204.t00z.nc \
+#      RSTNAME == nos.cbofs.rst.forecast.20200204.t00z.nc
+#      HISNAME == nos.cbofs.fields.forecast.20200204.t00z.nc
+#      QCKNAME == nos.cbofs.surface.forecast.20200204.t00z.nc
+#      STANAME == nos.cbofs.stations.forecast.20200204.t00z.nc
+
+#nos.cbofs.forecast.20200204.t00z.in:     DSTART =  1494.7500d0       ! days
+
+# Days since TIME_REF to Jan 1 of this year
+#nos.cbofs.forecast.20200204.t00z.in:     TIDE_START = 1461.0000d0   ! days
+
+    # The restart date is 6 hours prior to CDATE, DSTART is hours since TIME_REF
+    prev6hr = util.ndate_hrs(f"{CDATE}{HH}",-6)
+    DSTART = util.ndays(prev6hr,self.TIME_REF)
+    # Reformat the date
+    DSTART = f"{'{:.4f}'.format(float(DSTART))}d0"
+
+    JAN1CURYR = f"{CDATE[0:4]}010100"
+    TIDE_START = util.ndays(JAN1CURYR,self.TIME_REF)
+    TIDE_START = f"{'{:.4f}'.format(float(TIDE_START))}d0"
+
+    # These are the templated variables to replace via substitution
+    settings = {
+      "__NTIMES__"   : self.NTIMES,
+      "__TIME_REF__" : self.TIME_REF,
+      "__CDATE__"    : self.CDATE,
+      "__HH__"       : self.HH,
+      "__DSTART__"   : DSTART,
+      "__TIDE_START__" : TIDE_START
+    }
+
+    # nos.cbofs.forecast.20191001.t00z.in
+    outfile = f"{self.OUTDIR}/nos.{OFS}.forecast.{CDATE}.t{HH}z.in"
+
+    # Create the ocean.in
+    if self.OCEANIN == "auto":
+      util.makeOceanin(self.NPROCS,settings,template,outfile)
+
+    return
+  ########################################################################
 
 
 

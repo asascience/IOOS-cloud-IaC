@@ -38,16 +38,49 @@ def pathsize():
   size = os.path.getsize(path)
   print(f"size is : {size}")
 
+
 def ndaystest() :
             
-  refdate = "19700101"
-  cdate = "20191106"
+  #refdate = "2016010100"
+  refdate = "20160101.0d0"
+
+  cdate = "2020020512"
   # cdate - refdate
   days = util.ndays(cdate, refdate)
-  print ("ndays is", days)
+  #print ("ndays is", days)
+
+  JAN1CURYR = f"{cdate[0:4]}010100"
+  TIDE_START = util.ndays(JAN1CURYR,refdate)
+  print(f"tide_start is : {TIDE_START}")
+
+  DSTART = util.ndays(cdate,refdate)
+  #DSTART = f"{'{:.4f}'.format(DSTART)}.d0"
+  DSTART = f"{'{:.4f}'.format(float(DSTART))}d0"
+  print(DSTART)
 
 
-#ndaystest()
+
+def ndate_hrs_test():
+  cdate = "2020020500"
+  hrs = -6
+
+  print(f"cdate: {cdate}, hrs: {hrs}")
+  date = util.ndate_hrs(cdate, hrs)
+  print(date)
+
+def ndate_test():
+  cdate = "20200101"
+  days = -1461
+
+  print(f"cdate: {cdate}, days: {days}")
+  newdate = util.ndate(cdate, days)
+  print(newdate)
+
+
+#ndate_hrs_test()
+#ndate_test()
+
+ndaystest()
 #todaytest()
-pathsize()
+#pathsize()
 

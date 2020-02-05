@@ -17,6 +17,10 @@ fixdirs='
   fix/ngofs/
 '
 
+fixdirs='
+  fix/dbofs/
+'
+
 for dir in $fixdirs
 do
   wget $opts $noaaurl/$dir
