@@ -63,9 +63,9 @@
 !==============================================================================                                                                                                                         
 !                                                                                                                                                                                                       
 ! Application title.                                                                                                                                                                                    
-     TITLE = dbofs forecast RUN in operational mode
+     TITLE = cbofs forecast RUN in operational mode
 ! C-preprocessing Flag.                                                                                                                                                                                 
-     MyAppCPP = dbofs forecast RUN in operational mode
+     MyAppCPP = cbofs forecast RUN in operational mode
 ! Input variable information file name.  This file needs to be processed                                                                                                                                
 ! first so all information arrays can be initialized properly.                                                                                                                                          
      VARNAME = varinfo.dat
@@ -78,9 +78,9 @@
      GridsInLayer =  1
 ! Grid dimension parameters. See notes below in the Glossary for how to set                                                                                                                             
 ! these parameters correctly.                                                                                                                                                                           
-     Lm == 117
-     Mm == 730
-     N == 10
+     Lm == 330
+     Mm == 289
+     N == 20
      Nbed =  0             ! Number of sediment bed layers
      NAT =  2             ! Number of active tracers (usually, 2)
      NPT =  0             ! Number of inactive passive tracers
@@ -89,12 +89,8 @@
 ! Domain decomposition parameters for serial, distributed-memory or                                                                                                                                     
 ! shared-memory configurations used to determine tile horizontal range                                                                                                                                  
 ! indices (Istr,Iend) and (Jstr,Jend), [1:Ngrids].                                                                                                                                                      
-!     NtileI == 5  ! I-direction partition
-!     NtileJ == 28  ! J-direction partition
-
-      NtileI == __NTILEI__  ! I-direction partition
-      NtileJ == __NTILEJ__  ! J-direction partition
-
+     NtileI == 8  ! I-direction partition
+     NtileJ == 9  ! J-direction partition
 ! Set lateral boundary conditions keyword. Notice that a value is expected                                                                                                                              
 ! for each boundary segment per nested grid for each state variable.                                                                                                                                    
 !                                                                                                                                                                                                       
@@ -130,14 +126,14 @@
 !                           h               h                                                                                                                                                           
 !                                                                                                                                                                                                       
 !                   1       2       3       4                                                                                                                                                           
-     LBC(isFsur) ==   Cha     Cha     Cha     Clo         ! free-surface
-     LBC(isUbar) ==   Fla     Fla     Fla     Clo         ! 2D U-momentum
-     LBC(isVbar) ==   Fla     Fla     Fla     Clo         ! 2D V-momentum
-     LBC(isUvel) ==   Rad     Rad     Rad     Clo         ! 3D U-momentum
-     LBC(isVvel) ==   Rad     Rad     Rad     Clo         ! 3D V-momentum
-     LBC(isMtke) ==   Gra     Gra     Gra     Clo         ! mixing TKE
-     LBC(isTvar) ==   RadNud  RadNud  RadNud  Clo \       !temperature
-     RadNud  RadNud  RadNud  Clo         ! salinity
+     LBC(isFsur) ==   Clo     Cha     Cha     Clo         ! free-surface
+     LBC(isUbar) ==   Clo     Fla     Fla     Clo         ! 2D U-momentum
+     LBC(isVbar) ==   Clo     Fla     Fla     Clo         ! 2D V-momentum
+     LBC(isUvel) ==   Clo     Rad     Rad     Clo         ! 3D U-momentum
+     LBC(isVvel) ==   Clo     Rad     Rad     Clo         ! 3D V-momentum
+     LBC(isMtke) ==   Clo     Gra     Gra     Clo         ! mixing TKE
+     LBC(isTvar) ==   Clo     RadNud  RadNud  Clo \       !temperature
+     Clo     RadNud  RadNud  Clo         ! salinity
 ! Adjoint-based algorithms can have different lateral boundary                                                                                                                                          
 ! conditions keywords.                                                                                                                                                                                  
      ad_LBC(isFsur) ==   Clo     Clo     Clo     Clo         ! free-surface
@@ -161,9 +157,10 @@
      ad_VolCons(south) ==  F                            ! southern boundary
      ad_VolCons(north) ==  F                            ! northern boundary
 ! Time-Stepping parameters.                                                                                                                                                                             
-!     NTIMES == 34560
-      NTIMES == __NTIMES__
-
+!   "NTIMES"    : "34560", ! 48 hours
+!   "NTIMES"    : "1440",  ! 2 hours
+!
+     NTIMES == 720
      DT == 5.0d0
      NDTFAST == 20
 ! Model iteration loops parameters.                                                                                                                                                                     
@@ -249,18 +246,30 @@
      TKENU2 == 0.0d0                           ! m2/s
      TKENU4 == 0.0d0                           ! m4/s
 ! Generic length-scale turbulence closure parameters.                                                                                                                                                   
-     GLS_P == 3.0d0                           ! K-epsilon
-     GLS_M == 1.5d0
+     1       GLS_P == 3.0d0                           ! K-epsilon
+     1       GLS_M == 1.5d0
+     1       GLS_N == -1.0d0
+!    GLS_Kmin == 7.6d-6                                                                                                                                                                                 
+!    GLS_Pmin == 1.0d-12                                                                                                                                                                                
+!    GLS_CMU0 == 0.5477d0                                                                                                                                                                               
+!      GLS_C1 == 1.44d0                                                                                                                                                                                 
+!      GLS_C2 == 1.92d0                                                                                                                                                                                 
+!     GLS_C3M == -0.4d0                                                                                                                                                                                 
+!     GLS_C3P == 1.0d0                                                                                                                                                                                  
+!    GLS_SIGK == 1.0d0                                                                                                                                                                                  
+!    GLS_SIGP == 1.30d0                                                                                                                                                                                 
+     GLS_P == -1.0d0                           ! K-epsilon
+     GLS_M == 0.5d0
      GLS_N == -1.0d0
      GLS_Kmin == 7.6d-6
      GLS_Pmin == 1.0d-12
      GLS_CMU0 == 0.5477d0
-     GLS_C1 == 1.44d0
-     GLS_C2 == 1.92d0
-     GLS_C3M == -0.4d0
-     GLS_C3P == 1.0d0
-     GLS_SIGK == 1.0d0
-     GLS_SIGP == 1.30d0
+     GLS_C1 ==  0.555d0
+     GLS_C2 ==  0.833d0
+     GLS_C3M == -0.6d0
+     GLS_C3P ==  1.0d0
+     GLS_SIGK ==  2.0d0
+     GLS_SIGP ==  2.0d0
 ! Constants used in surface turbulent kinetic energy flux computation.                                                                                                                                  
      CHARNOK_ALPHA == 1400.0d0         ! Charnok surface roughness
      ZOS_HSIG_ALPHA == 0.5d0            ! roughness from wave amplitude
@@ -268,15 +277,15 @@
      CRGBAN_CW == 100.0d0          ! Craig and Banner wave breaking
 ! Constants used in momentum stress computation.                                                                                                                                                        
      RDRG == 3.0d-04                    ! m/s
-     RDRG2 == 0.003d0  ! nondimensional
-     Zob == 0.005d0    ! m
+     RDRG2 == 0.005d0  ! nondimensional
+     Zob == 0.0005d0    ! m
      Zos == 0.02d0                     ! m
 ! Height (m) of atmospheric measurements for Bulk fluxes parameterization.                                                                                                                              
      BLK_ZQ == 2.0d0                     ! air humidity
      BLK_ZT == 2.0d0                     ! air temperature
      BLK_ZW == 10.0d0                     ! winds
 ! Minimum depth for wetting and drying.                                                                                                                                                                 
-     DCRIT == 0.20d0     !m
+     DCRIT == 0.10d0     !m
 ! Various parameters.                                                                                                                                                                                   
      WTYPE == 7
      LEVSFRC == 15
@@ -295,9 +304,9 @@
 ! Time-stamp assigned for model initialization, reference time                                                                                                                                          
 ! origin for tidal forcing, and model reference time for output                                                                                                                                         
 ! NetCDF units attribute.                                                                                                                                                                               
-     DSTART =  __DSTART__       ! days
-     TIDE_START = __TIDE_START__   ! days
-     TIME_REF = __TIME_REF__     ! yyyymmdd.dd
+     DSTART =  1495.7500d0       ! days
+     TIDE_START = 1461.0000d0   ! days
+     TIME_REF = 20160101.0d0     ! yyyymmdd.dd
 ! Nudging/relaxation time scales, inverse scales will be computed                                                                                                                                       
 ! internally, [1:Ngrids].                                                                                                                                                                               
      TNUDG == 30.0d0 30.0d0              ! days
@@ -309,8 +318,8 @@
 ! than on outflow (recommended).                                                                                                                                                                        
      OBCFAC == 60.0d0                      ! nondimensional
 ! Linear equation of State parameters:                                                                                                                                                                  
-     R0 == 1025.0d0                   ! kg/m3
-     T0 == 15.0d0                     ! Celsius
+     R0 == 1027.0d0                   ! kg/m3
+     T0 == 10.0d0                     ! Celsius
      S0 == 35.0d0                     ! nondimensional
      TCOEF == 1.7d-4                     ! 1/Celsius
      SCOEF == 7.6d-4                     ! nondimensional
@@ -658,16 +667,16 @@
 ! Logical switches (TRUE/FALSE) to activate writing of time-averaged,                                                                                                                                   
 ! active (temperature and salinity) and passive (inert) tracer diagnostic                                                                                                                               
 ! terms into DIAGNOSTIC output file: [1:NAT+NPT,Ngrids].                                                                                                                                                
-     Dout(iTrate) == F F     ! temp_rate, ...     time rate of change
-     Dout(iThadv) == F FT     ! temp_hadv, ...     horizontal total advection
-     Dout(iTxadv) == F F     ! temp_xadv, ...     horizontal XI-advection
-     Dout(iTyadv) == F F     ! temp_yadv, ...     horizontal ETA-advection
-     Dout(iTvadv) == F F     ! temp_vadv, ...     vertical advection
-     Dout(iThdif) == F F     ! temp_hdiff, ...    horizontal total diffusion
-     Dout(iTxdif) == F F     ! temp_xdiff, ...    horizontal XI-diffusion
-     Dout(iTydif) == F F     ! temp_ydiff, ...    horizontal ETA-diffusion
-     Dout(iTsdif) == F F     ! temp_sdiff, ...    horizontal S-diffusion
-     Dout(iTvdif) == F F     ! temp_vdiff, ...    vertical diffusion
+     Dout(iTrate) == T T     ! temp_rate, ...     time rate of change
+     Dout(iThadv) == T T     ! temp_hadv, ...     horizontal total advection
+     Dout(iTxadv) == T T     ! temp_xadv, ...     horizontal XI-advection
+     Dout(iTyadv) == T T     ! temp_yadv, ...     horizontal ETA-advection
+     Dout(iTvadv) == T T     ! temp_vadv, ...     vertical advection
+     Dout(iThdif) == T T     ! temp_hdiff, ...    horizontal total diffusion
+     Dout(iTxdif) == T T     ! temp_xdiff, ...    horizontal XI-diffusion
+     Dout(iTydif) == T T     ! temp_ydiff, ...    horizontal ETA-diffusion
+     Dout(iTsdif) == T T     ! temp_sdiff, ...    horizontal S-diffusion
+     Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
 ! Generic User parameters, [1:NUSER].                                                                                                                                                                   
      NUSER =  0
      USER =  0.d0
@@ -676,8 +685,8 @@
      NC_DEFLATE =  1                 ! if non-zero, turn on deflate filter
      NC_DLEVEL =  1                 ! deflate level [0-9]
 ! Input NetCDF file names, [1:Ngrids].                                                                                                                                                                  
-     GRDNAME == nos.dbofs.romsgrid.nc
-     ININAME == nos.dbofs.rst.nowcast.__CDATE__.t__HH__z.nc
+     GRDNAME == nos.cbofs.romsgrid.nc
+     ININAME == nos.cbofs.rst.nowcast.20200205.t00z.nc
      ITLNAME == damee4_itl.nc
      IRPNAME == damee4_irp.nc
      IADNAME == damee4_iad.nc
@@ -692,14 +701,14 @@
 ! NetCDF files (see prologue instructions above). If so, use a single                                                                                                                                   
 ! line per entry with a vertical bar (|) symbol after each entry,                                                                                                                                       
 ! except the last one.                                                                                                                                                                                  
-     BRYNAME == nos.dbofs.obc.__CDATE__.t__HH__z.nc
+     BRYNAME == nos.cbofs.obc.20200205.t00z.nc
      CLMNAME == damee4_Lclm_b.nc
 ! Input climatology nudging coefficients file name.                                                                                                                                                     
      NUDNAME == damee4_nudgcoef.nc
 ! Input Sources/Sinks forcing (like river runoff) file name.                                                                                                                                            
-     SSFNAME == nos.dbofs.river.__CDATE__.t__HH__z.nc
+     SSFNAME == nos.cbofs.river.20200205.t00z.nc
 ! Input tidal forcing file name.                                                                                                                                                                        
-     TIDENAME == nos.dbofs.roms.tides.nc
+     TIDENAME == nos.cbofs.roms.tides.nc
 ! Input forcing NetCDF file name(s).                                                                                                                                                                    
 !                                                                                                                                                                                                       
 ! The USER has the option to enter several sets of file names for each                                                                                                                                  
@@ -717,27 +726,28 @@
 ! (see Prolog instructions above). Use a single line per entry with a                                                                                                                                   
 ! continuation (\) or a vertical bar (|) symbol after each entry, except                                                                                                                                
 ! the last one.                                                                                                                                                                                         
-     NFFILES == 1
-     FRCNAME == nos.dbofs.met.forecast.__CDATE__.t__HH__z.nc
+     NFFILES == 2
+     FRCNAME == nos.cbofs.met.forecast.20200205.t00z.nc \
+     nos.cbofs.respirate.nc
 ! Output NetCDF file names, [1:Ngrids].                                                                                                                                                                 
      DAINAME == damee4_dai.nc
      GSTNAME == damee4_gst.nc
-     RSTNAME == nos.dbofs.rst.forecast.__CDATE__.t__HH__z.nc
-     HISNAME == nos.dbofs.fields.forecast.__CDATE__.t__HH__z.nc
-     QCKNAME == nos.dbofs.surface.forecast.__CDATE__.t__HH__z.nc
+     RSTNAME == nos.cbofs.rst.forecast.20200205.t00z.nc
+     HISNAME == nos.cbofs.fields.forecast.20200205.t00z.nc
+     QCKNAME == nos.cbofs.surface.forecast.20200205.t00z.nc
      TLMNAME == damee4_tlm.nc
      TLFNAME == damee4_tlf.nc
      ADJNAME == damee4_adj.nc
      AVGNAME == damee4_avg.nc
      HARNAME == damee4_har.nc
      DIANAME == damee4_dia.nc
-     STANAME == nos.dbofs.stations.forecast.__CDATE__.t__HH__z.nc
+     STANAME == nos.cbofs.stations.forecast.20200205.t00z.nc
      FLTNAME == damee4_flt.nc
 ! Input ASCII parameter filenames.                                                                                                                                                                      
      APARNAM =  ROMS/External/s4dvar.in
-     SPOSNAM ==  nos.dbofs.stations.in
+     SPOSNAM ==  nos.cbofs.stations.in
      FPOSNAM =  ROMS/External/floats.in
-     BPARNAM =  nos.dbofs.bio.in
+     BPARNAM =  nos.cbofs.bio.in
      SPARNAM =  ROMS/External/sediment.in
      USRNAME =  ROMS/External/MyFile.dat
 !                                                                                                                                                                                                       
