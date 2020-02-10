@@ -10,6 +10,26 @@ import json
 
 debug = False
 
+
+def scrub_liveocean():
+  ''' scrubs the disk - removes forcings/ICs and forecast data
+      older than x days '''
+
+  # This is done in a shell script called by cron
+ 
+  # Scrub plots older than 1 day - these have been sent to S3
+  # Scrub forcing older than 1 day - can redownload from UW
+  # Scrub foreast data
+  #   Older than 1 day - remove all except hour 01-25
+  #   Older than 1 week - remove all
+  #   
+
+  print('scrub_liveocean stub')
+  return
+#####################################################################
+
+
+
 def readConfig(configfile) :
   ''' converts a JSON document to a python dictionary '''
 
@@ -112,6 +132,7 @@ def ndays( cdate1, cdate2 ) :
 #####################################################################
   
 
+
 def ndate_hrs( cdate, hours ):
   ''' return the YYYYMMDD for CDATE +/- hours '''
 
@@ -132,6 +153,7 @@ def ndate_hrs( cdate, hours ):
 
   return strdate
 #####################################################################
+
 
 
 def ndate( cdate, days ):
@@ -214,10 +236,12 @@ def getTiling( totalCores ) :
 #####################################################################
 
 
+
 def get_ICs_roms (ofs, cdate, cycle, localpath):
 
   # There is a shell script that already exists to do this
   # Can maybe re write it in Python later
+  # Or wrap it here
 
   return
 
