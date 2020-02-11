@@ -24,25 +24,29 @@ def png_ffmpeg(source, target):
         Example: '/path/to/output/prefix_varname.mp4'
     '''
 
-    print(f"DEBUG: in png_ffmpeg. source: {source} target: {target}")
+    #print(f"DEBUG: in png_ffmpeg. source: {source} target: {target}")
 
     #ff_str = f'ffmpeg -y -start_number 30 -r 1 -i {source} -vcodec libx264 -pix_fmt yuv420p -crf 25 {target}'
     #ff_str = f'ffmpeg -y -r 8 -i {source} -vcodec libx264 -pix_fmt yuv420p -crf 23 {target}'
 
     # TODO: ffmpeg is currently installed in user home directory. Install to standard location.
+    # x264 codec enforces even dimensions
+    # -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2"
     try:
         proc = subprocess.run(['/home/centos/bin/ffmpeg','-y','-r','8','-i',source,'-vcodec','libx264',\
-                               '-pix_fmt','yuv420p','-crf','23',target], \
+                               '-pix_fmt','yuv420p','-crf','23','-vf', "pad=ceil(iw/2)*2:ceil(ih/2)*2", target], \
                               stderr=subprocess.STDOUT)
         assert proc.returncode == 0
         print(f'Created animation: {target}')
     except AssertionError as e:
         print(f'Creating animation failed for {target}. Return code: {proc.returncode}')
+        traceback.print_stack()
         raise Exception(e)
     except Exception as e:
         print('Exception from ffmpeg', e)
         traceback.print_stack()
         raise Exception(e)
+
 
 
 def plot_png(source='dubai', target='figs'):
@@ -78,6 +82,8 @@ def plot_png(source='dubai', target='figs'):
             print('Plotting {}'.format(f))
             plot_roms(f, target, v)
             print('Finished {}'.format(f))
+
+
 
 
 
@@ -156,8 +162,31 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = True, zoom: i
             ax.set_ylim(lrb[1], ulb[3])
 
             # File output
+            # LO and general ROMS 
+            #           11111
+            # 012345678901234
+            # ocean_his_0001.nc
+            # NOSOFS 
+
+            # 0   1     2      3    4        5
+            # nos.dbofs.fields.f008.20200210.t00z
+
+            #/asdf/asdf/asdf/ocean_his_0001.nc
+            #asdf asdf asdf ocean_his_0001.nc
+
+            # Get the end and then minus 3 characters
             origfile = ncfile.split('/')[-1][:-3]
-            filename = f'{target}/{origfile}_{varname}.png'
+
+            prefix = origfile[0:3]
+            if prefix == 'nos':
+              sequence = origfile.split('.')[3][1:4]
+            else:
+              prefix = origfile[0:9]
+              if prefix == 'ocean_his':
+                sequence = origfile[11:14]
+            
+            #filename = f'{target}/{origfile}_{varname}.png'
+            filename = f'{target}/f{sequence}_{varname}.png'
             fig.savefig(filename, dpi=dpi, bbox_inches='tight', pad_inches=0.0, transparent=True)
 
             plt.close(fig)
@@ -173,6 +202,10 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = True, zoom: i
 
 if __name__=='__main__':
 
-    source = 'figs/temp/his_arg_temp_%04d.png'
-    target = 'figs/test_temp.mp4'
+    #source = 'figs/temp/his_arg_temp_%04d.png'
+    #target = 'figs/test_temp.mp4'
+    #png_ffmpeg(source, target)
+    var = 'temp'
+    source = f"/com/nos/plots/dbofs.20200210/f%03d_{var}.png"
+    target = f"/com/nos/plots/dbofs.20200210/{var}.mp4"
     png_ffmpeg(source, target)

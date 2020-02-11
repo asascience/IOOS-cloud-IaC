@@ -70,7 +70,7 @@ def plot_flow(postconf, postjobfile) -> Flow:
     plotjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
   
     # Get list of files from job specified directory
-    FILES = tasks.ncfiles_from_Job(plotjob,"ocean_his_*.nc")
+    FILES = tasks.ncfiles_from_Job(plotjob)
   
     # Make plots
     plots = tasks.daskmake_plots(daskclient, FILES, plotjob)

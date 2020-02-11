@@ -44,6 +44,7 @@ class Plotting(Job):
     self.VARS = cfDict['VARS']
     self.BUCKET = cfDict['BUCKET']
     self.BCKTFLDR = cfDict['BCKTFLDR']
+    self.FSPEC = cfDict['FSPEC']
 
     if self.CDATE == "today":
       today = datetime.date.today().strftime("%Y%m%d")
@@ -51,16 +52,20 @@ class Plotting(Job):
 
     CDATE = self.CDATE
 
-    fdate = f"f{CDATE[0:4]}.{CDATE[4:6]}.{CDATE[6:8]}"
-
-    # "INDIR"     : "/com/liveocean/f2020.01.28",
-    if self.INDIR == "auto":
-      self.INDIR = f"/com/liveocean/{fdate}"
-
-    # "OUTDIR"    : "/com/liveocean/plots/f2020.01.28",
-    if self.OUTDIR == "auto":
-      self.OUTDIR = f"/com/liveocean/plots/{fdate}"
-
+    if self.OFS == "liveocean":
+      fdate = f"f{CDATE[0:4]}.{CDATE[4:6]}.{CDATE[6:8]}"
+      if self.INDIR == "auto":
+        self.INDIR = f"/com/liveocean/{fdate}"
+      if self.OUTDIR == "auto":
+        self.OUTDIR = f"/com/liveocean/plots/{fdate}"
+    elif self.OFS in ('cbofs','dbofs'):
+      if self.INDIR == "auto":
+        self.INDIR = f"/com/nos/{self.OFS}.{self.CDATE}"
+      if self.OUTDIR == "auto":
+        self.OUTDIR = f"/com/nos/plots/{self.OFS}.{self.CDATE}"
+    else:
+      raise Exception(f"{self.OFS} is not a supported forecast")
+ 
     return
   ########################################################################
 

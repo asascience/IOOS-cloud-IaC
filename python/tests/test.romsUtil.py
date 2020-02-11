@@ -77,10 +77,30 @@ def ndate_test():
   print(newdate)
 
 
+def getTilingTest():
+  totalCores = 216
+  #ratio = 2.25
+  #ratio = 4
+  #ratio = 661/1300  # liveocean .50769 0.5625 9 x 16
+  ratio = 0.44444    # 8x18 (144)  12x18 (216)
+  ratio = 0.375      # 9x24 (216)
+  #ratio = 1
+  #totalCores = 72
+  #ratio = 1.125 # 9 x 8
+  #ratio = 1     # 8 x 9
+  # dbofs 117 x 730
+  #ratio=.16    # DBOFS
+  #totalCores = 72
+  # NtileI :  4  NtileJ  18
+  # DEBUG: totalCores: 72 I*J: 72 ratio: 0.16 I/J: 0.2222222222222222
+
+  util.getTiling(totalCores, ratio)  
+
+
+getTilingTest()  
 #ndate_hrs_test()
 #ndate_test()
-
-ndaystest()
+#ndaystest()
 #todaytest()
 #pathsize()
 

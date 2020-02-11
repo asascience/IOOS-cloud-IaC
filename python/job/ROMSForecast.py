@@ -75,9 +75,7 @@ class ROMSForecast(Job):
       self.__make_oceanin_lo()
     elif OFS == 'adnoc':
       self.__make_oceanin_adnoc()
-    elif OFS == 'cbofs':
-      self.__make_oceanin_nosofs()
-    elif OFS == 'dbofs':
+    elif OFS in ('cbofs','dbofs'):
       self.__make_oceanin_nosofs()
     else :
       raise Exception(f"{OFS} is not a supported forecast")
@@ -124,7 +122,8 @@ class ROMSForecast(Job):
 
     # Create the ocean.in
     if self.OCEANIN == "auto":
-      util.makeOceanin(self.NPROCS,settings,template,outfile)
+      ratio=0.44444
+      util.makeOceanin(self.NPROCS,settings,template,outfile,ratio=ratio)
 
     return
   ########################################################################
@@ -145,20 +144,6 @@ class ROMSForecast(Job):
 
     if not os.path.exists(self.OUTDIR):
       os.makedirs(self.OUTDIR)
-
-#      ININAME == nos.cbofs.rst.nowcast.20200204.t00z.nc
-#      BRYNAME == nos.cbofs.obc.20200204.t00z.nc
-#      SSFNAME == nos.cbofs.river.20200204.t00z.nc
-#      FRCNAME == nos.cbofs.met.forecast.20200204.t00z.nc \
-#      RSTNAME == nos.cbofs.rst.forecast.20200204.t00z.nc
-#      HISNAME == nos.cbofs.fields.forecast.20200204.t00z.nc
-#      QCKNAME == nos.cbofs.surface.forecast.20200204.t00z.nc
-#      STANAME == nos.cbofs.stations.forecast.20200204.t00z.nc
-
-#nos.cbofs.forecast.20200204.t00z.in:     DSTART =  1494.7500d0       ! days
-
-# Days since TIME_REF to Jan 1 of this year
-#nos.cbofs.forecast.20200204.t00z.in:     TIDE_START = 1461.0000d0   ! days
 
     # The restart date is 6 hours prior to CDATE, DSTART is hours since TIME_REF
     prev6hr = util.ndate_hrs(f"{CDATE}{HH}",-6)
@@ -185,7 +170,12 @@ class ROMSForecast(Job):
 
     # Create the ocean.in
     if self.OCEANIN == "auto":
-      util.makeOceanin(self.NPROCS,settings,template,outfile)
+      if OFS == 'dbofs':
+        ratio = 0.16
+      else:
+        ratio = 1.0
+
+      util.makeOceanin(self.NPROCS,settings,template,outfile,ratio=ratio)
 
     return
   ########################################################################

@@ -32,13 +32,10 @@ sshuser='ptripp@boiler.ocean.washington.edu'
 def main():
 
   lenargs = len(sys.argv) - 1
-  print(f"lenargs: {lenargs}")
-
   joblist = []
 
   idx = 1
   while idx <= lenargs:
-    print(f"sys.argv[{idx}] : {sys.argv[idx]}")
     ajobfile = os.path.abspath(sys.argv[idx])
     joblist.append(ajobfile)
     idx += 1

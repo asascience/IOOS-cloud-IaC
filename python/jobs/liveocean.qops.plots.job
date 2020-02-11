@@ -7,5 +7,6 @@
   "OUTDIR"    : "auto",
   "VARS"      : ["temp", "zeta"],
   "BUCKET"    : "ioos-cloud-sandbox",
-  "BCKTFLDR"  : "LiveOcean/plots"
+  "BCKTFLDR"  : "LiveOcean/plots",
+  "FSPEC"     : "ocean_his_*.nc"
 }

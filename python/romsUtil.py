@@ -8,7 +8,7 @@ import subprocess
 import json
 
 
-debug = False
+debug = True
 
 
 def scrub_liveocean():
@@ -68,9 +68,9 @@ def sedoceanin ( template, outfile, settings ) :
 
 
 
-def makeOceanin(NPROCS,settings,template,outfile) :
+def makeOceanin(NPROCS,settings,template,outfile, ratio=1.0) :
 
-  tiles = getTiling( NPROCS )
+  tiles = getTiling( NPROCS, ratio )
 
   reptiles = {
     "__NTILEI__"   : str(tiles["NtileI"]),
@@ -185,7 +185,7 @@ def lo_date( cdate ):
 
 
 
-def getTiling( totalCores ) :
+def getTiling( totalCores, ratio=1.0 ) :
   ''' Algorithm
 
     prefer a square or closest to it
@@ -210,18 +210,30 @@ def getTiling( totalCores ) :
   NtileJ=1
 
   #totalCores = coresPN * nodeCount
-  print('In getTiling: totalCores = ', str(totalCores))
+  if debug:
+    print('In getTiling: totalCores = ', str(totalCores))
 
   if ((totalCores != 1) and (totalCores % 2 != 0)):
     raise Exception("Total cores must be even")
+  if ratio == 0:
+    raise Exception("Ratio must not equal 0")
 
-  square = math.sqrt(totalCores) 
-  ceil = math.ceil(square)
+  # Try to balance NtileI and NtileJ
+  # system of equations
+  #NtileJ = NtileI / ratio
+  #NtileI = NtileJ * ratio 
+  #NPROCS = totalCores
+  #NPROCS = NtileI * NtileJ 
+  #NPROCS = (NtileJ**2) * ratio
+  #NtileJ**2 = totalCores/ratio
+  #NtileJ = math.ceil(math.sqrt(totalCores/ratio))
+  #NtileI = int(totalCores/NtileJ)
 
   done="false"
+  square = math.sqrt(totalCores/ratio)
+  ceil = math.ceil(square)
 
-  print("totalCores : ", totalCores)
-
+  # Find a value that uses all available cores
   while (done == "false" ) :
     if ((totalCores % ceil) == 0) :
       NtileJ = ceil
@@ -231,6 +243,9 @@ def getTiling( totalCores ) :
       ceil -= 1
 
   print("NtileI : ", NtileI, " NtileJ ", NtileJ)
+    
+  if debug:
+    print(f"DEBUG: totalCores: {totalCores} I*J: {NtileI*NtileJ} ratio: {ratio} I/J: {NtileI/NtileJ}")
 
   return { "NtileI": NtileI, "NtileJ": NtileJ }
 #####################################################################

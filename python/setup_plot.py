@@ -3,7 +3,7 @@ from setuptools import setup
 
 # setup plotting
 setup(name="plotting", 
-      version='0.2a1',
+      version='0.2a3',
       description='Plotting for ROMS',
       url='https://github.com/asascience/IOOS-cloud-IaC/python/plotting',
       author='RPS North America',

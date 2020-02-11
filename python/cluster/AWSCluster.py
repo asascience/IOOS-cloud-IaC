@@ -341,8 +341,8 @@ class AWSCluster(Cluster) :
       waiter.wait(
         InstanceIds=[instance.instance_id],
         WaiterConfig={
-          'Delay': 5,
-          'MaxAttempts': 12
+          'Delay': 10,
+          'MaxAttempts': 6
         }
       )
   

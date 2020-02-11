@@ -319,8 +319,9 @@ def ncfiles_glob(SOURCE, filespec: str = "*.nc"):
 
 
 @task
-def ncfiles_from_Job(job: Job, filespec: str = "*.nc"):
+def ncfiles_from_Job(job: Job):
     SOURCE = job.INDIR
+    filespec = job.FSPEC
     FILES = sorted(glob.glob(f'{SOURCE}/{filespec}'))
     return FILES
 #####################################################################
@@ -366,7 +367,8 @@ def daskmake_mpegs(client: Client, job: Job):
   futures = []
 
   for var in job.VARS:
-    source = f"{job.OUTDIR}/ocean_his_%04d_{var}.png"
+    #source = f"{job.OUTDIR}/ocean_his_%04d_{var}.png"
+    source = f"{job.OUTDIR}/f%03d_{var}.png"
     target = f"{job.OUTDIR}/{var}.mp4"
 
     log.info(f"Creating movie for {var}")
