@@ -87,7 +87,7 @@ def plot_png(source='dubai', target='figs'):
 
 
 
-def plot_roms(ncfile: str, target: str, varname: str, crop: bool = True, zoom: int = 10):
+def plot_roms(ncfile: str, target: str, varname: str, crop: bool = True, zoom: int = 8):
     ''''''
 
     EPSG3857 = pyproj.Proj('EPSG:3857')
@@ -137,8 +137,8 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = True, zoom: i
             d[:,:-1] = np.ma.masked_where(msk[:,1:] == 0, d[:,:-1])
 
             # image size/resolution
-            #dpi = 256
-            dpi = 96   # suitable for screen and web
+            dpi = 256
+            #dpi = 512   # suitable for screen and web
             height = nty * dpi
             width  = ntx * dpi
 
@@ -205,7 +205,13 @@ if __name__=='__main__':
     #source = 'figs/temp/his_arg_temp_%04d.png'
     #target = 'figs/test_temp.mp4'
     #png_ffmpeg(source, target)
-    var = 'temp'
-    source = f"/com/nos/plots/dbofs.20200210/f%03d_{var}.png"
-    target = f"/com/nos/plots/dbofs.20200210/{var}.mp4"
-    png_ffmpeg(source, target)
+    var = 'zeta'
+    ncfile='/com/nos/dbofs.20200210/nos.dbofs.fields.f001.20200210.t00z.nc'
+    target='/com/nos/plots/dbofs.20200210'
+    #plot_roms(ncfile, target, var, True, 8)
+    plot_roms(ncfile, target, var)
+
+
+    #source = f"/com/nos/plots/dbofs.20200210/f%03d_{var}.png"
+    #target = f"/com/nos/plots/dbofs.20200210/{var}.mp4"
+    #png_ffmpeg(source, target)
