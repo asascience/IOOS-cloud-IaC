@@ -25,13 +25,22 @@ cd $dest
 #nos.$OFS.fields.f001.$CDATE.t${CYC}z.nc 
 NOMADS=https://nomads.ncep.noaa.gov/pub/data/nccf/com/nos/prod/$OFS.$CDATE
 
-#hlist='01 02 03 04 05 06 07 08 09'
-hlist='01 06 12 18 24 36 48'
+hlist='01 02 03 04 05 06 07 08 09'
+#hlist='01 06 12 18 24 36 48'
 
 for hh in $hlist
 do
   wget -nc $NOMADS/nos.$OFS.fields.f0$hh.$CDATE.t${CYC}z.nc
 done
+
+hh=10
+ehr=48
+while [ $hh -le $ehr ]
+do
+  wget -nc $NOMADS/nos.$OFS.fields.f0$hh.$CDATE.t${CYC}z.nc
+  ((hh += 1))
+done
+
 
 if [[ $OFS == "ngofs" ]] ; then
   # nos.nwgofs.obc.20191218.t03z.nc  
