@@ -78,13 +78,15 @@ def ndate_test():
 
 
 def getTilingTest():
-  totalCores = 216
+  #totalCores = 144
   #ratio = 2.25
   #ratio = 4
   #ratio = 661/1300  # liveocean .50769 0.5625 9 x 16
-  ratio = 0.44444    # 8x18 (144)  12x18 (216)
-  ratio = 0.375      # 9x24 (216)
-  #ratio = 1
+  #ratio = 0.44444   # 8x18 (144)  12x18 (216)  12x24 (288)
+  totalCores = 216   
+  #ratio = 0.375     # 9x24 (216)
+  ratio = 1          # 18x12 (216)
+  #totalCores = 288
   #totalCores = 72
   #ratio = 1.125 # 9 x 8
   #ratio = 1     # 8 x 9

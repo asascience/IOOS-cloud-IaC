@@ -2,7 +2,7 @@
 "platform"  : "AWS",
 "region"    : "us-east-1",
 "nodeType"  : "c5n.18xlarge",
-"nodeCount" : 4,
+"nodeCount" : 5,
 "tags"      : [ 
                 { "Key": "Name", "Value": "IOOS-cloud-sandbox" },
                 { "Key": "NAME", "Value": "liveocean-fcst" }

@@ -123,8 +123,8 @@ class ROMSForecast(Job):
     # Create the ocean.in
     if self.OCEANIN == "auto":
       ratio=0.44444
+      #ratio=0.375   # Testing 6 nodes (9x24) crashes, .444 crashes (12x18)
       util.makeOceanin(self.NPROCS,settings,template,outfile,ratio=ratio)
-
     return
   ########################################################################
 
