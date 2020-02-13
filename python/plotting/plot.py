@@ -192,7 +192,9 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: 
             
             #filename = f'{target}/{origfile}_{varname}.png'
             filename = f'{target}/f{sequence}_{varname}.png'
-            fig.savefig(filename, dpi=dpi, bbox_inches='tight', pad_inches=0.0, transparent=False)
+            #fig.savefig(filename, dpi=dpi, bbox_inches='tight', pad_inches=0.0, transparent=False)
+            #fig.savefig(filename, dpi=dpi, transparent=False)
+            fig.savefig(filename, dpi=dpi, bbox_inches=None, pad_inches=0.1, transparent=False)
 
             plt.close(fig)
 
