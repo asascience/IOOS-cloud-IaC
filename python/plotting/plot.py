@@ -86,8 +86,7 @@ def plot_png(source='dubai', target='figs'):
 
 
 
-
-def plot_roms(ncfile: str, target: str, varname: str, crop: bool = True, zoom: int = 8):
+def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: int = 8):
     ''''''
 
     EPSG3857 = pyproj.Proj('EPSG:3857')
@@ -137,29 +136,33 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = True, zoom: i
             d[:,:-1] = np.ma.masked_where(msk[:,1:] == 0, d[:,:-1])
 
             # image size/resolution
-            dpi = 256
+            #dpi = 256
+            dpi = 96
             #dpi = 512   # suitable for screen and web
             height = nty * dpi
             width  = ntx * dpi
 
-            fig = plt.figure(dpi=dpi, facecolor='none', edgecolor='none')
-            fig.set_alpha(0)
+            fig = plt.figure(dpi=dpi, facecolor='#FFFFFF', edgecolor='w')
+            #fig.set_alpha(1)
             fig.set_figheight(height/dpi)
             fig.set_figwidth(width/dpi)
 
             ax = fig.add_axes([0., 0., 1., 1.], xticks=[], yticks=[])
-            ax.set_axis_off()
+            #ax.set_axis_off()
+            ax.set_axis_on()
 
             # pcolor
-            pcolor = ax.pcolor(lo, la, d, cmap=plt.get_cmap('viridis'), edgecolors='none', linewidth=0.05)
+            #pcolor = ax.pcolor(lo, la, d, cmap=plt.get_cmap('viridis'), edgecolors='none', linewidth=0.05)
+            pcolor = ax.pcolor(lo, la, d, cmap=plt.get_cmap('coolwarm'), edgecolor='none', linewidth=0.00)
 
-            ax.set_frame_on(False)
-            ax.set_clip_on(False)
+            #ax.set_frame_on(False)
+            ax.set_frame_on(True)
+            ax.set_clip_on(True)
             ax.set_position([0, 0, 1, 1])
 
             # set limits based on tiles
-            ax.set_xlim(ulb[0], lrb[2])
-            ax.set_ylim(lrb[1], ulb[3])
+            #ax.set_xlim(ulb[0], lrb[2])
+            #ax.set_ylim(lrb[1], ulb[3])
 
             # File output
             # LO and general ROMS 
@@ -181,13 +184,15 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = True, zoom: i
             if prefix == 'nos':
               sequence = origfile.split('.')[3][1:4]
             else:
+              # 012345678
+              # ocean_his
               prefix = origfile[0:9]
               if prefix == 'ocean_his':
                 sequence = origfile[11:14]
             
             #filename = f'{target}/{origfile}_{varname}.png'
             filename = f'{target}/f{sequence}_{varname}.png'
-            fig.savefig(filename, dpi=dpi, bbox_inches='tight', pad_inches=0.0, transparent=True)
+            fig.savefig(filename, dpi=dpi, bbox_inches='tight', pad_inches=0.0, transparent=False)
 
             plt.close(fig)
 
@@ -205,9 +210,11 @@ if __name__=='__main__':
     #source = 'figs/temp/his_arg_temp_%04d.png'
     #target = 'figs/test_temp.mp4'
     #png_ffmpeg(source, target)
-    var = 'zeta'
-    ncfile='/com/nos/dbofs.20200210/nos.dbofs.fields.f001.20200210.t00z.nc'
-    target='/com/nos/plots/dbofs.20200210'
+    var = 'temp'
+    #ncfile='/com/nos/dbofs.20200210/nos.dbofs.fields.f001.20200210.t00z.nc'
+    #target='/com/nos/plots/dbofs.20200210'
+    ncfile='/com/liveocean/f2020.02.13/ocean_his_0001.nc'
+    target='/com/liveocean/plots/f2020.02.13'
     #plot_roms(ncfile, target, var, True, 8)
     plot_roms(ncfile, target, var)
 

@@ -78,8 +78,8 @@ daysoldfcst=6
 echo "Deleting forecast directories older than $daysoldfcst days"
 cd $COMROT
 find . -depth -type d -daystart -mtime +$daysoldfcst -path "./f${YYYY}.[0-1][0-9].[0-3][0-9]"
-#find . -type d -daystart -mtime +$daysoldfcst -path "./f${YYYY}.[0-1][0-9].[0-3][0-9]" -exec rm -Rf {} \;
-find . -depth -type d -daystart -mtime +$daysoldfcst -path "./f${YYYY}.[0-1][0-9].[0-3][0-9]" -delete
+find . -depth -type d -daystart -mtime +$daysoldfcst -path "./f${YYYY}.[0-1][0-9].[0-3][0-9]" -exec rm -Rf {} \;
+#find . -depth -type d -daystart -mtime +$daysoldfcst -path "./f${YYYY}.[0-1][0-9].[0-3][0-9]" -delete
 
 
 ##############################################################################
@@ -90,7 +90,7 @@ daysoldics=0
 echo "Deleting forcing/ICs directories older than $daysoldics days"
 cd $COMROT/forcing
 find . -depth -type d -daystart -mtime +$daysoldics -path "./f${YYYY}.[0-1][0-9].[0-3][0-9]"
-#find . -type d -daystart -mtime +$daysoldics -path "./f${YYYY}.[0-1][0-9].[0-3][0-9]" -exec rm -Rf {} \;
-find . -depth -type d -daystart -mtime +$daysoldics -path "./f${YYYY}.[0-1][0-9].[0-3][0-9]" -delete
+#find . -depth -type d -daystart -mtime +$daysoldics -path "./f${YYYY}.[0-1][0-9].[0-3][0-9]" -exec rm -Rf {} \;
+#find . -depth -type d -daystart -mtime +$daysoldics -path "./f${YYYY}.[0-1][0-9].[0-3][0-9]" -delete
 
 
