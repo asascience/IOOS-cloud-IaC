@@ -33,7 +33,7 @@ def png_ffmpeg(source, target):
     # x264 codec enforces even dimensions
     # -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2"
     try:
-        proc = subprocess.run(['/home/centos/bin/ffmpeg','-y','-r','8','-i',source,'-vcodec','libx264',\
+        proc = subprocess.run(['ffmpeg','-y','-r','8','-i',source,'-vcodec','libx264',\
                                '-pix_fmt','yuv420p','-crf','23','-vf', "pad=ceil(iw/2)*2:ceil(ih/2)*2", target], \
                               stderr=subprocess.STDOUT)
         assert proc.returncode == 0
@@ -46,44 +46,6 @@ def png_ffmpeg(source, target):
         print('Exception from ffmpeg', e)
         traceback.print_stack()
         raise Exception(e)
-
-
-
-def plot_png(source='dubai', target='figs'):
-    '''Plot roms output and save to png'''
-
-    datadir = os.getenv('DATA')
-    if source == 'liveocean':
-        data = os.path.join(datadir, 'LiveOcean_output/f2019.11.06')
-    elif source == 'dubai':
-        data = os.path.join(datadir, 'dubai_his_arg.20191226')
-
-    if not os.path.exists(target):
-        os.mkdir(target)
-
-    files = sorted(glob.glob(f'{data}/*.nc'))
-
-    # Scalar variables
-    vars_scalar = [
-        'temp',
-        'zeta'
-    ]
-
-    # TODO: Fix coordinate system for u, v (and other vector quantities?). They
-    #       use Psi space, while scalar fields use Rho space. Two ways:
-    #       (1) The way Brian showed me for the maracoos project
-    #       (2) https://www.geosci-model-dev.net/12/3571/2019/gmd-12-3571-2019.html
-    vars_vector = [
-        'u',
-        'v'
-    ]
-    for v in vars_scalar:
-        for f in files:
-            print('Plotting {}'.format(f))
-            plot_roms(f, target, v)
-            print('Finished {}'.format(f))
-
-
 
 
 def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: int = 8):
@@ -165,11 +127,11 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: 
             #ax.set_ylim(lrb[1], ulb[3])
 
             # File output
-            # LO and general ROMS 
+            # LO and general ROMS
             #           11111
             # 012345678901234
             # ocean_his_0001.nc
-            # NOSOFS 
+            # NOSOFS
 
             # 0   1     2      3    4        5
             # nos.dbofs.fields.f008.20200210.t00z
@@ -189,7 +151,7 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: 
               prefix = origfile[0:9]
               if prefix == 'ocean_his':
                 sequence = origfile[11:14]
-            
+
             #filename = f'{target}/{origfile}_{varname}.png'
             filename = f'{target}/f{sequence}_{varname}.png'
             #fig.savefig(filename, dpi=dpi, bbox_inches='tight', pad_inches=0.0, transparent=False)
@@ -206,21 +168,33 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: 
                     crop = im.crop(bbox)
                     crop.save(filename, optimize=True)
 
+            return fig, ax
+
+
+
+    def plot_png(variables, source, target):
+        '''Plot roms output and save to png'''
+
+        data = os.path.join(os.getenv('DATA'), source)
+        if not os.path.exists(target):
+            os.mkdir(target)
+        files = sorted(glob.glob(f'{data}/*.nc'))
+
+        for v in variables:
+            for f in files:
+                plot_roms(f, target, v)
+
+
 
 if __name__=='__main__':
 
-    #source = 'figs/temp/his_arg_temp_%04d.png'
-    #target = 'figs/test_temp.mp4'
-    #png_ffmpeg(source, target)
-    var = 'temp'
-    #ncfile='/com/nos/dbofs.20200210/nos.dbofs.fields.f001.20200210.t00z.nc'
-    #target='/com/nos/plots/dbofs.20200210'
-    ncfile='/com/liveocean/f2020.02.13/ocean_his_0001.nc'
-    target='/com/liveocean/plots/f2020.02.13'
-    #plot_roms(ncfile, target, var, True, 8)
-    plot_roms(ncfile, target, var)
+    sources = ['AWS.cbofs.20191021', 'NOAA.cbofs.20191021']
+    for s in sources:
+        plot_png('temp', s, )
 
 
-    #source = f"/com/nos/plots/dbofs.20200210/f%03d_{var}.png"
-    #target = f"/com/nos/plots/dbofs.20200210/{var}.mp4"
-    #png_ffmpeg(source, target)
+
+    # ncfile = '/com/liveocean/f2020.02.13/ocean_his_0001.nc'
+    # target = '/com/liveocean/plots/f2020.02.13'
+    # var = 'temp'
+    # plot_roms(ncfile, target, var)
