@@ -9,7 +9,7 @@ if os.path.abspath('..') not in sys.path:
 curdir = os.path.dirname(os.path.abspath(__file__))
 
 from job.Job import Job
-import romsUtil as util
+import utils.romsUtil as util
 
 debug = False
 

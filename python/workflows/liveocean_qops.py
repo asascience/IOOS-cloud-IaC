@@ -4,16 +4,18 @@ import sys
 import collections
 import multiprocessing as mp
 
-
 # keep things cloud platform agnostic at this layer
 
 # 3rd party dependencies
 from prefect import Flow
 from dask.distributed import Client
 
+if os.path.abspath('..') not in sys.path:
+    sys.path.append(os.path.abspath('..'))
+
 # Local dependencies
 import workflow_tasks as tasks
-import romsUtil as util
+import utils.romsUtil as util
 import flows
 
 # Set these for specific use

@@ -24,16 +24,23 @@ def png_ffmpeg(source, target):
         Example: '/path/to/output/prefix_varname.mp4'
     '''
 
+    # Add exception if there are no files found for source
+
+
     #print(f"DEBUG: in png_ffmpeg. source: {source} target: {target}")
 
     #ff_str = f'ffmpeg -y -start_number 30 -r 1 -i {source} -vcodec libx264 -pix_fmt yuv420p -crf 25 {target}'
     #ff_str = f'ffmpeg -y -r 8 -i {source} -vcodec libx264 -pix_fmt yuv420p -crf 23 {target}'
 
-    # TODO: ffmpeg is currently installed in user home directory. Install to standard location.
+    # ffmpeg is currently installed in user home directory. Install to standard location, or someplace in PATH envvar
     # x264 codec enforces even dimensions
     # -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2"
+
+    home = os.path.expanduser("~")
+    ffmpeg = home + '/bin/ffmpeg'
+
     try:
-        proc = subprocess.run(['/home/centos/bin/ffmpeg','-y','-r','8','-i',source,'-vcodec','libx264',\
+        proc = subprocess.run([ffmpeg,'-y','-r','8','-i',source,'-vcodec','libx264',\
                                '-pix_fmt','yuv420p','-crf','23','-vf', "pad=ceil(iw/2)*2:ceil(ih/2)*2", target], \
                               stderr=subprocess.STDOUT)
         assert proc.returncode == 0
@@ -89,6 +96,8 @@ def plot_png(source='dubai', target='figs'):
 def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: int = 8):
     ''''''
 
+    crop = True
+
     EPSG3857 = pyproj.Proj('EPSG:3857')
     TILE3857 = tile.Tile3857()
 
@@ -137,19 +146,21 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: 
 
             # image size/resolution
             #dpi = 256
-            dpi = 96
+            #dpi = 96
+            dpi = 128
             #dpi = 512   # suitable for screen and web
             height = nty * dpi
             width  = ntx * dpi
 
-            fig = plt.figure(dpi=dpi, facecolor='#FFFFFF', edgecolor='w')
+            #fig = plt.figure(dpi=dpi, facecolor='#FFFFFF', edgecolor='w')
+            fig = plt.figure(facecolor='#FFFFFF', edgecolor='w')
             #fig.set_alpha(1)
             fig.set_figheight(height/dpi)
             fig.set_figwidth(width/dpi)
 
             ax = fig.add_axes([0., 0., 1., 1.], xticks=[], yticks=[])
-            #ax.set_axis_off()
-            ax.set_axis_on()
+            ax.set_axis_off()
+            #ax.set_axis_on()
 
             # pcolor
             #pcolor = ax.pcolor(lo, la, d, cmap=plt.get_cmap('viridis'), edgecolors='none', linewidth=0.05)
@@ -194,7 +205,7 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: 
             filename = f'{target}/f{sequence}_{varname}.png'
             #fig.savefig(filename, dpi=dpi, bbox_inches='tight', pad_inches=0.0, transparent=False)
             #fig.savefig(filename, dpi=dpi, transparent=False)
-            fig.savefig(filename, dpi=dpi, bbox_inches=None, pad_inches=0.1, transparent=False)
+            fig.savefig(filename, dpi=dpi, bbox_inches=None, pad_inches=0.1, transparent=True)
 
             plt.close(fig)
 
@@ -213,10 +224,10 @@ if __name__=='__main__':
     #target = 'figs/test_temp.mp4'
     #png_ffmpeg(source, target)
     var = 'temp'
-    #ncfile='/com/nos/dbofs.20200210/nos.dbofs.fields.f001.20200210.t00z.nc'
-    #target='/com/nos/plots/dbofs.20200210'
-    ncfile='/com/liveocean/f2020.02.13/ocean_his_0001.nc'
-    target='/com/liveocean/plots/f2020.02.13'
+    ncfile='/com/nos/dbofs.20200210/nos.dbofs.fields.f002.20200210.t00z.nc'
+    target='/com/nos/plots/dbofs.20200210'
+    #ncfile='/com/liveocean/f2020.02.13/ocean_his_0001.nc'
+    #target='/com/liveocean/plots/f2020.02.13'
     #plot_roms(ncfile, target, var, True, 8)
     plot_roms(ncfile, target, var)
 

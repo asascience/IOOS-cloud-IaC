@@ -8,7 +8,7 @@ if os.path.abspath('..') not in sys.path:
 
 from job.Job import Job
 
-import romsUtil as util
+import utils.romsUtil as util
 
 debug = True
 

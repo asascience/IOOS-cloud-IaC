@@ -1,7 +1,13 @@
 #!/usr/bin/python3
 import os
-import romsUtil as util
 import datetime
+
+
+if os.path.abspath('..') not in sys.path:
+    sys.path.append(os.path.abspath('..'))
+
+import utils.romsUtil as util
+
 
 def templatetest() :
   template="../adnoc/ocean.in.template"

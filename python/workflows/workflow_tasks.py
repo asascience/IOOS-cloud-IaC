@@ -40,7 +40,7 @@ from job.Plotting import Plotting
 from services.CloudStorage import CloudStorage
 from services.S3Storage import S3Storage
 
-import romsUtil as util
+import utils.romsUtil as util
 from plotting import plot
 
 
