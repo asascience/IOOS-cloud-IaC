@@ -54,15 +54,8 @@ class AWSCluster(Cluster) :
   key_name  : str
     Private key used for SSH access to the instance. This should be configured when creating the AMI.
 
-  TODO: Put security groups in a list 
-  sg_id1    : str
-    Security group id 1
-
-  sg_id2    : str
-    Security group id 2
-
-  sg_id3    : str
-    Security group id 3
+  sg_ids    : list: str
+    Security group ids
 
   subnet_id : str
     VPC subnet ID to run in
@@ -135,9 +128,7 @@ class AWSCluster(Cluster) :
     self.tags      = []
     self.image_id  = ''
     self.key_name  = ''
-    self.sg_id1    = ''
-    self.sg_id2    = ''
-    self.sg_id3    = ''
+    self.sg_ids    = []
     self.subnet_id = ''
     self.placement_group = ''
 
@@ -205,9 +196,7 @@ class AWSCluster(Cluster) :
     self.tags      = cfDict['tags']
     self.image_id  = cfDict['image_id']
     self.key_name  = cfDict['key_name']
-    self.sg_id1    = cfDict['sg_id1']
-    self.sg_id2    = cfDict['sg_id2']
-    self.sg_id3    = cfDict['sg_id3']
+    self.sg_ids    = cfDict['sg_ids']
     self.subnet_id = cfDict['subnet_id']
     self.placement_group = cfDict['placement_group']
 
@@ -288,7 +277,7 @@ class AWSCluster(Cluster) :
           'DeleteOnTermination': True,
           'Description': 'Network adaptor via boto3 api',
           'DeviceIndex': 0,
-          'Groups': [ self.sg_id1, self.sg_id2, self.sg_id3 ],
+          'Groups': self.sg_ids,
           'SubnetId': self.subnet_id
     }
   
