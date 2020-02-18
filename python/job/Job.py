@@ -4,7 +4,7 @@ import json
 debug = False
 
 class Job(ABC) :
-  ''' This is an abstract base class for cloud clusters.
+  ''' This is an abstract base class for job classes
       It defines a generic interface to implement
   '''
   

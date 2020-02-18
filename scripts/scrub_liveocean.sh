@@ -34,7 +34,7 @@ find . -depth -type d -daystart -mtime +$daysoldplots -delete
 ##############################################################################
 # Only keep forecast output for hours 01-25 for more than 1 day
 ##############################################################################
-daysoldfcst24=0
+daysoldfcst24=1
 
 echo "Deleting forecast data greater than forecast hour 25 older than $daysoldfcst24 days"
 cd $COMROT
@@ -90,7 +90,7 @@ daysoldics=0
 echo "Deleting forcing/ICs directories older than $daysoldics days"
 cd $COMROT/forcing
 find . -depth -type d -daystart -mtime +$daysoldics -path "./f${YYYY}.[0-1][0-9].[0-3][0-9]"
-#find . -depth -type d -daystart -mtime +$daysoldics -path "./f${YYYY}.[0-1][0-9].[0-3][0-9]" -exec rm -Rf {} \;
+find . -depth -type d -daystart -mtime +$daysoldics -path "./f${YYYY}.[0-1][0-9].[0-3][0-9]" -exec rm -Rf {} \;
 #find . -depth -type d -daystart -mtime +$daysoldics -path "./f${YYYY}.[0-1][0-9].[0-3][0-9]" -delete
 
 

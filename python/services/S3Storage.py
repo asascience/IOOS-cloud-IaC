@@ -4,14 +4,14 @@ import logging
 import boto3
 from botocore.exceptions import ClientError
 
-from services.CloudStorage import CloudStorage
+from services.StorageService import StorageService
 
 debug = False
 
 log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)
 
-class S3Storage(CloudStorage):
+class S3Storage(StorageService):
 
   def __init__(self):
     print('init stub')

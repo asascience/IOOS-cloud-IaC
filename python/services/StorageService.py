@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class CloudStorage(ABC) :
+class StorageService(ABC) :
   ''' This is an abstract base class for cloud storage.
       It defines a generic interface to implement
   '''
