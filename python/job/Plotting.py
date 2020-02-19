@@ -12,64 +12,61 @@ import utils.romsUtil as util
 
 debug = True
 
+
 class Plotting(Job):
 
+    def __init__(self, configfile, NPROCS):
 
-  def __init__(self, configfile, NPROCS):
+        self.__jobtype = 'plotting'
+        self.configfile = configfile
+        self.NPROCS = NPROCS
 
+        with open(configfile, 'r') as cf:
+            cfDict = json.load(cf)
 
-    self.__jobtype = 'plotting'
-    self.configfile = configfile
-    self.NPROCS = NPROCS
+        if (debug):
+            print(json.dumps(cfDict, indent=4))
+            print(str(cfDict))
 
-    with open(configfile, 'r') as cf:
-      cfDict = json.load(cf)
-    
-    if (debug) :
-      print(json.dumps(cfDict, indent=4))
-      print(str(cfDict))
+        self.__parseConfig(cfDict)
 
-    self.__parseConfig(cfDict)
+    ########################################################################
 
-  ########################################################################
+    def __parseConfig(self, cfDict):
 
+        self.OFS = cfDict['OFS']
+        self.CDATE = cfDict['CDATE']
+        self.HH = cfDict['HH']
+        self.INDIR = cfDict['INDIR']
+        self.OUTDIR = cfDict['OUTDIR']
+        self.VARS = cfDict['VARS']
+        self.BUCKET = cfDict['BUCKET']
+        self.BCKTFLDR = cfDict['BCKTFLDR']
+        self.FSPEC = cfDict['FSPEC']
 
-  def __parseConfig(self, cfDict) :
+        if self.CDATE == "today":
+            today = datetime.date.today().strftime("%Y%m%d")
+            self.CDATE = today
 
-    self.OFS = cfDict['OFS']
-    self.CDATE = cfDict['CDATE']
-    self.HH = cfDict['HH']
-    self.INDIR = cfDict['INDIR']
-    self.OUTDIR = cfDict['OUTDIR']
-    self.VARS = cfDict['VARS']
-    self.BUCKET = cfDict['BUCKET']
-    self.BCKTFLDR = cfDict['BCKTFLDR']
-    self.FSPEC = cfDict['FSPEC']
+        CDATE = self.CDATE
 
-    if self.CDATE == "today":
-      today = datetime.date.today().strftime("%Y%m%d")
-      self.CDATE = today
+        if self.OFS == "liveocean":
+            fdate = f"f{CDATE[0:4]}.{CDATE[4:6]}.{CDATE[6:8]}"
+            if self.INDIR == "auto":
+                self.INDIR = f"/com/liveocean/{fdate}"
+            if self.OUTDIR == "auto":
+                self.OUTDIR = f"/com/liveocean/plots/{fdate}"
+        elif self.OFS in ('cbofs', 'dbofs'):
+            if self.INDIR == "auto":
+                self.INDIR = f"/com/nos/{self.OFS}.{self.CDATE}"
+            if self.OUTDIR == "auto":
+                self.OUTDIR = f"/com/nos/plots/{self.OFS}.{self.CDATE}"
+        else:
+            raise Exception(f"{self.OFS} is not a supported forecast")
 
-    CDATE = self.CDATE
-
-    if self.OFS == "liveocean":
-      fdate = f"f{CDATE[0:4]}.{CDATE[4:6]}.{CDATE[6:8]}"
-      if self.INDIR == "auto":
-        self.INDIR = f"/com/liveocean/{fdate}"
-      if self.OUTDIR == "auto":
-        self.OUTDIR = f"/com/liveocean/plots/{fdate}"
-    elif self.OFS in ('cbofs','dbofs'):
-      if self.INDIR == "auto":
-        self.INDIR = f"/com/nos/{self.OFS}.{self.CDATE}"
-      if self.OUTDIR == "auto":
-        self.OUTDIR = f"/com/nos/plots/{self.OFS}.{self.CDATE}"
-    else:
-      raise Exception(f"{self.OFS} is not a supported forecast")
- 
-    return
-  ########################################################################
-
+        return
+    ########################################################################
 
 
 if __name__ == '__main__':
-  pass
+    pass

@@ -2,7 +2,7 @@
 
 import nodeInfo
 
-nodetype='c5n.2xlarge'
+nodetype = 'c5n.2xlarge'
 ppn = nodeInfo.getPPN(nodetype)
 
-print ('ppn is: ' + str(ppn))
+print('ppn is: ' + str(ppn))

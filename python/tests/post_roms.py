@@ -8,7 +8,6 @@ from plotting.tasks import plot_roms
 
 
 def main():
-
     SOURCE = os.path.abspath('/Users/kenny.ells/data/dubai_his_arg.20191226')
     TARGET = os.path.abspath('tmp')
     FILES = sorted([os.path.join(SOURCE, f) for f in os.listdir(SOURCE)])
@@ -35,5 +34,6 @@ def main():
     # Ignoring Dask
     flow.run()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main()
