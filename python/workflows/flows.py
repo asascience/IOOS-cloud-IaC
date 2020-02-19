@@ -3,6 +3,7 @@ from prefect import Flow
 import tasks as tasks
 import cluster_tasks as ctasks
 import job_tasks as jtasks
+from Cluster import Cluster
 
 provider = 'AWS'
 

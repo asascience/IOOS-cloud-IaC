@@ -25,9 +25,9 @@ from prefect.engine import signals
 
 # Local dependencies
 
-from job.Job import Job
-from job.ROMSForecast import ROMSForecast
+import Job
 from job.Plotting import Plotting
+from job.ROMSForecast import ROMSForecast
 
 from services.StorageService import StorageService
 from services.S3Storage import S3Storage

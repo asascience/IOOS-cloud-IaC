@@ -11,6 +11,8 @@ class Job(ABC):
 
     @abstractmethod
     def __init__(self):
+        self.VARS = None
+        self.FSPEC = None
         self.configfile = ''
         self.jobtype = ''
         self.CDATE = ''

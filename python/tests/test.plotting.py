@@ -1,14 +1,9 @@
 #!/usr/bin/python3
 
-import os
 import glob
+import os
 
-from prefect import Flow, task, unmapped
-from prefect.engine.executors import DaskExecutor
-from dask.distributed import Client
-
-from plotting.plot import plot_roms
-
+from plotting import plot
 
 def main():
     SOURCE = os.path.abspath('/com/liveocean/current')
@@ -27,7 +22,7 @@ def main():
     # with Flow('plotting') as flow:
     #    plot_roms.map(ncfile=FILES, target=unmapped(TARGET), varname=unmapped('temp'))
     for ncf in FILES:
-        plot_roms(ncf, TARGET, 'temp')
+        plot.plot_roms(ncf, TARGET, 'temp')
 
     # When calling dask-scheduler and dask-worker at the command line
     # address_tcp = 'tcp://10.90.69.73:8786'

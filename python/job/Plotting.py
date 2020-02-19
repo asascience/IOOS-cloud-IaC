@@ -19,6 +19,11 @@ class Plotting(Job):
         self.configfile = configfile
         self.NPROCS = NPROCS
 
+        self.BUCKET = ''
+        self.BCKTFLDR = ''
+        self.CDATE = ''
+        self.OUTDIR = ''
+
         with open(configfile, 'r') as cf:
             cfDict = json.load(cf)
 

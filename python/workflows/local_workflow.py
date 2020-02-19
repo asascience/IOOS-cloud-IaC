@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
-import os
-import multiprocessing as mp
+# Local dependencies
+import tasks
+import job_tasks as jtasks
+import cluster_tasks as ctasks
+
 from dask.distributed import Client
-
-# keep things cloud platform agnostic at this layer
-
 # 3rd party dependencies
 from prefect import Flow
 
-# Local dependencies
-import workflow_tasks as tasks
+# keep things cloud platform agnostic at this layer
 
 # Set these for specific use
 
 provider = 'Local'
 # provider = 'AWS'
+
+fcstconf = ''
+fcstjobfile = ''
+postconf = ''
+postjobfile = ''
 
 if provider == 'AWS':
     fcstconf = 'configs/liveocean.config'
@@ -33,28 +37,28 @@ sshuser = 'ptripp@boiler.ocean.washington.edu'
 
 with Flow('plot only') as plotonly:
     # Start a machine
-    postmach = tasks.cluster_init(postconf, provider)
-    pmStarted = tasks.cluster_start(postmach)
+    postmach = ctasks.cluster_init(postconf, provider)
+    pmStarted = ctasks.cluster_start(postmach)
 
     # Push the env, install required libs on post machine
     # TODO: install all of the 3rd party dependencies on AMI
-    pushPy = tasks.push_pyEnv(postmach, upstream_tasks=[pmStarted])
+    pushPy = ctasks.push_pyEnv(postmach, upstream_tasks=[pmStarted])
 
     # Start a dask scheduler on the new post machine
-    daskclient: Client = tasks.start_dask(postmach, upstream_tasks=[pmStarted])
+    daskclient: Client = ctasks.start_dask(postmach, upstream_tasks=[pmStarted])
 
     # Setup the post job
     postjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
 
     # Get list of files from fcstjob
-    FILES = tasks.ncfiles_from_Job(postjob)
+    FILES = jtasks.ncfiles_from_Job(postjob)
 
     # Make plots
-    plots = tasks.daskmake_plots(daskclient, FILES, postjob)
+    plots = jtasks.daskmake_plots(daskclient, FILES, postjob)
     plots.set_upstream([daskclient])
 
-    closedask = tasks.dask_client_close(daskclient, upstream_tasks=[plots])
-    pmTerminated = tasks.cluster_terminate(postmach, upstream_tasks=[plots, closedask])
+    closedask = ctasks.dask_client_close(daskclient, upstream_tasks=[plots])
+    pmTerminated = ctasks.cluster_terminate(postmach, upstream_tasks=[plots, closedask])
 
 #######################################################################
 
@@ -72,10 +76,10 @@ with Flow('ofs workflow') as flow:
     #####################################################################
 
     # Create the cluster object
-    cluster = tasks.cluster_init(fcstconf, 'AWS')
+    cluster = ctasks.cluster_init(fcstconf, 'AWS')
 
     # Start the cluster
-    fcStarted = tasks.cluster_start(cluster)
+    fcStarted = ctasks.cluster_start(cluster)
 
     # Setup the job
     fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
@@ -84,7 +88,7 @@ with Flow('ofs workflow') as flow:
     fcstStatus = tasks.forecast_run(cluster, fcstjob)
 
     # Terminate the cluster nodes
-    fcTerminated = tasks.cluster_terminate(cluster)
+    fcTerminated = ctasks.cluster_terminate(cluster)
 
     flow.add_edge(fcStarted, fcstjob)
     flow.add_edge(fcstjob, fcstStatus)
@@ -99,28 +103,28 @@ with Flow('ofs workflow') as flow:
     # or run on the local machine? concurrrently?
 
     # Start a machine
-    postmach = tasks.cluster_init(postconf, provider)
-    pmStarted = tasks.cluster_start(postmach, upstream_tasks=[fcstStatus])
+    postmach = ctasks.cluster_init(postconf, provider)
+    pmStarted = ctasks.cluster_start(postmach, upstream_tasks=[fcstStatus])
 
     # Push the env, install required libs on post machine
     # TODO: install all of the 3rd party dependencies on AMI
-    pushPy = tasks.push_pyEnv(postmach, upstream_tasks=[pmStarted])
+    pushPy = ctasks.push_pyEnv(postmach, upstream_tasks=[pmStarted])
 
     # Start a dask scheduler on the new post machine
-    daskclient = tasks.start_dask(postmach, upstream_tasks=[pushPy])
+    daskclient = ctasks.start_dask(postmach, upstream_tasks=[pushPy])
 
     # Setup the post job
     postjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
 
     # Get list of files from fcstjob
-    FILES = tasks.ncfiles_from_Job(postjob, upstream_tasks=[fcstStatus])
+    FILES = jtasks.ncfiles_from_Job(postjob, upstream_tasks=[fcstStatus])
 
     # Make plots
-    plots = tasks.daskmake_plots(daskclient, FILES, postjob)
+    plots = jtasks.daskmake_plots(daskclient, FILES, postjob)
     plots.set_upstream([daskclient])
 
-    closedask = tasks.dask_client_close(daskclient, upstream_tasks=[plots])
-    pmTerminated = tasks.cluster_terminate(postmach, upstream_tasks=[plots, closedask])
+    closedask = ctasks.dask_client_close(daskclient, upstream_tasks=[plots])
+    pmTerminated = ctasks.cluster_terminate(postmach, upstream_tasks=[plots, closedask])
 
 
 #####################################################################

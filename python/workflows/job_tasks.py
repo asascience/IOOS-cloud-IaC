@@ -2,22 +2,24 @@
 """
 # Python dependencies
 import logging
+import subprocess
 import sys
 import os
+import glob
+
+from distributed import Client
+from prefect.engine import signals
+from prefect import task
+
+from Job import Job
+from plotting import plot
+
+import utils.romsUtil as util
 
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
 curdir = os.path.dirname(os.path.abspath(__file__))
 
-import glob
-
-from prefect import task
-
-from plotting import plot
-
-from job.Job import Job
-from job.ROMSForecast import ROMSForecast
-from job.Plotting import Plotting
 
 log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)

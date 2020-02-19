@@ -14,12 +14,11 @@ import time
 from distributed import Client
 from prefect.engine import signals
 from prefect.triggers import all_finished
-
-from LocalCluster import LocalCluster
 from prefect.core import task
 
 from AWSCluster import AWSCluster
 from Cluster import Cluster
+from LocalCluster import LocalCluster
 
 log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)

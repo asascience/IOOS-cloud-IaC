@@ -1,15 +1,15 @@
+import glob
 import os
 import traceback
 import subprocess
 
 import pyproj
-import cmocean
 import netCDF4
 import PIL.Image
 import numpy as np
 import matplotlib.pyplot as plt
 
-from plotting import tile
+import tile
 
 
 def png_ffmpeg(source, target):
@@ -36,6 +36,7 @@ def png_ffmpeg(source, target):
     # x264 codec enforces even dimensions
     # -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2"
 
+    proc = None
     home = os.path.expanduser("~")
     ffmpeg = home + '/bin/ffmpeg'
 
@@ -58,6 +59,7 @@ def png_ffmpeg(source, target):
 def plot_png(source='dubai', target='figs'):
     '''Plot roms output and save to png'''
 
+    data = None
     datadir = os.getenv('DATA')
     if source == 'liveocean':
         data = os.path.join(datadir, 'LiveOcean_output/f2019.11.06')
