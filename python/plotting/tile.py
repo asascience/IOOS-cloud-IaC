@@ -82,7 +82,7 @@ class TileBase(abc.ABC):
             x (int): tile x coordinate.
             y (int): tile y coordinate.
             z (int): zoom level.
-            o (int): relative parent level. positive is zoom out.
+            p (int): relative parent level. positive is zoom out.
 
         Returns:
             str: The quadkey.

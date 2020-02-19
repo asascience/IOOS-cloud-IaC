@@ -110,7 +110,7 @@ def save_to_cloud(job: Job, service: StorageService, filespecs: list, public=Fal
     service : StorageService
       An implemented service for your cloud provider.
 
-    filespec : list of strings
+    filespecs : list of strings
       file specifications to match using glob.glob
       Example: ["*.nc", "*.png"]
 

@@ -42,13 +42,13 @@ class LocalCluster(Cluster):
     # Implement these interfaces
 
     ## getState
-    def getState(this):
-        return this.__state
+    def getState(self):
+        return self.__state
 
     ## setState
-    def setState(this, state):
-        this.__state = state
-        return this.__state
+    def setState(self, state):
+        self.__state = state
+        return self.__state
 
     ########################################################################
     ########################################################################

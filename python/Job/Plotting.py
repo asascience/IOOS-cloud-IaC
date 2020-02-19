@@ -1,14 +1,12 @@
-import sys
+import datetime
 import json
 import os
-import datetime
+import sys
 
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
 
-from job.Job import Job
-
-import utils.romsUtil as util
+import Job
 
 debug = True
 

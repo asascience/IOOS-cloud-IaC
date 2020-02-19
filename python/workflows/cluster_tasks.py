@@ -16,6 +16,10 @@ from prefect.engine import signals
 from prefect.triggers import all_finished
 
 from LocalCluster import LocalCluster
+from prefect.core import task
+
+from AWSCluster import AWSCluster
+from Cluster import Cluster
 
 log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)
@@ -25,10 +29,6 @@ formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcNa
 ch.setFormatter(formatter)
 log.addHandler(ch)
 
-from prefect.core import task
-
-from AWSCluster import AWSCluster
-from Cluster import Cluster
 
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))

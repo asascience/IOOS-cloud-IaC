@@ -10,9 +10,8 @@ import logging
 import boto3
 from botocore.exceptions import ClientError
 
-import cluster.nodeInfo as nodeInfo
-
-from cluster.Cluster import Cluster
+import nodeInfo
+import Cluster
 
 debug = False
 
@@ -121,7 +120,7 @@ class AWSCluster(Cluster):
         self.__configfile = configfile
         self.__state = "none"  # This could be an enumeration of none, running, stopped, error
         self.__instances = []
-
+        self.region = ""
         self.nodeType = ''
         self.nodeCount = 0
         self.NPROCS = 0
@@ -149,12 +148,12 @@ class AWSCluster(Cluster):
     =====================
     '''
 
-    def getState(this):
-        return this.__state
+    def getState(self):
+        return self.__state
 
-    def setState(this, state):
-        this.__state = state
-        return this.__state
+    def setState(self, state):
+        self.__state = state
+        return self.__state
 
     ########################################################################
 

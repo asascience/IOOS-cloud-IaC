@@ -99,9 +99,9 @@ class Cluster(ABC):
 
     def terminateDaskScheduler(self):
         """ If process hasn't terminated yet, terminate it. """
-        if self.daskscheduler != None:
+        if self.daskscheduler is not None:
             poll = self.daskscheduler.poll()
-            if poll == None:
+            if poll is None:
                 self.daskscheduler.kill()
         return
 
@@ -111,10 +111,10 @@ class Cluster(ABC):
 
     def terminateDaskWorker(self):
         """ If process hasn't terminated yet, terminate it. """
-        if self.daskworker != None:
+        if self.daskworker is not None:
             poll = self.daskworker.poll()
 
-            if poll == None:
+            if poll is None:
                 self.daskworker.kill()
         return
 
@@ -124,43 +124,43 @@ class Cluster(ABC):
     """
 
     @abstractmethod
-    def getCoresPN():
+    def getCoresPN(self):
         pass
 
     @abstractmethod
-    def getState():
+    def getState(self):
         pass
 
     @abstractmethod
-    def setState():
+    def setState(self):
         pass
 
     @abstractmethod
-    def readConfig():
+    def readConfig(self):
         pass
 
     @abstractmethod
-    def parseConfig():
+    def parseConfig(self):
         pass
 
     @abstractmethod
-    def start():
+    def start(self):
         pass
 
     @abstractmethod
-    def terminate():
+    def terminate(self):
         pass
 
     ''' get the list of hostnames or IPs in this cluster  '''
 
     @abstractmethod
-    def getHosts():
+    def getHosts(self):
         pass
 
     ''' get a comma separated list of hosts in this cluster '''
 
     @abstractmethod
-    def getHostsCSV():
+    def getHostsCSV(self):
         pass
 
 

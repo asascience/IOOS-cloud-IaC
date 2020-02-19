@@ -3,7 +3,9 @@
 # keep things cloud platform agnostic at this layer
 
 # Local dependencies
-import workflow_tasks as tasks
+import tasks as tasks
+import cluster_tasks as ctasks
+
 # 3rd party dependencies
 from prefect import Flow
 
@@ -27,10 +29,10 @@ with Flow('ofs workflow') as flow:
     #####################################################################
 
     # Create the cluster object
-    cluster = tasks.cluster_init(fcstconf, provider)
+    cluster = ctasks.cluster_init(fcstconf, provider)
 
     # Start the cluster
-    fcStarted = tasks.cluster_start(cluster)
+    fcStarted = ctasks.cluster_start(cluster)
 
     # Setup the job
     fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
@@ -41,7 +43,7 @@ with Flow('ofs workflow') as flow:
     flow.add_edge(fcstjob, fcstStatus)
 
     # Terminate the cluster nodes
-    fcTerminated = tasks.cluster_terminate(cluster)
+    fcTerminated = ctasks.cluster_terminate(cluster)
     flow.add_edge(fcstStatus, fcTerminated)
 
 
