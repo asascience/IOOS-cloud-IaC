@@ -78,7 +78,7 @@ case $OFS in
     export JOBDIR=$HOMEnos/jobs
     export JOBSCRIPT=$JOBDIR/fcstrun.sh
     export JOBARGS="$CDATE"
-    cd $JOBDIR
+    cd "$JOBDIR" || exit 1
     $JOBSCRIPT $JOBARGS
     ;;
   cbofs | dbofs)
@@ -87,19 +87,19 @@ case $OFS in
     export JOBSCRIPT=$JOBDIR/fcstrun.sh
     export cyc=$HH
     export JOBARGS="$CDATE $HH"
-    cd $JOBDIR
+    cd "$JOBDIR" || exit 1
     $JOBSCRIPT $JOBARGS
     ;;
   adnoc)
     export JOBDIR=$COMOUT
     mkdir -p $JOBDIR/output
-    cd $JOBDIR
+    cd "$JOBDIR" || exit 1
     mpirun $MPIOPTS $EXEC ocean.in > ocean.log
     ;;
 
   *)
     echo "Model not supported $OFS"
-    exit -1
+    exit 1
     ;;
 esac
  

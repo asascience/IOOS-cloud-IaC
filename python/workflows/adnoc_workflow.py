@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
-import os
-import multiprocessing as mp
-from dask.distributed import Client
 
 # keep things cloud platform agnostic at this layer
 
-# 3rd party dependencies
-from prefect import Flow
-
 # Local dependencies
 import workflow_tasks as tasks
-
+# 3rd party dependencies
+from prefect import Flow
 
 # Change the following for specific configurations and jobs
 #provider = 'Local'
 provider = 'AWS'
+
+fcstconf = ""
+fcstjobfile = ""
 
 if provider == 'AWS':
   fcstconf = 'configs/adnoc.config'

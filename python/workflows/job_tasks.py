@@ -1,11 +1,13 @@
 """
 """
 # Python dependencies
+import logging
 import sys
 import os
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
 curdir = os.path.dirname(os.path.abspath(__file__))
+
 
 import glob
 
@@ -16,6 +18,14 @@ from plotting import plot
 from job.Job import Job
 from job.ROMSForecast import ROMSForecast
 from job.Plotting import Plotting
+
+log = logging.getLogger('workflow')
+log.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcName)s | %(message)s')
+ch.setFormatter(formatter)
+log.addHandler(ch)
 
 # generic, should be job
 @task

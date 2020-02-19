@@ -3,8 +3,34 @@
 
 
 # Python dependencies
+import glob
+import logging
 import sys
 import os
+import traceback
+from os import subprocess
+
+import time
+
+from distributed import Client
+from prefect.engine import signals
+from prefect.triggers import all_finished
+
+from LocalCluster import LocalCluster
+
+log = logging.getLogger('workflow')
+log.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcName)s | %(message)s')
+ch.setFormatter(formatter)
+log.addHandler(ch)
+
+from prefect.core import task
+
+from AWSCluster import AWSCluster
+from Cluster import Cluster
+
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
 curdir = os.path.dirname(os.path.abspath(__file__))
@@ -68,7 +94,7 @@ def push_pyEnv(cluster):
   dists = glob.glob(f'{curdir}/../dist/*.tar.gz')
   for dist in dists:
      log.info(f"pushing python dist: {dist}")
-     subprocess.run(["scp",dist,f"{host}:~"], stderr=subprocess.STDOUT)
+     subprocess.run(["scp", dist, f"{host}:~"], stderr=subprocess.STDOUT)
 
      path, lib = os.path.split(dist)
      log.info(f"push_pyEnv installing module: {lib}")
