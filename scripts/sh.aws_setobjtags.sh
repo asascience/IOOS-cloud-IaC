@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+#aws s3api list-buckets
+
 buckets='
 cf-templates-y20cx16e76yc-us-east-1
 cf-templates-y20cx16e76yc-us-east-2

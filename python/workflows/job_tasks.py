@@ -20,7 +20,6 @@ if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
 curdir = os.path.dirname(os.path.abspath(__file__))
 
-
 log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()

@@ -4,21 +4,27 @@
 # Python dependencies
 import glob
 import logging
-import sys
 import os
+import sys
+import time
 import traceback
 from os import subprocess
 
-import time
+import pprint
 
 from distributed import Client
+from prefect.core import task
 from prefect.engine import signals
 from prefect.triggers import all_finished
-from prefect.core import task
 
-from AWSCluster import AWSCluster
 from Cluster import Cluster
-from LocalCluster import LocalCluster
+from ClusterFactory import ClusterFactory
+
+if os.path.abspath('..') not in sys.path:
+    sys.path.append(os.path.abspath('..'))
+curdir = os.path.dirname(os.path.abspath(__file__))
+
+pp = pprint.PrettyPrinter()
 
 log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)
@@ -29,25 +35,12 @@ ch.setFormatter(formatter)
 log.addHandler(ch)
 
 
-if os.path.abspath('..') not in sys.path:
-    sys.path.append(os.path.abspath('..'))
-curdir = os.path.dirname(os.path.abspath(__file__))
-
-
 # cluster
 @task
-def cluster_init(config, provider) -> Cluster:
-    if provider == 'AWS':
+def cluster_init(config) -> Cluster:
 
-        try:
-            cluster = AWSCluster(config)
-        except Exception as e:
-            log.exception('Could not create cluster: ' + str(e))
-            raise signals.FAIL()
-
-    elif provider == 'Local':
-        cluster = LocalCluster(config)
-
+    factory = ClusterFactory()
+    cluster = factory.cluster(config)
     return cluster
 
 
@@ -124,13 +117,13 @@ def start_dask(cluster) -> Client:
 
     if host == '127.0.0.1':
         log.info(f"in host == {host}")
-        proc = subprocess.Popen(["dask-scheduler", "--host", host, "--port", port], \
+        proc = subprocess.Popen(["dask-scheduler", "--host", host, "--port", port],
                                 # stderr=subprocess.DEVNULL)
                                 stderr=subprocess.STDOUT)
         time.sleep(3)
         cluster.setDaskScheduler(proc)
 
-        wrkrproc = subprocess.Popen(["dask-worker", "--nprocs", str(nprocs), "--nthreads", "1", \
+        wrkrproc = subprocess.Popen(["dask-worker", "--nprocs", str(nprocs), "--nthreads", "1",
                                      f"{host}:{port}"], stderr=subprocess.STDOUT)
         time.sleep(3)
         cluster.setDaskWorker(wrkrproc)
@@ -141,7 +134,7 @@ def start_dask(cluster) -> Client:
         # TODO: Refactor this, make Dask an optional part of the cluster
         # TODO: scale this to multiple hosts
         try:
-            proc = subprocess.Popen(["dask-ssh", "--nprocs", str(nprocs), "--scheduler-port", port, host], \
+            proc = subprocess.Popen(["dask-ssh", "--nprocs", str(nprocs), "--scheduler-port", port, host],
                                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             log.info('Connecting a dask client ')

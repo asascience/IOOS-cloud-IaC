@@ -54,7 +54,7 @@ class ROMSForecast(Job):
             self.CDATE = today
 
         if self.OCNINTMPL == "auto":
-            self.OCNINTMPL = f"{self.TEMPLPATH}/{OFS}.ocean.in"
+            self.OCNINTMPL = f"{self.TEMPLPATH}/{self.OFS}.ocean.in"
 
         return
 
@@ -82,7 +82,6 @@ class ROMSForecast(Job):
     def __make_oceanin_lo(self):
 
         CDATE = self.CDATE
-        HH = self.HH
         OFS = self.OFS
         COMROT = self.COMROT
 
@@ -93,9 +92,9 @@ class ROMSForecast(Job):
         prevdate = util.ndate(CDATE, -1)
         fprevdate = util.lo_date(prevdate)
 
+        #TODO: Document the multiple options. OUTDIR=auto | /path, OCEANIN=auto | /path/filename
         if self.OUTDIR == "auto":
             self.OUTDIR = f"{COMROT}/{OFS}/{fdate}"
-            outfile = f"{self.OUTDIR}/liveocean.in"
 
         if not os.path.exists(self.OUTDIR):
             os.makedirs(self.OUTDIR)
@@ -116,6 +115,7 @@ class ROMSForecast(Job):
 
         # Create the ocean.in
         if self.OCEANIN == "auto":
+            outfile = f"{self.OUTDIR}/liveocean.in"
             ratio = 0.44444
             # ratio=0.375   # Testing 6 nodes (9x24) crashes, .444 crashes (12x18)
             # ratio=0.5
@@ -159,16 +159,13 @@ class ROMSForecast(Job):
             "__TIDE_START__": TIDE_START
         }
 
-        # nos.cbofs.forecast.20191001.t00z.in
-        outfile = f"{self.OUTDIR}/nos.{OFS}.forecast.{CDATE}.t{HH}z.in"
-
         # Create the ocean.in
         if self.OCEANIN == "auto":
+            outfile = f"{self.OUTDIR}/nos.{OFS}.forecast.{CDATE}.t{HH}z.in"
             if OFS == 'dbofs':
                 ratio = 0.16
             else:
                 ratio = 1.0
-
             util.makeOceanin(self.NPROCS, settings, template, outfile, ratio=ratio)
 
         return
@@ -178,7 +175,6 @@ class ROMSForecast(Job):
     def __make_oceanin_adnoc(self):
 
         CDATE = self.CDATE
-        HH = self.HH
         OFS = self.OFS
         COMROT = self.COMROT
 
@@ -189,16 +185,15 @@ class ROMSForecast(Job):
             os.makedirs(self.OUTDIR)
 
         settings = {
-            "__NTIMES__": cfDict['NTIMES'],
-            "__TIME_REF__": cfDict['TIME_REF'],
+            "__NTIMES__": self.NTIMES,
+            "__TIME_REF__": self.TIME_REF,
         }
 
         template = self.OCNINTMPL
 
-        outfile = f"{self.OUTDIR}/ocean.in"
-
         # Create the ocean.in
         if self.OCEANIN == "auto":
+            outfile = f"{self.OUTDIR}/ocean.in"
             util.makeOceanin(self.NPROCS, settings, template, outfile)
 
         return

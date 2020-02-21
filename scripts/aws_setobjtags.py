@@ -13,49 +13,17 @@ def main():
     s3 = boto3.client('s3')
     paginator = s3.get_paginator('list_objects_v2')
 
-    donetags = {         'cf-templates-y20cx16e76yc-us-east-1':'RPS', \
-        'cf-templates-y20cx16e76yc-us-east-2':'RPS', \
-        'ioos-cloud':'IOOS-cloud', \
-        'ioos-cloud-sandbox':'IOOS-cloud-sandbox', \
-        'ioos-code-sprint-2019':'IOOS-cloud', \
-        }
+    buckettags = {
+        'apptio-eds-108193140983':'EDS',
+        'eds-master':'EDS',
+        'eds-snowball':'EDS',
+        'edsapilogs':'EDS',
+        'hycomglobal':'EDS',
+        'radials':'EDS/OTT-RADIALS' }
 
-
-# Error        'ioos-comt':'IOOS-COMT', \
-
-    buckettags = { \
-        'ioos-eds':'IOOS-EDS', \
-        'ioos-eds-config':'IOOS-EDS', \
-        'ioos-eds-dev':'IOOS-EDS', \
-        'ioos-status':'IOOS-EDS', \
-        'ott-radial':'OTT-RADIAL', \
-        'react-page-container-dev-20190717152509-deployment':'RPS', \
-        'react-page-container-dev-20191003104014-deployment':'RPS', \
-        'react-page-container-test-20191001125340-deployment':'RPS', \
-        'rps-glos':'RPS-GLOS', \
-        'rps-glos-config':'RPS-GLOS', \
-        'rps-glos-data':'RPS-GLOS' }
-
-# Error:
-# botocore.exceptions.ClientError: An error occurred (InternalError) when calling the PutObjectTagging operation (reached max retries: 4): We encountered an internal error. Please try again.
-
-# ioos-comt/backup/Home/projects/duncombe
-    #buckettags = { 'ioos-cloud-sandbox':'IOOS-cloud-sandbox' }
-    #buckettags = { 'rps-glos':'RPS-GLOS' }
-# done
-# backup/Home/projects/acrosby
-# backup/Home/projects/dpsnowden
-# COMTUT
-
-
-    buckettags = { 'ioos-comt':'IOOS-COMT'}
-# Test
-#    buckettags = { 'rps-glos-config':'RPS-GLOS' }
-# Skip[ tds/content/thredds
-
-    # skip these
-    # Testp = re.compile('(tds/content/thredds|nginx)')
-    p = re.compile('(backup/Home/projects/acrosby|backup/Home/projects/dpsnowden|COMTUT)')
+    # Skip these
+    #p = re.compile('(backup/Home/projects/acrosby|backup/Home/projects/dpsnowden|COMTUT)')
+    p = re.compile('dontmatchanything123456')
 
     for bucket in buckettags.keys():
         project = buckettags[bucket]
@@ -66,16 +34,17 @@ def main():
 
         newtag = { 'Key': 'Project', 'Value': project }
         for page in page_iterator:
-            print(f"KeyCount: {page['KeyCount']}  :  IsTruncated: {page['IsTruncated']}")
+            keycount = page['KeyCount']
+            print(f"KeyCount: {keycount}  :  IsTruncated: {page['IsTruncated']}")
 
-            for content in page['Contents']:
-                key = content['Key']
-                if p.match(key): 
-                  print(f"bucket/key: {bucket}/{key} ------- Skipped")
-                else:
-                  print(f"bucket/key: {bucket}/{key}")
-                  #print(f"Tagging {key}")
-                  s3.put_object_tagging(Bucket=bucket, Key=key, Tagging={'TagSet': [ newtag ] })
+            if keycount != 0:
+                for content in page['Contents']:
+                    key = content['Key']
+                    if p.match(key): 
+                      print(f"bucket/key: {bucket}/{key} ------- Skipped")
+                    else:
+                      print(f"bucket/key: {bucket}/{key}")
+                      s3.put_object_tagging(Bucket=bucket, Key=key, Tagging={'TagSet': [ newtag ] })
 
 
 if __name__ == '__main__':

@@ -11,7 +11,6 @@ import os
 # Python dependencies
 import sys
 
-from JobFactory import JobFactory
 
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
@@ -28,6 +27,8 @@ from prefect.engine import signals
 # Local dependencies
 
 import Job
+from JobFactory import JobFactory
+from Cluster import Cluster
 
 from services.StorageService import StorageService
 from services.S3Storage import S3Storage
@@ -147,7 +148,7 @@ def save_to_cloud(job: Job, service: StorageService, filespecs: list, public=Fal
 
 # cluster, job
 @task
-def job_init(cluster, configfile) -> Job:
+def job_init(cluster: Cluster, configfile) -> Job:
     # We can't really separate the hardware from the job, nprocs is needed
     NPROCS = cluster.nodeCount * cluster.PPN
 
@@ -155,12 +156,10 @@ def job_init(cluster, configfile) -> Job:
     # This is opposite of the way resources are usually allocated
     # Normally, NPROCs comes from the job and will use that much compute resources
     # Here, we fit the job to the desired on-demand resources.
-    # TODO ?: set it up so that the best machine(s) for the job are provisioned based on
-    # the resource request.
+    # TODO ?: set it up so that the best machine(s) for the job are provisioned based on the resource request.
 
     factory = JobFactory()
     job = factory.job(configfile, NPROCS)
-
     return job
 
 
@@ -169,7 +168,7 @@ def job_init(cluster, configfile) -> Job:
 
 # cluster, job
 @task
-def forecast_run(cluster, job):
+def forecast_run(cluster: Cluster, job: Job):
     PPN = cluster.getCoresPN()
 
     # Easier to read
