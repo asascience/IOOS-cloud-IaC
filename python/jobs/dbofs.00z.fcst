@@ -1,5 +1,5 @@
 {
-  "JOBTYPE"   : "forecast",
+  "JOBTYPE"   : "romsforecast",
   "OFS"       : "dbofs",
   "CDATE"     : "today",
   "HH"        : "00",

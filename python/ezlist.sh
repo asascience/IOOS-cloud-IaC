@@ -6,7 +6,7 @@ list='
   c5.9xlarge,18
   c5.18xlarge,36
   c5.24xlarge,48
-  c5n.metal,36
+  c5.metal,36
   c5n.large,1
   c5n.xlarge,2
   c5n.2xlarge,4
