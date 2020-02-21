@@ -22,7 +22,7 @@ def fcst_flow(fcstconf, fcstjobfile, sshuser) -> Flow:
         cluster = ctasks.cluster_init(fcstconf, provider)
 
         # Setup the job
-        fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
+        fcstjob = tasks.job_init(cluster, fcstjobfile)
 
         # Get forcing data
         forcing = jtasks.get_forcing(fcstjob, sshuser)
@@ -66,7 +66,7 @@ def plot_flow(postconf, postjobfile) -> Flow:
         daskclient: Client = ctasks.start_dask(postmach, upstream_tasks=[pmStarted])
 
         # Setup the post job
-        plotjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
+        plotjob = tasks.job_init(postmach, postjobfile, upstream_tasks=[pmStarted])
 
         # Get list of files from job specified directory
         FILES = jtasks.ncfiles_from_Job(plotjob)
@@ -98,7 +98,7 @@ def test_flow(fcstconf, fcstjobfile) -> Flow:
         cluster = ctasks.cluster_init(fcstconf, provider)
 
         # Setup the job
-        fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
+        fcstjob = tasks.job_init(cluster, fcstjobfile)
 
         # Get forcing data
         forcing = jtasks.get_forcing(fcstjob)

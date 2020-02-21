@@ -84,9 +84,6 @@ class AWSCluster(Cluster):
     readConfig(configfile : str)
       Reads a JSON configuration file `configfile` into a dictionary.
 
-    parseConfig()
-      Parse the cluster configuration. This contains parameters that are specific to AWS.
-
     start()
       Start the cluster. This will provision the configured cluster in the cloud.
       Returns a list of AWS Instances. See boto3 documentation.
@@ -133,7 +130,7 @@ class AWSCluster(Cluster):
         self.placement_group = ''
 
         cfDict = self.readConfig(configfile)
-        self.parseConfig(cfDict)
+        self.__parseConfig(cfDict)
 
         self.PPN = nodeInfo.getPPN(self.nodeType)
         self.NPROCS = self.nodeCount * self.PPN
@@ -184,7 +181,7 @@ class AWSCluster(Cluster):
 
     ########################################################################
 
-    def parseConfig(self, cfDict):
+    def __parseConfig(self, cfDict):
 
         self.platform = cfDict['platform']
         self.region = cfDict['region']

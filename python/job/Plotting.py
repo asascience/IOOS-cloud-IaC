@@ -15,7 +15,7 @@ class Plotting(Job):
 
     def __init__(self, configfile, NPROCS):
 
-        self.__jobtype = 'plotting'
+        self.jobtype = 'plotting'
         self.configfile = configfile
         self.NPROCS = NPROCS
 

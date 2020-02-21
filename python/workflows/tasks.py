@@ -11,6 +11,8 @@ import os
 # Python dependencies
 import sys
 
+from JobFactory import JobFactory
+
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
 curdir = os.path.dirname(os.path.abspath(__file__))
@@ -26,8 +28,6 @@ from prefect.engine import signals
 # Local dependencies
 
 import Job
-from job.Plotting import Plotting
-from job.ROMSForecast import ROMSForecast
 
 from services.StorageService import StorageService
 from services.S3Storage import S3Storage
@@ -139,7 +139,7 @@ def save_to_cloud(job: Job, service: StorageService, filespecs: list, public=Fal
             fhead, ftail = os.path.split(filename)
             key = f"{BCKTFLDR}/{CDATE}/{ftail}"
 
-            service.upload_file(filename, BUCKET, key, public)
+            service.uploadFile(filename, BUCKET, key, public)
     return
 
 
@@ -147,7 +147,7 @@ def save_to_cloud(job: Job, service: StorageService, filespecs: list, public=Fal
 
 # cluster, job
 @task
-def job_init(cluster, configfile, jobtype) -> Job:
+def job_init(cluster, configfile) -> Job:
     # We can't really separate the hardware from the job, nprocs is needed
     NPROCS = cluster.nodeCount * cluster.PPN
 
@@ -157,14 +157,9 @@ def job_init(cluster, configfile, jobtype) -> Job:
     # Here, we fit the job to the desired on-demand resources.
     # TODO ?: set it up so that the best machine(s) for the job are provisioned based on
     # the resource request.
-    # Need to make this a factory
-    if jobtype == 'roms':
-        job = ROMSForecast(configfile, NPROCS)
-    elif jobtype == 'plotting':
-        job = Plotting(configfile, NPROCS)
-    else:
-        log.error("Unsupported job type")
-        raise signals.FAIL()
+
+    factory = JobFactory()
+    job = factory.job(configfile, NPROCS)
 
     return job
 

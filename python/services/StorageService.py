@@ -10,7 +10,7 @@ class StorageService(ABC):
         print('init stub')
 
     @abstractmethod
-    def upload_file(self, filename: str, bucket: str, key: str, public: bool = False):
+    def uploadFile(self, filename: str, bucket: str, key: str, public: bool = False):
         pass
 
 

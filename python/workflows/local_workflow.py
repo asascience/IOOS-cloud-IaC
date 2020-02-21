@@ -48,7 +48,7 @@ with Flow('plot only') as plotonly:
     daskclient: Client = ctasks.start_dask(postmach, upstream_tasks=[pmStarted])
 
     # Setup the post job
-    postjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
+    postjob = tasks.job_init(postmach, postjobfile, upstream_tasks=[pmStarted])
 
     # Get list of files from fcstjob
     FILES = jtasks.ncfiles_from_Job(postjob)
@@ -82,7 +82,7 @@ with Flow('ofs workflow') as flow:
     fcStarted = ctasks.cluster_start(cluster)
 
     # Setup the job
-    fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
+    fcstjob = tasks.job_init(cluster, fcstjobfile)
 
     # Run the forecast
     fcstStatus = tasks.forecast_run(cluster, fcstjob)
@@ -114,7 +114,7 @@ with Flow('ofs workflow') as flow:
     daskclient = ctasks.start_dask(postmach, upstream_tasks=[pushPy])
 
     # Setup the post job
-    postjob = tasks.job_init(postmach, postjobfile, 'plotting', upstream_tasks=[pmStarted])
+    postjob = tasks.job_init(postmach, postjobfile, upstream_tasks=[pmStarted])
 
     # Get list of files from fcstjob
     FILES = jtasks.ncfiles_from_Job(postjob, upstream_tasks=[fcstStatus])

@@ -11,8 +11,7 @@ class Job(ABC):
 
     @abstractmethod
     def __init__(self):
-        self.VARS = None
-        self.FSPEC = None
+
         self.configfile = ''
         self.jobtype = ''
         self.CDATE = ''
@@ -22,9 +21,12 @@ class Job(ABC):
         self.INDIR = ''
         self.NPROCS = 0
         self.settings = {}
+        self.VARS = None
+        self.FSPEC = None
 
     ########################################################################
 
+    '''
     def readConfig(self, configfile):
         # TODO call the regular function in this module
         with open(configfile, 'r') as cf:
@@ -38,10 +40,11 @@ class Job(ABC):
         return cfDict
 
     ########################################################################
+    '''
 
-    # @abstractmethod
-    # def __parseConfig(self, cfDict) :
-    # pass
+    @abstractmethod
+    def __parseConfig(self, cfDict) :
+        pass
 
 
 if __name__ == '__main__':

@@ -86,11 +86,14 @@ class Cluster(ABC):
       Get a comma separated list of hosts in this cluster
 
     """
-
+    # TODO: Put Dask stuff in its own class
     def __init__(self):
         """"""
         self.daskscheduler = None
         self.daskworker = None
+
+        self.configfile = None
+        self.platform = None
 
     def setDaskScheduler(self, proc: Popen):
         """"""
@@ -124,7 +127,7 @@ class Cluster(ABC):
     """
 
     @abstractmethod
-    def getCoresPN(self):
+    def getCoresPN(self) -> int:
         pass
 
     @abstractmethod
@@ -140,7 +143,7 @@ class Cluster(ABC):
         pass
 
     @abstractmethod
-    def parseConfig(self):
+    def __parseConfig(self):
         pass
 
     @abstractmethod

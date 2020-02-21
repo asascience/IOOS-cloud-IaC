@@ -18,11 +18,11 @@ class ROMSForecast(Job):
     # TODO: make self and cfDict consistent
     def __init__(self, configfile, NPROCS):
 
-        self.TEMPLPATH = f"{curdir}/templates"
-
         self.jobtype = 'roms'
         self.configfile = configfile
+
         self.NPROCS = NPROCS
+        self.TEMPLPATH = f"{curdir}/templates"
 
         if debug:
             print(f"DEBUG: in ROMSForecast init")

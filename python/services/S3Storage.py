@@ -16,7 +16,7 @@ class S3Storage(StorageService):
     def __init__(self):
         print('init stub')
 
-    def upload_file(self, filename: str, bucket: str, key: str, public: bool = False):
+    def uploadFile(self, filename: str, bucket: str, key: str, public: bool = False):
 
         if debug:
             print("DEBUG: filename: ", filename)
