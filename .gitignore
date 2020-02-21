@@ -14,3 +14,6 @@ python/*.out
 **/purge.lock
 **/global.lock
 python/workflows/lo.out
+.idea/
+python/.idea/
+python/venv/

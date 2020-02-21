@@ -1,8 +1,7 @@
 from setuptools import setup
 
-
 # setup plotting
-setup(name="plotting", 
+setup(name="plotting",
       version='0.2a8',
       description='Plotting for ROMS',
       url='https://github.com/asascience/IOOS-cloud-IaC/python/plotting',
@@ -10,18 +9,17 @@ setup(name="plotting",
       author_email='rpsgroup.com',
       packages=['plotting'],
       install_requires=[
-        'plotting',
-        'pyproj',
-        'cmocean',
-        'numpy',
-        'matplotlib',
-        'netCDF4',
-        'Pillow']
-     )
-
+          'plotting',
+          'pyproj',
+          'cmocean',
+          'numpy',
+          'matplotlib',
+          'netCDF4',
+          'Pillow']
+      )
 
 # setup cluster
-#setup(name="pyclusterwf",
+# setup(name="pyclusterwf",
 #      version='0.1b1',
 #      description='Cloud cluster classes',
 #      url='https://github.com/asascience/IOOS-cloud-IaC/python',
@@ -35,4 +33,3 @@ setup(name="plotting",
 # job
 # workflows
 # services
-

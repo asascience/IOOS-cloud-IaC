@@ -7,42 +7,30 @@ functions. Prefect forces some design choices.
 Keep things cloud platform agnostic at this layer.
 """
 
+import os
 # Python dependencies
 import sys
-import os
+
+from JobFactory import JobFactory
+
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
 curdir = os.path.dirname(os.path.abspath(__file__))
 
-import json
 import pprint
 import subprocess
-import traceback
 import glob
-import time
 import logging
-from datetime import timedelta
 
-from prefect import task, unmapped
+from prefect import task
 from prefect.engine import signals
-from prefect.triggers import all_successful, all_finished
-from dask.distributed import Client
 
 # Local dependencies
-from cluster.Cluster import Cluster
-from cluster.AWSCluster import AWSCluster
-from cluster.LocalCluster import LocalCluster
 
-from job.Job import Job
-from job.ROMSForecast import ROMSForecast
-from job.Plotting import Plotting
+import Job
 
 from services.StorageService import StorageService
 from services.S3Storage import S3Storage
-
-import utils.romsUtil as util
-from plotting import plot
-
 
 pp = pprint.PrettyPrinter()
 debug = False
@@ -56,50 +44,51 @@ ch.setFormatter(formatter)
 log.addHandler(ch)
 
 
-
 # Storage
 #######################################################################
 
 @task
-def storage_init(provider: str) -> StorageService :
-  """Class factory that returns an implementation of StorageService.
+def storage_init(provider: str) -> StorageService:
+    """Class factory that returns an implementation of StorageService.
 
-  StorageService is the abstract base class that provides a generic interface for
-  multiple cloud platforms. 
-  
-  Parameters
-  ----------
-  provider : str
-    Name of an implemented provider.
+    StorageService is the abstract base class that provides a generic interface for
+    multiple cloud platforms.
 
-  Returns
-  -------
-  service : StorageService
-    Returns a specific implementation of the StorageService interface.
+    Parameters
+    ----------
+    provider : str
+      Name of an implemented provider.
 
-  Raises
-  ------
-  signals.FAIL
-    Triggers and exception if `provider` is not supported.
+    Returns
+    -------
+    service : StorageService
+      Returns a specific implementation of the StorageService interface.
 
-  Notes
-  -----
-  The following providers are implemented:
-    AWS S3 - S3Storage
-  
-  """
+    Raises
+    ------
+    signals.FAIL
+      Triggers and exception if `provider` is not supported.
 
-  if provider == 'AWS':
-    service = S3Storage()
-  
-  elif provider == 'Local':
-    log.error('Coming soon ...')
-    raise signals.FAIL()
-  else:
-    log.error('Unsupported provider')
-    raise signals.FAIL()
+    Notes
+    -----
+    The following providers are implemented:
+      AWS S3 - S3Storage
 
-  return service
+    """
+
+    if provider == 'AWS':
+        service = S3Storage()
+
+    elif provider == 'Local':
+        log.error('Coming soon ...')
+        raise signals.FAIL()
+    else:
+        log.error('Unsupported provider')
+        raise signals.FAIL()
+
+    return service
+
+
 #######################################################################
 
 
@@ -107,120 +96,117 @@ def storage_init(provider: str) -> StorageService :
 # TODO: Parameterize filespecs?
 @task
 def save_to_cloud(job: Job, service: StorageService, filespecs: list, public=False):
-  """ Save stuff to cloud storage.
+    """ Save stuff to cloud storage.
 
-  Parameters
-  ----------
-  job : Job
-    A Job object that contains the required attributes:
-      BUCKET - bucket name
-      BCKTFOLDER - bucket folder
-      CDATE - simulation date
-      OUTDIR - source path 
+    Parameters
+    ----------
+    job : Job
+      A Job object that contains the required attributes:
+        BUCKET - bucket name
+        BCKTFOLDER - bucket folder
+        CDATE - simulation date
+        OUTDIR - source path
 
-  service : StorageService
-    An implemented service for your cloud provider.
+    service : StorageService
+      An implemented service for your cloud provider.
 
-  filespec : list of strings
-    file specifications to match using glob.glob
-    Example: ["*.nc", "*.png"]
+    filespecs : list of strings
+      file specifications to match using glob.glob
+      Example: ["*.nc", "*.png"]
 
-  public : bool, optional
-    Whether the files should be made public. Default: False
-  """
-  
-  BUCKET = job.BUCKET
-  BCKTFLDR = job.BCKTFLDR
-  CDATE = job.CDATE
-  path = job.OUTDIR
+    public : bool, optional
+      Whether the files should be made public. Default: False
+    """
 
-  #Forecast output
-  #ocean_his_0002.nc
-  #folder = f"output/{job.CDATE}"
-  #filespec = ['ocean_his_*.nc']
+    BUCKET = job.BUCKET
+    BCKTFLDR = job.BCKTFLDR
+    CDATE = job.CDATE
+    path = job.OUTDIR
 
-  for spec in filespecs:
+    # Forecast output
+    # ocean_his_0002.nc
+    # folder = f"output/{job.CDATE}"
+    # filespec = ['ocean_his_*.nc']
 
-    FILES = sorted(glob.glob(f"{path}/{spec}"))
+    for spec in filespecs:
 
-    log.info('Uploading the following files:')
-    
-    for filename in FILES:
-      print(filename)
-      fhead, ftail = os.path.split(filename)
-      key = f"{BCKTFLDR}/{CDATE}/{ftail}"
-      
-      service.upload_file(filename, BUCKET, key, public)
-  return
+        FILES = sorted(glob.glob(f"{path}/{spec}"))
+
+        log.info('Uploading the following files:')
+
+        for filename in FILES:
+            print(filename)
+            fhead, ftail = os.path.split(filename)
+            key = f"{BCKTFLDR}/{CDATE}/{ftail}"
+
+            service.uploadFile(filename, BUCKET, key, public)
+    return
+
+
 #######################################################################
 
 # cluster, job
 @task
-def job_init(cluster, configfile, jobtype) -> Job :
+def job_init(cluster, configfile) -> Job:
+    # We can't really separate the hardware from the job, nprocs is needed
+    NPROCS = cluster.nodeCount * cluster.PPN
 
-  # We can't really separate the hardware from the job, nprocs is needed
-  NPROCS = cluster.nodeCount * cluster.PPN
+    if debug: print(f"DEBUG: in tasks job_init configfile: {configfile}")
+    # This is opposite of the way resources are usually allocated
+    # Normally, NPROCs comes from the job and will use that much compute resources
+    # Here, we fit the job to the desired on-demand resources.
+    # TODO ?: set it up so that the best machine(s) for the job are provisioned based on
+    # the resource request.
 
-  if debug: print(f"DEBUG: in tasks job_init configfile: {configfile}")
-  # This is opposite of the way resources are usually allocated
-  # Normally, NPROCs comes from the job and will use that much compute resources
-  # Here, we fit the job to the desired on-demand resources.
-  # TODO ?: set it up so that the best machine(s) for the job are provisioned based on 
-  # the resource request.
-  # Need to make this a factory
-  if jobtype == 'roms':
-    job = ROMSForecast(configfile, NPROCS)
-  elif jobtype == 'plotting':
-    job = Plotting(configfile,NPROCS)
-  else:
-    log.error("Unsupported job type")
-    raise signals.FAIL()
+    factory = JobFactory()
+    job = factory.job(configfile, NPROCS)
 
-  return job
+    return job
+
+
 #######################################################################
 
 
 # cluster, job
 @task
 def forecast_run(cluster, job):
+    PPN = cluster.getCoresPN()
 
-  PPN = cluster.getCoresPN()
+    # Easier to read
+    CDATE = job.CDATE
+    HH = job.HH
+    OFS = job.OFS
+    NPROCS = job.NPROCS
+    OUTDIR = job.OUTDIR
+    EXEC = job.EXEC
 
-  # Easier to read
-  CDATE = job.CDATE
-  HH = job.HH
-  OFS = job.OFS
-  NPROCS = job.NPROCS
-  OUTDIR = job.OUTDIR
-  EXEC = job.EXEC
+    runscript = f"{curdir}/fcst_launcher.sh"
 
-  runscript = f"{curdir}/fcst_launcher.sh"
- 
-  try:
-    HOSTS=cluster.getHostsCSV()
-  except Exception as e:
-    log.exception('In driver: execption retrieving list of hostnames:' + str(e))
-    raise signals.FAIL()
+    try:
+        HOSTS = cluster.getHostsCSV()
+    except Exception as e:
+        log.exception('In driver: execption retrieving list of hostnames:' + str(e))
+        raise signals.FAIL()
 
-  try:
-    result = subprocess.run([runscript,CDATE,HH,OUTDIR,str(NPROCS),str(PPN),HOSTS,OFS,EXEC], \
-      stderr=subprocess.STDOUT)
+    try:
+        result = subprocess.run([runscript, CDATE, HH, OUTDIR, str(NPROCS), str(PPN), HOSTS, OFS, EXEC], \
+                                stderr=subprocess.STDOUT)
 
-    if result.returncode != 0 :
-      log.exception(f'Forecast failed ... result: {result.returncode}')
-      raise signals.FAIL()
+        if result.returncode != 0:
+            log.exception(f'Forecast failed ... result: {result.returncode}')
+            raise signals.FAIL()
 
-  except Exception as e:
-    log.exception('In driver: Exception during subprocess.run :' + str(e))
-    raise signals.FAIL()
+    except Exception as e:
+        log.exception('In driver: Exception during subprocess.run :' + str(e))
+        raise signals.FAIL()
 
-  log.info('Forecast finished successfully')
-  return 
+    log.info('Forecast finished successfully')
+    return
+
+
 #######################################################################
 
 
-
-
 if __name__ == '__main__':
-  pass
+    pass
 #####################################################################

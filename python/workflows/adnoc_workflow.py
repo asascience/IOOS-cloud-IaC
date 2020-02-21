@@ -1,58 +1,58 @@
 #!/usr/bin/env python3
-import os
-import multiprocessing as mp
-from dask.distributed import Client
 
 # keep things cloud platform agnostic at this layer
+
+# Local dependencies
+import tasks as tasks
+import cluster_tasks as ctasks
 
 # 3rd party dependencies
 from prefect import Flow
 
-# Local dependencies
-import workflow_tasks as tasks
-
-
 # Change the following for specific configurations and jobs
-#provider = 'Local'
+# provider = 'Local'
 provider = 'AWS'
 
-if provider == 'AWS':
-  fcstconf = 'configs/adnoc.config'
-  fcstjobfile = 'jobs/adnoc.job'
-elif provider == 'Local':
-  fcstconf = 'configs/local.config'
-  fcstjobfile = 'jobs/adnoc.job'
+fcstconf = ""
+fcstjobfile = ""
 
+if provider == 'AWS':
+    fcstconf = 'configs/adnoc.config'
+    fcstjobfile = 'jobs/adnoc.job'
+elif provider == 'Local':
+    fcstconf = 'configs/local.config'
+    fcstjobfile = 'jobs/adnoc.job'
 
 with Flow('ofs workflow') as flow:
+    #####################################################################
+    # FORECAST
+    #####################################################################
 
-  #####################################################################
-  # FORECAST
-  #####################################################################
+    # Create the cluster object
+    cluster = ctasks.cluster_init(fcstconf, provider)
 
-  # Create the cluster object
-  cluster = tasks.cluster_init(fcstconf,provider)
+    # Start the cluster
+    fcStarted = ctasks.cluster_start(cluster)
 
-  # Start the cluster
-  fcStarted = tasks.cluster_start(cluster)
+    # Setup the job
+    fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
+    flow.add_edge(fcStarted, fcstjob)
 
-  # Setup the job 
-  fcstjob = tasks.job_init(cluster, fcstjobfile, 'roms')
-  flow.add_edge(fcStarted,fcstjob)
+    # Run the forecast
+    fcstStatus = tasks.forecast_run(cluster, fcstjob)
+    flow.add_edge(fcstjob, fcstStatus)
 
-  # Run the forecast
-  fcstStatus = tasks.forecast_run(cluster,fcstjob)
-  flow.add_edge(fcstjob,fcstStatus)
+    # Terminate the cluster nodes
+    fcTerminated = ctasks.cluster_terminate(cluster)
+    flow.add_edge(fcstStatus, fcTerminated)
 
-  # Terminate the cluster nodes
-  fcTerminated = tasks.cluster_terminate(cluster)
-  flow.add_edge(fcstStatus,fcTerminated)
 
 #######################################################################
 
 
 def main():
-  flow.run()
+    flow.run()
+
 
 if __name__ == '__main__':
-  main()
+    main()

@@ -1,14 +1,10 @@
 import os
 
-from prefect import Flow, task, unmapped
-from prefect.engine.executors import DaskExecutor
-from dask.distributed import Client
-
-from plotting.tasks import plot_roms
+from plotting import plot
+from prefect import Flow, unmapped
 
 
 def main():
-
     SOURCE = os.path.abspath('/Users/kenny.ells/data/dubai_his_arg.20191226')
     TARGET = os.path.abspath('tmp')
     FILES = sorted([os.path.join(SOURCE, f) for f in os.listdir(SOURCE)])
@@ -18,7 +14,7 @@ def main():
         os.mkdir(TARGET)
 
     with Flow('plotting') as flow:
-        plot_roms.map(ncfile=FILES, target=unmapped(TARGET), varname=unmapped('temp'))
+        plot.plot_roms.map(ncfile=FILES, target=unmapped(TARGET), varname=unmapped('temp'))
 
     # When calling dask-scheduler and dask-worker at the command line
     # address_tcp = 'tcp://10.90.69.73:8786'
@@ -35,5 +31,6 @@ def main():
     # Ignoring Dask
     flow.run()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main()
