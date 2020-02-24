@@ -25,9 +25,8 @@ daysoldplots=1
 
 echo "Deleting old plots"
 cd $COMROT/plots
-find . -depth -type d -daystart -mtime +$daysoldplots
-#find . -type d -daystart -mtime +$daysoldplots -exec rm -Rf {} \;
-find . -depth -type d -daystart -mtime +$daysoldplots -delete
+find . -depth -name "[A-Za-z0-9]*" -type d -daystart -mtime +$daysoldplots
+find . -depth -name "[A-Za-z0-9]*" -type d -daystart -mtime +$daysoldplots -exec rm -Rf {} \;
 
 
 
