@@ -71,7 +71,7 @@ ncyc=`echo $NEXT | cut -c9-10`
 
 nsfx=${NCDATE}.t${ncyc}z.nc
 
-if [ $cyc == 18 ] ; then
+if [ "$cyc" -eq "18" ] ; then
   url=https://nomads.ncep.noaa.gov/pub/data/nccf/com/nos/prod/${ofs}.$NCDATE 
 fi
 

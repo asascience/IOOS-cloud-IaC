@@ -1,7 +1,12 @@
+#!/usr/bin/python3
+
+from signal import signal, SIGINT
 import logging
 
 from distributed import Client
 from prefect import Flow
+from prefect.engine import signals
+
 import tasks as tasks
 import cluster_tasks as ctasks
 import job_tasks as jtasks
@@ -133,9 +138,16 @@ def test_flow(fcstconf, fcstjobfile) -> Flow:
     return testflow
 
 
+def handler(signal_received, frame):
+    print('SIGINT or CTRL-C detected. Exiting gracefully')
+    raise signals.FAIL() 
+
 if __name__ == '__main__':
-    fcstconf = f'../configs/leofs.config'
-    jobfile = f'../jobs/leofs.00z.fcst'
+
+    signal(SIGINT, handler)
+
+    fcstconf = f'../configs/nwgofs.config'
+    jobfile = f'../jobs/nwgofs.03z.fcst'
 
     fcstflow = test_flow(fcstconf, jobfile)
     fcstflow.run()

@@ -1,13 +1,13 @@
 {
   "JOBTYPE"   : "fvcomforecast",
-  "OFS"       : "leofs",
+  "OFS"       : "ngofs",
   "CDATE"     : "today",
-  "HH"        : "00",
-  "NHOURS"    : "120",
+  "HH"        : "03",
+  "NHOURS"    : "6",
   "COMROT"    : "/com/nos",
-  "DATE_REF"  : "2015-01-01 00:00:00",
+  "DATE_REF"  : "2012-01-01 00:00:00",
   "BUCKET"    : "ioos-cloud-sandbox",
-  "BCKTFLDR"  : "/nos/leofs/output",
+  "BCKTFLDR"  : "/nos/ngofs/output",
   "OUTDIR"    : "auto",
   "INPUTFILE" : "auto",
   "INTMPL"    : "auto"

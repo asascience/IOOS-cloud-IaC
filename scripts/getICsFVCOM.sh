@@ -17,8 +17,8 @@ COMDIR=$4
 if [ -d $COMDIR ]; then
  list=`ls -1 $COMDIR | wc -l`
  if [ $list -gt 4 ] ; then
-   echo "Looks like ICs already exist. Remove the files to force the download..."
-   echo ".... skipping."
+   echo "Looks like ICs already exist. .... skipping"
+   echo "Remove the files in $COMDIR to re-download."
    exit 0
  fi
 fi
@@ -49,6 +49,17 @@ do
   wget -nc $nomads/$file
 done
 
+# If negofs or nwgofs, we can either retrieve the obc file from NOMADS
+# OR we can copy it from a locally ran ngofs forecast from the same day
+# /com/nos/ngofs.20200225
+# nos.ngofs.nestnode.negofs.forecast.20200225.t03z.nc
+# nos.ngofs.nestnode.nwgofs.forecast.20200225.t03z.nc
+#
+# Rename 
+# /com/nos/ngofs.20200225/nos.ngofs.nestnode.nwgofs.forecast.20200225.t03z.nc
+# to: 
+# /com/nos/nwgofs.20200225/nos.nwgofs.obc.20200225.03.nc
+
 # Fetch the restart/init file
 # The restart file is the next cycle's 'init' file
 
@@ -60,7 +71,7 @@ ncyc=`echo $NEXT | cut -c9-10`
 nsfx=${NCDATE}.t${ncyc}z.nc
 
 # if current cycle is last for the day, the next cycle will be during the next day
-if [ $cyc -eq 21 || $cyc -eq 18 ] ; then
+if [ "$cyc" -eq "21" -o "$cyc" -eq "18" ] ; then
   nomads=https://nomads.ncep.noaa.gov/pub/data/nccf/com/nos/prod/${ofs}.$NCDATE
 fi
 

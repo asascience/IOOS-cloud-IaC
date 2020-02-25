@@ -1,6 +1,7 @@
 import datetime
 import os
 import sys
+import shutil
 
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
@@ -29,8 +30,15 @@ class FVCOMForecast(Job):
             print(f"DEBUG: job file is: {configfile}")
 
         cfDict = self.readConfig(configfile)
+
         self.parseConfig(cfDict)
         self.make_fcstin()
+
+        if self.LOCALNEST:
+            # nos.ngofs.nestnode.negofs.forecast.20200225.t03z.nc
+            PARENTNEST = f"{self.COMROT}/ngofs.{self.CDATE}/nos.ngofs.nestnode.{self.OFS}.forecast.{self.CDATE}.t{self.HH}z.nc"
+            LOCALOBC   = f"{self.OUTDIR}/nos.{self.OFS}.obc.{self.CDATE}.t{self.HH}z.nc"
+            shutil.copyfile(PARENTNEST, LOCALOBC) 
 
     ########################################################################
     def parseConfig(self, cfDict):
@@ -47,12 +55,19 @@ class FVCOMForecast(Job):
         self.INPUTFILE = cfDict['INPUTFILE']
         self.INTMPL = cfDict['INTMPL']       # Input file template
 
+        # NESTING support
+        if self.OFS in ('nwgofs', 'negofs'):
+          self.LOCALNEST = cfDict['LOCALNEST'] == "True"   # Correctly evaluates to True or False boolean
+
         if self.CDATE == "today":
             today = datetime.date.today().strftime("%Y%m%d")
             self.CDATE = today
 
         if self.INTMPL == "auto":
             self.INTMPL = f"{self.TEMPLPATH}/{self.OFS}.fcst.in"
+
+        if self.OUTDIR == "auto":
+            self.OUTDIR = f"{self.COMROT}/{self.OFS}.{self.CDATE}"
 
         return
 
@@ -80,9 +95,6 @@ class FVCOMForecast(Job):
         COMROT = self.COMROT
         NHOURS = self.NHOURS 
         template = self.INTMPL
-
-        if self.OUTDIR == "auto":
-            self.OUTDIR = f"{COMROT}/{OFS}.{CDATE}"
 
         if not os.path.exists(self.OUTDIR):
             os.makedirs(self.OUTDIR)
