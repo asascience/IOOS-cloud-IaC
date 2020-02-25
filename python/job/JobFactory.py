@@ -1,12 +1,11 @@
 import json
 
-from job.Plotting import Plotting
+from job.Job import Job
 from job.ROMSForecast import ROMSForecast
-
-from Job import Job
+from job.Plotting import Plotting
+from job.FVCOMForecast import FVCOMForecast
 
 debug = True
-
 
 class JobFactory:
 
@@ -19,10 +18,12 @@ class JobFactory:
         newjob = None
 
         cfdict = self.readconfig(configfile)
-        jobtype = cfdict['jobtype']
+        jobtype = cfdict['JOBTYPE']
 
         if jobtype == 'romsforecast':
             newjob = ROMSForecast(configfile, NPROCS)
+        elif jobtype == 'fvcomforecast':
+            newjob = FVCOMForecast(configfile, NPROCS)
         elif jobtype == 'plotting':
             newjob = Plotting(configfile, NPROCS)
         else:

@@ -26,9 +26,9 @@ from prefect.engine import signals
 
 # Local dependencies
 
-import Job
-from JobFactory import JobFactory
-from Cluster import Cluster
+from job.Job import Job
+from job.JobFactory import JobFactory
+from cluster.Cluster import Cluster
 
 from services.StorageService import StorageService
 from services.S3Storage import S3Storage
@@ -38,12 +38,6 @@ debug = False
 
 log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcName)s | %(message)s')
-ch.setFormatter(formatter)
-log.addHandler(ch)
-
 
 # Storage
 #######################################################################
@@ -177,7 +171,7 @@ def forecast_run(cluster: Cluster, job: Job):
     OFS = job.OFS
     NPROCS = job.NPROCS
     OUTDIR = job.OUTDIR
-    EXEC = job.EXEC
+    #EXEC = job.EXEC
 
     runscript = f"{curdir}/fcst_launcher.sh"
 
@@ -188,7 +182,7 @@ def forecast_run(cluster: Cluster, job: Job):
         raise signals.FAIL()
 
     try:
-        result = subprocess.run([runscript, CDATE, HH, OUTDIR, str(NPROCS), str(PPN), HOSTS, OFS, EXEC], \
+        result = subprocess.run([runscript, CDATE, HH, OUTDIR, str(NPROCS), str(PPN), HOSTS, OFS], \
                                 stderr=subprocess.STDOUT)
 
         if result.returncode != 0:

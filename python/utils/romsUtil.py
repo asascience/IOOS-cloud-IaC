@@ -78,8 +78,8 @@ def makeOceanin(NPROCS, settings, template, outfile, ratio=1.0):
     sedoceanin(template, outfile, settings)
     return
 
+#####################################################################
 
-#######################################################################
 
 
 def ndays(cdate1, cdate2):
@@ -129,7 +129,7 @@ def ndays(cdate1, cdate2):
 #####################################################################
 
 
-def ndate_hrs(cdate, hours):
+def ndate_hrs(cdate :str, hours :int):
     ''' return the YYYYMMDD for CDATE +/- hours '''
 
     y1 = int(cdate[0:4])

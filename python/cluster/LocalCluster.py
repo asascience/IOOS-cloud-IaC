@@ -3,7 +3,7 @@ import json
 import os
 from subprocess import Popen
 
-import Cluster
+from cluster.Cluster import Cluster
 
 debug = False
 
@@ -57,14 +57,14 @@ class LocalCluster(Cluster):
 
         # Could do the parse here instead also, more than one way to do it
         # return cfDict
-        self.__parseConfig(cfDict)
+        self.parseConfig(cfDict)
 
         return cfDict
 
     ########################################################################
 
     ########################################################################
-    def __parseConfig(self, cfDict):
+    def parseConfig(self, cfDict):
         self.platform = cfDict['platform']
         return
 

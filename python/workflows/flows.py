@@ -1,12 +1,21 @@
+import logging
+
 from distributed import Client
 from prefect import Flow
 import tasks as tasks
 import cluster_tasks as ctasks
 import job_tasks as jtasks
-from Cluster import Cluster
+from cluster.Cluster import Cluster
+
+log = logging.getLogger('workflow')
+log.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcName)s | %(message)s')
+ch.setFormatter(formatter)
+log.addHandler(ch)
 
 provider = 'AWS'
-
 
 def fcst_flow(fcstconf, fcstjobfile, sshuser) -> Flow:
     # fcstconf = f'{curdir}/configs/liveocean.config'
@@ -19,7 +28,7 @@ def fcst_flow(fcstconf, fcstjobfile, sshuser) -> Flow:
         #####################################################################
 
         # Create the cluster object
-        cluster = ctasks.cluster_init(fcstconf, provider)
+        cluster = ctasks.cluster_init(fcstconf)
 
         # Setup the job
         fcstjob = tasks.job_init(cluster, fcstjobfile)
@@ -55,7 +64,7 @@ def plot_flow(postconf, postjobfile) -> Flow:
         #####################################################################
 
         # Start a machine
-        postmach = ctasks.cluster_init(postconf, provider)
+        postmach = ctasks.cluster_init(postconf)
         pmStarted = ctasks.cluster_start(postmach)
 
         # Push the env, install required libs on post machine
@@ -95,7 +104,7 @@ def plot_flow(postconf, postjobfile) -> Flow:
 def test_flow(fcstconf, fcstjobfile) -> Flow:
     with Flow('fcst workflow') as testflow:
         # Create the cluster object
-        cluster = ctasks.cluster_init(fcstconf, provider)
+        cluster = ctasks.cluster_init(fcstconf)
 
         # Setup the job
         fcstjob = tasks.job_init(cluster, fcstjobfile)
@@ -125,8 +134,8 @@ def test_flow(fcstconf, fcstjobfile) -> Flow:
 
 
 if __name__ == '__main__':
-    fcstconf = f'../configs/cbofs.config'
-    jobfile = f'../jobs/cbofs.00z.fcst'
+    fcstconf = f'../configs/leofs.config'
+    jobfile = f'../jobs/leofs.00z.fcst'
 
     fcstflow = test_flow(fcstconf, jobfile)
     fcstflow.run()

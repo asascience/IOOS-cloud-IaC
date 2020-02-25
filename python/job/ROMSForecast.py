@@ -7,7 +7,7 @@ if os.path.abspath('..') not in sys.path:
 
 curdir = os.path.dirname(os.path.abspath(__file__))
 
-import Job
+from job.Job import Job
 import utils.romsUtil as util
 
 debug = False
@@ -29,11 +29,11 @@ class ROMSForecast(Job):
             print(f"DEBUG: job file is: {configfile}")
 
         cfDict = self.readConfig(configfile)
-        self.__parseConfig(cfDict)
+        self.parseConfig(cfDict)
         self.make_oceanin()
 
     ########################################################################
-    def __parseConfig(self, cfDict):
+    def parseConfig(self, cfDict):
 
         self.OFS = cfDict['OFS']
         self.CDATE = cfDict['CDATE']

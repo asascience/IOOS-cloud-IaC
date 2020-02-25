@@ -4,20 +4,29 @@
 module load produtil
 module load gcc
 
-if [ $# -lt 2 ] ; then
-  echo "Usage: $0 YYYYMMDD HH [ngofs|negofs|etc.]"
+if [ $# -lt 4 ] ; then
+  echo "Usage: $0 YYYYMMDD HH ngofs|negofs|etc. COMDIR "
   exit 1
 fi
 
 CDATE=$1
 cyc=$2
-ofs=${3:-ngofs}
+ofs=$3
+COMDIR=$4
 
-# Need to create a single script that will do any ofs
+if [ -d $COMDIR ]; then
+ list=`ls -1 $COMDIR | wc -l`
+ if [ $list -gt 4 ] ; then
+   echo "Looks like ICs already exist. Remove the files to force the download..."
+   echo ".... skipping."
+   exit 0
+ fi
+fi
 
-ICDIR=/com/nos/${ofs}.$CDATE
-mkdir -p $ICDIR
-cd $ICDIR
+#COMDIR=${COMDIR:-/com/nos/${ofs}.$CDATE}
+mkdir -p $COMDIR
+cd $COMDIR
+
 
 nomads=https://nomads.ncep.noaa.gov/pub/data/nccf/com/nos/prod/${ofs}.${CDATE}
 
@@ -50,8 +59,8 @@ ncyc=`echo $NEXT | cut -c9-10`
 
 nsfx=${NCDATE}.t${ncyc}z.nc
 
-# if current cycle is '21' the next cycle will be during the next day
-if [ $cyc == 21 ] ; then
+# if current cycle is last for the day, the next cycle will be during the next day
+if [ $cyc -eq 21 || $cyc -eq 18 ] ; then
   nomads=https://nomads.ncep.noaa.gov/pub/data/nccf/com/nos/prod/${ofs}.$NCDATE
 fi
 

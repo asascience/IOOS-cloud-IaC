@@ -143,7 +143,7 @@ class Cluster(ABC):
         pass
 
     @abstractmethod
-    def __parseConfig(self):
+    def parseConfig(self):
         pass
 
     @abstractmethod

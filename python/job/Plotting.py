@@ -6,10 +6,9 @@ import sys
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
 
-import Job
+from job.Job import Job
 
 debug = True
-
 
 class Plotting(Job):
 
@@ -31,11 +30,11 @@ class Plotting(Job):
             print(json.dumps(cfDict, indent=4))
             print(str(cfDict))
 
-        self.__parseConfig(cfDict)
+        self.parseConfig(cfDict)
 
     ########################################################################
 
-    def __parseConfig(self, cfDict):
+    def parseConfig(self, cfDict):
 
         self.OFS = cfDict['OFS']
         self.CDATE = cfDict['CDATE']

@@ -7,18 +7,16 @@ opts="-nc -np -r"
 
 fixdirs="
 fix/cbofs/
+fix/dbofs/
 fix/ngofs/
 fix/negofs/
 fix/nwgofs/
 fix/shared/
 "
 
-fixdirs='
-  fix/ngofs/
-'
 
 fixdirs='
-  fix/dbofs/
+fix/leofs/
 '
 
 for dir in $fixdirs

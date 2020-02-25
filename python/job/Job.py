@@ -26,9 +26,8 @@ class Job(ABC):
 
     ########################################################################
 
-    '''
     def readConfig(self, configfile):
-        # TODO call the regular function in this module
+
         with open(configfile, 'r') as cf:
             cfDict = json.load(cf)
 
@@ -36,14 +35,12 @@ class Job(ABC):
             print(json.dumps(cfDict, indent=4))
             print(str(cfDict))
 
-        # Could do the parse here instead also, more than one way to do it
         return cfDict
 
     ########################################################################
-    '''
 
     @abstractmethod
-    def __parseConfig(self, cfDict) :
+    def parseConfig(self, cfDict) :
         pass
 
 

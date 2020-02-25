@@ -11,7 +11,7 @@ from distributed import Client
 from prefect.engine import signals
 from prefect import task
 
-from Job import Job
+from job.Job import Job
 from plotting import plot
 
 import utils.romsUtil as util
@@ -22,12 +22,6 @@ curdir = os.path.dirname(os.path.abspath(__file__))
 
 log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcName)s | %(message)s')
-ch.setFormatter(formatter)
-log.addHandler(ch)
-
 
 # generic, should be job
 @task
@@ -111,7 +105,15 @@ def get_forcing(job: Job, sshuser=None):
         if result.returncode != 0:
             log.exception(f'Retrieving ICs failed ... result: {result.returncode}')
             raise signals.FAIL()
+    elif ofs in ('ngofs', 'nwgofs', 'negofs', 'leofs', 'sfbofs', 'lmhofs'):
+        comdir = f"{comrot}/{ofs}.{cdate}"
+        script = f"{curdir}/../../scripts/getICsFVCOM.sh"
 
+        # echo "Usage: $0 YYYYMMDD HH ngofs|(other FVCOM model) COMDIR"
+        result = subprocess.run([script, cdate, hh, ofs, comdir], stderr=subprocess.STDOUT)
+        if result.returncode != 0:
+            log.exception(f'Retrieving ICs failed ... result: {result.returncode}')
+            raise signals.FAIL()
     else:
         log.error("Unsupported forecast: ", ofs)
         raise signals.FAIL()

@@ -3,7 +3,7 @@ set -xa
 ulimit -c unlimited
 ulimit -s unlimited
 
-if [ $# -ne 8 ] ; then
+if [ $# -ne 7 ] ; then
   echo "Usage: $0 YYYYMMDD HH COMOUT NPROCS PPN HOSTS <cbofs|ngofs|liveocean|adnoc>"
   exit 1
 fi
@@ -26,8 +26,6 @@ export NPROCS=$4
 export PPN=$5
 export HOSTS=$6
 export OFS=$7
-export EXEC=$8
-
 
 
 #OpenMPI
@@ -81,7 +79,7 @@ case $OFS in
     cd "$JOBDIR" || exit 1
     $JOBSCRIPT $JOBARGS
     ;;
-  cbofs | dbofs)
+  cbofs | dbofs | leofs | ngofs | nwgofs | negofs )
     export HOMEnos=/save/nosofs-NCO
     export JOBDIR=$HOMEnos/jobs
     export JOBSCRIPT=$JOBDIR/fcstrun.sh
@@ -91,6 +89,7 @@ case $OFS in
     $JOBSCRIPT $JOBARGS
     ;;
   adnoc)
+    EXEC=roms
     export JOBDIR=$COMOUT
     mkdir -p $JOBDIR/output
     cd "$JOBDIR" || exit 1

@@ -8,31 +8,29 @@ import os
 import sys
 import time
 import traceback
-from os import subprocess
+import subprocess
 
 import pprint
 
 from distributed import Client
-from prefect.core import task
+from prefect import task
 from prefect.engine import signals
 from prefect.triggers import all_finished
 
-from Cluster import Cluster
-from ClusterFactory import ClusterFactory
+from cluster.Cluster import Cluster
+from cluster.ClusterFactory import ClusterFactory
 
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
+
 curdir = os.path.dirname(os.path.abspath(__file__))
 
 pp = pprint.PrettyPrinter()
 
 log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcName)s | %(message)s')
-ch.setFormatter(formatter)
-log.addHandler(ch)
+
+#######################################################################
 
 
 # cluster
@@ -40,9 +38,9 @@ log.addHandler(ch)
 def cluster_init(config) -> Cluster:
 
     factory = ClusterFactory()
-    cluster = factory.cluster(config)
-    return cluster
+    newcluster = factory.cluster(config)
 
+    return newcluster
 
 #######################################################################
 
@@ -157,3 +155,5 @@ def start_dask(cluster) -> Client:
 def dask_client_close(daskclient: Client):
     daskclient.close()
     return
+
+

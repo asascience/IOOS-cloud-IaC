@@ -3,43 +3,41 @@ import logging
 
 from prefect.engine import signals
 
-from cluster import AWSCluster
-from cluster import Cluster
-from cluster import LocalCluster
+from cluster.Cluster import Cluster
+from cluster.AWSCluster import AWSCluster
+from cluster.LocalCluster import LocalCluster
 
 debug = True
 
 log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter(' %(asctime)s  %(levelname)s - %(module)s.%(funcName)s | %(message)s')
-ch.setFormatter(formatter)
-log.addHandler(ch)
 
 class ClusterFactory:
 
     def __init__(self):
         return
 
-    def cluster(self, configfile) -> Cluster:
 
-        cluster = None
+    def cluster(self,configfile):
 
         cfdict = self.readconfig(configfile)
 
         provider = cfdict['platform']
 
         if provider == 'AWS':
+
             try:
-                cluster = AWSCluster(configfile)
+                print('Attempting to make a newcluster :', provider)
+                newcluster = AWSCluster(configfile)
             except Exception as e:
                 log.exception('Could not create cluster: ' + str(e))
                 raise signals.FAIL()
         elif provider == 'Local':
-            cluster = LocalCluster(configfile)
+            newcluster = LocalCluster(configfile)
 
-        return cluster
+        print("About to return from factory.cluster")
+        return newcluster
+
 
 
     def readconfig(self,configfile):

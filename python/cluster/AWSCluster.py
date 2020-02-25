@@ -10,14 +10,13 @@ import logging
 import boto3
 from botocore.exceptions import ClientError
 
-import nodeInfo
-import Cluster
+import cluster.nodeInfo as nodeInfo
+from cluster.Cluster import Cluster
 
 debug = False
 
 log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)
-
 
 # ch = logging.StreamHandler()
 # ch.setLevel(logging.DEBUG)
@@ -130,7 +129,7 @@ class AWSCluster(Cluster):
         self.placement_group = ''
 
         cfDict = self.readConfig(configfile)
-        self.__parseConfig(cfDict)
+        self.parseConfig(cfDict)
 
         self.PPN = nodeInfo.getPPN(self.nodeType)
         self.NPROCS = self.nodeCount * self.PPN
@@ -181,7 +180,7 @@ class AWSCluster(Cluster):
 
     ########################################################################
 
-    def __parseConfig(self, cfDict):
+    def parseConfig(self, cfDict):
 
         self.platform = cfDict['platform']
         self.region = cfDict['region']
