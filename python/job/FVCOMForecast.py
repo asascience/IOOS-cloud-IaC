@@ -81,7 +81,7 @@ class FVCOMForecast(Job):
 
         # Create the ocean.in file from a template
         if OFS in ('ngofs', 'negofs', 'nwgofs', 'sfbofs', 'leofs', 'lmhofs'):
-            self.__make_fcstin_fvcom()
+            self.__make_fcstin_nosofs()
         else:
             raise Exception(f"{OFS} is not a supported forecast")
 
@@ -89,7 +89,7 @@ class FVCOMForecast(Job):
 
     ########################################################################
 
-    def __make_fcstin_fvcom(self):
+    def __make_fcstin_nosofs(self):
 
         CDATE = self.CDATE
         HH = self.HH

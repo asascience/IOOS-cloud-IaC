@@ -203,82 +203,6 @@ class AWSCluster(Cluster):
         return self.PPN
 
     def start(self):
-        return self.__AWScreateCluster()
-
-    def terminate(self):
-        self.terminateDaskScheduler()
-        return self.__AWSterminateCluster()
-
-    def getHosts(self):
-        return self.__AWSgetHosts()
-
-    def getHostsCSV(self):
-        return self.__AWSgetHostsCSV()
-
-    ########################################################################
-
-    def __AWSgetHosts(self):
-        hosts = []
-
-        for instance in self.__instances:
-            hosts.append(instance.private_dns_name)
-        return hosts
-
-    ########################################################################
-
-    def __AWSgetHostsCSV(self):
-        hosts = ''
-
-        instcnt = len(self.__instances)
-        cnt = 0
-        for instance in self.__instances:
-            cnt += 1
-            hostname = instance.private_dns_name
-            # no comma on last host
-            if cnt == instcnt:
-                hosts += hostname
-            else:
-                hosts += hostname + ','
-        return hosts
-
-    ########################################################################
-
-    ########################################################################
-    # This is a bit of a hack to satisfy AWS
-    def __AWSplacementGroup(self):
-        group = {}
-        if self.nodeType.startswith('c5'):
-            group = {'GroupName': self.placement_group}
-
-        return group
-
-    ########################################################################
-
-    ########################################################################
-    # Specify an efa enabled network interface if supported by node type
-    # Also attaches security groups
-    #
-    # TODO: refactor Groups
-    def __AWSnetInterface(self):
-
-        interface = {
-            'AssociatePublicIpAddress': True,
-            'DeleteOnTermination': True,
-            'Description': 'Network adaptor via boto3 api',
-            'DeviceIndex': 0,
-            'Groups': self.sg_ids,
-            'SubnetId': self.subnet_id
-        }
-
-        if self.nodeType == 'c5n.18xlarge':
-            interface['InterfaceType'] = 'efa'
-
-        return interface
-
-    ########################################################################
-
-    def __AWScreateCluster(self):
-
         ec2 = boto3.resource('ec2', region_name=self.region)
 
         try:
@@ -294,8 +218,8 @@ class AWSCluster(Cluster):
                         'Tags': self.tags
                     }
                 ],
-                Placement=self.__AWSplacementGroup(),
-                NetworkInterfaces=[self.__AWSnetInterface()],
+                Placement=self.__placementGroup(),
+                NetworkInterfaces=[self.__netInterface()],
                 CpuOptions={
                     'CoreCount': self.PPN,
                     'ThreadsPerCore': 1
@@ -336,14 +260,15 @@ class AWSCluster(Cluster):
             inum += 1
 
         if not (ready):
-            self.__AWSterminateCluster()
+            self.__terminateCluster()
             raise Exception('Nodes did not start within time limit... terminating them...')
 
         return self.__instances
 
-    ########################################################################
 
-    def __AWSterminateCluster(self):
+
+    def terminate(self):
+        self.terminateDaskScheduler()
 
         # Terminate any running dask scheduler
         self.terminateDaskScheduler()
@@ -359,6 +284,64 @@ class AWSCluster(Cluster):
             responses.append(response)
 
         return responses
+
+    def getHosts(self):
+        hosts = []
+
+        for instance in self.__instances:
+            hosts.append(instance.private_dns_name)
+        return hosts
+
+    def getHostsCSV(self):
+        hosts = ''
+
+        instcnt = len(self.__instances)
+        cnt = 0
+        for instance in self.__instances:
+            cnt += 1
+            hostname = instance.private_dns_name
+            # no comma on last host
+            if cnt == instcnt:
+                hosts += hostname
+            else:
+                hosts += hostname + ','
+        return hosts
+
+    ########################################################################
+
+
+    ########################################################################
+    # This is a bit of a hack to satisfy AWS
+    def __placementGroup(self):
+        group = {}
+        if self.nodeType.startswith('c5'):
+            group = {'GroupName': self.placement_group}
+
+        return group
+
+    ########################################################################
+
+    ########################################################################
+    # Specify an efa enabled network interface if supported by node type
+    # Also attaches security groups
+    #
+    # TODO: refactor Groups
+    def __netInterface(self):
+
+        interface = {
+            'AssociatePublicIpAddress': True,
+            'DeleteOnTermination': True,
+            'Description': 'Network adaptor via boto3 api',
+            'DeviceIndex': 0,
+            'Groups': self.sg_ids,
+            'SubnetId': self.subnet_id
+        }
+
+        if self.nodeType == 'c5n.18xlarge':
+            interface['InterfaceType'] = 'efa'
+
+        return interface
+
     ########################################################################
 
 
