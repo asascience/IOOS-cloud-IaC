@@ -10,7 +10,8 @@ import PIL.Image
 import numpy as np
 import matplotlib.pyplot as plt
 
-from plotting import tile
+# from plotting import tile
+import tile
 
 def png_ffmpeg(source, target):
     '''Make a movie from a set of sequential png files
@@ -51,9 +52,6 @@ def png_ffmpeg(source, target):
 
 def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: int = 8):
     ''''''
-
-    EPSG3857 = pyproj.Proj('EPSG:3857')
-    TILE3857 = tile.Tile3857()
 
     with netCDF4.Dataset(ncfile) as nc:
 
@@ -277,6 +275,9 @@ def roms_plot(mask, lon, lat, data, zoom=10):
 
 if __name__=='__main__':
 
+    EPSG3857 = pyproj.Proj('EPSG:3857')
+    TILE3857 = tile.Tile3857()
+
     f_aws = '/Users/kenny.ells/data/cbofs/AWS.cbofs.20191021/nos.cbofs.fields.f048.20191021.t00z.nc'
     f_noaa = '/Users/kenny.ells/data/cbofs/NOAA.cbofs.20191021/nos.cbofs.fields.f048.20191021.t00z.nc'
 
@@ -290,4 +291,4 @@ if __name__=='__main__':
     d_diff = d_aws - d_noaa
 
     # Plot and save
-    roms_plot(msk, lo, la, data_diff)
+    roms_plot(msk, lo, la, d_diff)
