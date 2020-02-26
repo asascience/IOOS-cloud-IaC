@@ -7,32 +7,33 @@ import boto3
 #def setobjtag (bucket: str, project: str):
 
 
-
 def main():
 
     s3 = boto3.client('s3')
     paginator = s3.get_paginator('list_objects_v2')
 
-    donebukets = {
-        'apptio-eds-108193140983':'EDS',
-        'eds-master':'EDS' }
-
-
-    # FIX THIS ONE        'eds-snowball':'EDS',
+    # FIX THIS    'eds-snowball':'EDS',
+    # Redo the following
     # eds-snowball/destfolder/RADIALS/OSU/YHL1/
-    # next is:
     # eds-snowball/destfolder/RADIALS/OSU/YHS2/
-    # :end of RADIALS/OSU
 
+    # destfolder/RADIALS/Rutgers
+    # destfolder/RADIALS/SC
+    # destfolder/RADIALS/SFSU
+    # destfolder/RADIALS/SIO
+    # destfolder/RADIALS/SIT
+    # destfolder/RADIALS/SKIO
+    # destfolder/RADIALS/SLO
 
     buckettags = {
-        'edsapilogs':'EDS',
-        'hycomglobal':'EDS',
-        'radials':'EDS/OTT-RADIALS' }
+        'eds-snowball':'EDS',
+    }
 
-    # Skip these
-    #p = re.compile('(backup/Home/projects/acrosby|backup/Home/projects/dpsnowden|COMTUT)')
-    p = re.compile('dontmatchanything123456')
+    # Redo these
+    #p = re.compile('(destfolder/RADIALS/OSU/YHL1/|destfolder/RADIALS/OSU/YHS2)')  # DONE
+    p = re.compile('( destfolder/RADIALS/Rutgers| destfolder/RADIALS/SC| destfolder/RADIALS/SFSU| destfolder/RADIALS/SIO| 
+                      destfolder/RADIALS/SIT| destfolder/RADIALS/SKIO| destfolder/RADIALS/SLO)')
+
 
     for bucket in buckettags.keys():
         project = buckettags[bucket]
@@ -50,10 +51,10 @@ def main():
                 for content in page['Contents']:
                     key = content['Key']
                     if p.match(key): 
-                      print(f"bucket/key: {bucket}/{key} ------- Skipped")
-                    else:
                       print(f"bucket/key: {bucket}/{key}")
                       s3.put_object_tagging(Bucket=bucket, Key=key, Tagging={'TagSet': [ newtag ] })
+                    else:
+                      print(f"bucket/key: {bucket}/{key} ------- Skipped")
 
 
 if __name__ == '__main__':
