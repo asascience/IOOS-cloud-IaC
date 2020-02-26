@@ -58,6 +58,8 @@ class FVCOMForecast(Job):
         # NESTING support
         if self.OFS in ('nwgofs', 'negofs'):
           self.LOCALNEST = cfDict['LOCALNEST'] == "True"   # Correctly evaluates to True or False boolean
+        else:
+          self.LOCALNEST = None
 
         if self.CDATE == "today":
             today = datetime.date.today().strftime("%Y%m%d")
