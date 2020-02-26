@@ -41,6 +41,9 @@ cd $COMDIR
 pfx=nos.${ofs}
 sfx=${CDATE}.t${cyc}z.nc
 
+#https://nomads.ncep.noaa.gov/pub/data/nccf/com/nos/prod/gomofs.20200226/nos.gomofs.clim.20200226.t00z.nc
+
+
 icfiles="
 $pfx.met.forecast.$sfx
 $pfx.obc.$sfx
@@ -60,6 +63,16 @@ done
 
 # Need to rename the tides file - roms is still using generic name
 cp -pf $pfx.roms.tides.$sfx nos.${ofs}.roms.tides.nc 
+
+if [ "$ofs" -eq "gomofs" ]; then
+  #nos.gomofs.clim.20200226.t00z.nc
+  climfile=$pfx.clim.$sfx
+  wget -nc ${url}/$climfile
+  if [[ $? -ne 0 ]] ; then
+    echo "ERROR: Unable to retrieve $climfile from $url"
+    exit -1
+  fi 
+fi
 
 # Fetch the restart/init file
 # ININAME == nos.cbofs.rst.nowcast.20191001.t00z.nc

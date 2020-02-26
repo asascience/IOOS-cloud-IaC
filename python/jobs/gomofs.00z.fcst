@@ -1,16 +1,16 @@
 {
   "JOBTYPE"   : "romsforecast",
-  "OFS"       : "tbofs",
+  "OFS"       : "gomofs",
   "CDATE"     : "today",
   "HH"        : "00",
   "COMROT"    : "/com/nos",
   "EXEC"      : "",
-  "TIME_REF"  : "20090101.0d0",
+  "TIME_REF"  : "20160101.0d0",
   "BUCKET"    : "ioos-cloud-sandbox",
-  "BCKTFLDR"  : "/nos/tbofs/output",
-  "NTIMES"    : "34560",
+  "BCKTFLDR"  : "/nos/gomofs/output",
+  "NTIMES"    : "480",
   "ININAME"   : "",
   "OUTDIR"    : "auto",
   "OCEANIN"   : "auto",
-  "OCNINTMPL" : "/home/centos/IOOS-cloud-IaC/python/job/templates/tbofs.ocean.in"
+  "OCNINTMPL" : "/home/centos/IOOS-cloud-IaC/python/job/templates/gomofs.ocean.in"
 }

@@ -149,8 +149,11 @@ if __name__ == '__main__':
     #fcstconf = f'../configs/negofs.config'
     #jobfile = f'../jobs/negofs.03z.fcst'
 
-    fcstconf = f'../configs/tbofs.config'
-    jobfile = f'../jobs/tbofs.00z.fcst'
+    #fcstconf = f'../configs/tbofs.config'
+    #jobfile = f'../jobs/tbofs.00z.fcst'
+
+    fcstconf = f'../configs/gomofs.config'
+    jobfile = f'../jobs/gomofs.00z.fcst'
 
     fcstflow = test_flow(fcstconf, jobfile)
     fcstflow.run()
