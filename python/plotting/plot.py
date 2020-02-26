@@ -92,6 +92,9 @@ def plot_png(source='dubai', target='figs'):
             print('Finished {}'.format(f))
 
 
+def extract_ncdata(ncfile: str, varname: str):
+    return
+
 def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: int = 8):
     ''''''
 

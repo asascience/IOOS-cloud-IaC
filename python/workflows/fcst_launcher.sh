@@ -4,7 +4,7 @@ ulimit -c unlimited
 ulimit -s unlimited
 
 if [ $# -ne 7 ] ; then
-  echo "Usage: $0 YYYYMMDD HH COMOUT NPROCS PPN HOSTS <cbofs|ngofs|liveocean|adnoc>"
+  echo "Usage: $0 YYYYMMDD HH COMOUT NPROCS PPN HOSTS <cbofs|ngofs|liveocean|adnoc|etc.>"
   exit 1
 fi
 
@@ -79,7 +79,7 @@ case $OFS in
     cd "$JOBDIR" || exit 1
     $JOBSCRIPT $JOBARGS
     ;;
-  cbofs | dbofs | leofs | ngofs | nwgofs | negofs )
+  cbofs | dbofs | tbofs | gomofs | leofs | ngofs | nwgofs | negofs )
     export HOMEnos=/save/nosofs-NCO
     export JOBDIR=$HOMEnos/jobs
     export JOBSCRIPT=$JOBDIR/fcstrun.sh

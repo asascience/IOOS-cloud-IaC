@@ -96,7 +96,7 @@ def get_forcing(job: Job, sshuser=None):
             log.exception('Problem encountered with downloading forcing data ...')
             raise signals.FAIL()
 
-    elif ofs in ('cbofs', 'dbofs'):
+    elif ofs in ('cbofs', 'dbofs', 'tbofs', 'gomofs'):
         comdir = f"{comrot}/{ofs}.{cdate}"
         script = f"{curdir}/../../scripts/getICsROMS.sh"
 
