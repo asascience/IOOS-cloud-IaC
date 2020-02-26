@@ -1,3 +1,4 @@
+import glob
 import os
 import traceback
 import subprocess
@@ -56,6 +57,8 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: 
 
     with netCDF4.Dataset(ncfile) as nc:
 
+        # print(f'[plot.plot_roms] Reading file: {ncfile}')
+
         # Extract spatial variables
         lon = nc.variables['lon_rho'][:]
         lat = nc.variables['lat_rho'][:]
@@ -83,7 +86,10 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: 
         # loop times in file
         for t in range(len(time)):
 
-            d = d[t, :] # select time
+            # print(f'[plot.plot_roms] Looping times at t={t}\n')
+
+            # select time
+            d = d[t, :]
 
             # check for vertical coordinate
             if d.ndim > 2:
@@ -93,14 +99,14 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: 
             d = np.ma.masked_where(msk == 0, d)
 
             # pcolor uses surrounding points, if any are masked, mask this cell
-            #   see https://matplotlib.org/api/_as_gen/matplotlib.pyplot.pcolor.html
+            # see https://matplotlib.org/api/_as_gen/matplotlib.pyplot.pcolor.html
             d[:-1,:] = np.ma.masked_where(msk[1:,:] == 0, d[:-1,:])
             d[:,:-1] = np.ma.masked_where(msk[:,1:] == 0, d[:,:-1])
 
             # image size/resolution
             #dpi = 256
             dpi = 96
-            #dpi = 512   # suitable for screen and web
+            # dpi = 512   # suitable for screen and web
             height = nty * dpi
             width  = ntx * dpi
 
@@ -156,7 +162,9 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: 
             filename = f'{target}/f{sequence}_{varname}.png'
             #fig.savefig(filename, dpi=dpi, bbox_inches='tight', pad_inches=0.0, transparent=False)
             #fig.savefig(filename, dpi=dpi, transparent=False)
-            fig.savefig(filename, dpi=dpi, bbox_inches=None, pad_inches=0.1, transparent=False)
+            if not os.path.exists(filename):
+                fig.savefig(filename, dpi=dpi, bbox_inches=None, pad_inches=0.1, transparent=False)
+                print(f'Created file:\n{filename}')
 
             plt.close(fig)
 
@@ -171,30 +179,115 @@ def plot_roms(ncfile: str, target: str, varname: str, crop: bool = False, zoom: 
             return fig, ax
 
 
+def make_png(varnames, files, target):
+    for v in varnames:
+        for f in  files:
+            if not os.path.exists(target):
+                os.mkdir(target)
+                print(f'created target path: {target}')
+            plot_roms(f, target, v)
 
-    def plot_png(variables, source, target):
-        '''Plot roms output and save to png'''
 
-        data = os.path.join(os.getenv('DATA'), source)
-        if not os.path.exists(target):
-            os.mkdir(target)
-        files = sorted(glob.glob(f'{data}/*.nc'))
 
-        for v in variables:
-            for f in files:
-                plot_roms(f, target, v)
+############################# diff plot stuff #################################
 
+def roms_extract(ncfile, varname='temp', spatial=True):
+
+    with netCDF4.Dataset(ncfile) as nc:
+
+        # Extract spatial variables
+        lon = nc.variables['lon_rho'][:]
+        lat = nc.variables['lat_rho'][:]
+        lo, la = EPSG3857(lon, lat) # project EPSG:4326 to EPSG:3857 (web mercator)
+        msk = nc.variables['mask_rho'][:]
+
+        # Extract temporal variables
+        time = nc.variables['ocean_time']
+        time = netCDF4.num2date(time[:], units=time.units)
+
+        # Extract field data
+        data = nc.variables[varname]
+        d = data[:]
+
+        # Select time
+        # NOTE: this takes first time step. was in a for loop before
+        d = d[0, :]
+
+        # Check for vertical coordinate
+        if d.ndim > 2:
+            d = d[-1,:] # surface is last in ROMS
+
+        # Apply mask
+        d = np.ma.masked_where(msk == 0, d)
+
+        # pcolor uses surrounding points, if any are masked, mask this cell
+        #   see https://matplotlib.org/api/_as_gen/matplotlib.pyplot.pcolor.html
+        d[:-1,:] = np.ma.masked_where(msk[1:,:] == 0, d[:-1,:])
+        d[:,:-1] = np.ma.masked_where(msk[:,1:] == 0, d[:,:-1])
+
+
+        if not spatial:
+            # Only return field data
+            return d
+        else:
+            # Return spatial and field data
+            return msk, lo, la, d
+
+def roms_plot(mask, lon, lat, data, zoom=10):
+
+    # Image size based on tiles
+    mla = lat[mask == 0] # masked lat
+    mlo = lon[mask == 0] # masked lon
+    lrt = TILE3857.tile(mlo.max(), mla.min(), zoom)
+    lrb = TILE3857.bounds(*lrt)
+    ult = TILE3857.tile(mlo.min(), mla.max(), zoom)
+    ulb = TILE3857.bounds(*ult)
+    ntx = lrt[0] - ult[0] + 1 # number of tiles in x
+    nty = lrt[1] - ult[1] + 1 # number of tiles in y
+
+    # image size/resolution
+    #dpi = 256
+    dpi = 96
+    #dpi = 512   # suitable for screen and web
+    height = nty * dpi
+    width  = ntx * dpi
+
+    fig = plt.figure(dpi=dpi, facecolor='#FFFFFF', edgecolor='w')
+    fig.set_alpha(1)
+    fig.set_figheight(height/dpi)
+    fig.set_figwidth(width/dpi)
+
+    ax = fig.add_axes([0., 0., 1., 1.], xticks=[], yticks=[])
+    ax.set_axis_off()
+    #ax.set_axis_on()
+
+    # pcolor
+    #pcolor = ax.pcolor(lon, lat, data, cmap=plt.get_cmap('viridis'), edgecolors='none', linewidth=0.05)
+    pcolor = ax.pcolor(lon, lat, data, cmap=plt.get_cmap('coolwarm'), edgecolor='none', linewidth=0.00)
+
+    #ax.set_frame_on(False)
+    ax.set_frame_on(True)
+    ax.set_clip_on(True)
+    ax.set_position([0, 0, 1, 1])
+
+    # Save
+    filename = 'diffplot.png'
+    fig.savefig(filename, dpi=dpi, bbox_inches=None, pad_inches=0.1, transparent=False)
 
 
 if __name__=='__main__':
 
-    sources = ['AWS.cbofs.20191021', 'NOAA.cbofs.20191021']
-    for s in sources:
-        plot_png('temp', s, )
+    f_aws = '/Users/kenny.ells/data/cbofs/AWS.cbofs.20191021/nos.cbofs.fields.f048.20191021.t00z.nc'
+    f_noaa = '/Users/kenny.ells/data/cbofs/NOAA.cbofs.20191021/nos.cbofs.fields.f048.20191021.t00z.nc'
 
+    # Get the spatial and field data for the first result
+    msk, lo, la, d_aws = roms_extract(f_aws, varname='temp', spatial=True)
 
+    # Get field data for second result
+    d_noaa = roms_extract(f_noaa, varname='temp', spatial=False)
 
-    # ncfile = '/com/liveocean/f2020.02.13/ocean_his_0001.nc'
-    # target = '/com/liveocean/plots/f2020.02.13'
-    # var = 'temp'
-    # plot_roms(ncfile, target, var)
+    # Subtract them
+    d_diff = d_aws - d_noaa
+
+    # Plot and save
+    roms_plot(msk, lo, la, data_diff)
