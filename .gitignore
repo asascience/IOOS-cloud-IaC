@@ -14,4 +14,8 @@ python/*.out
 **/global.lock
 python/workflows/lo.out
 
-#python/*.ipynb
+python/*.ipynb
+figs
+misc
+mov
+*png
