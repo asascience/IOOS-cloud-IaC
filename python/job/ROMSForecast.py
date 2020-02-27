@@ -70,7 +70,7 @@ class ROMSForecast(Job):
             self.__make_oceanin_lo()
         elif OFS == 'adnoc':
             self.__make_oceanin_adnoc()
-        elif OFS in ('cbofs', 'dbofs', 'tbofs', 'gomofs'):
+        elif OFS in ('cbofs', 'dbofs', 'tbofs', 'gomofs', 'ciofs'):
             self.__make_oceanin_nosofs()
         else:
             raise Exception(f"{OFS} is not a supported forecast")
@@ -160,6 +160,9 @@ class ROMSForecast(Job):
         }
 
         # Create the ocean.in
+        # TODO: tweak these configurations for each model.
+        # ratio is used to better balance NtileI/NtileJ with the specific grid
+        # This can impact performance
         if self.OCEANIN == "auto":
             outfile = f"{self.OUTDIR}/nos.{OFS}.forecast.{CDATE}.t{HH}z.in"
             if OFS == 'dbofs':

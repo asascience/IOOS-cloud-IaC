@@ -96,20 +96,21 @@ def get_forcing(job: Job, sshuser=None):
             log.exception('Problem encountered with downloading forcing data ...')
             raise signals.FAIL()
 
-    elif ofs in ('cbofs', 'dbofs', 'tbofs', 'gomofs'):
+    # ROMS models
+    elif ofs in ('cbofs', 'dbofs', 'tbofs', 'gomofs', 'ciofs'):
         comdir = f"{comrot}/{ofs}.{cdate}"
         script = f"{curdir}/../../scripts/getICsROMS.sh"
 
-        # echo "Usage: $0 YYYYMMDD HH cbofs|(other ROMS model) COMDIR"
         result = subprocess.run([script, cdate, hh, ofs, comdir], stderr=subprocess.STDOUT)
         if result.returncode != 0:
             log.exception(f'Retrieving ICs failed ... result: {result.returncode}')
             raise signals.FAIL()
+
+    # FVCOM models
     elif ofs in ('ngofs', 'nwgofs', 'negofs', 'leofs', 'sfbofs', 'lmhofs'):
         comdir = f"{comrot}/{ofs}.{cdate}"
         script = f"{curdir}/../../scripts/getICsFVCOM.sh"
 
-        # echo "Usage: $0 YYYYMMDD HH ngofs|(other FVCOM model) COMDIR"
         result = subprocess.run([script, cdate, hh, ofs, comdir], stderr=subprocess.STDOUT)
         if result.returncode != 0:
             log.exception(f'Retrieving ICs failed ... result: {result.returncode}')

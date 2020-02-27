@@ -18,9 +18,7 @@ import flows
 # Set these for specific use
 curdir = os.path.dirname(os.path.abspath(__file__))
 
-# provider = 'Local'
-# provider = 'AWS'
-fcstconf = f'{curdir}/../configs/dbofs.config'
+fcstconf = f'{curdir}/../configs/nosofs.config'
 postconf = f'{curdir}/../configs/post.config'
 
 # This is used for obtaining liveocean forcing data
