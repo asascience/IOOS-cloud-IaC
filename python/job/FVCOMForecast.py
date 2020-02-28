@@ -13,7 +13,7 @@ import utils.romsUtil as util
 
 __copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
 __license__ = "See LICENSE.txt"
-__author__ = "Patrick Tripp"
+__email__ = "patrick.tripp@rpsgroup.com"
 
 debug = False
 

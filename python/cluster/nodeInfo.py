@@ -3,7 +3,7 @@
 
 __copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
 __license__ = "See LICENSE.txt"
-__author__ = "Patrick Tripp"
+__email__ = "patrick.tripp@rpsgroup.com"
 
 # Define supported types of instances and the number of cores of each
 # Currently only certain AWS EC2 types are supported

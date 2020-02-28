@@ -7,7 +7,7 @@ from services.StorageService import StorageService
 
 __copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
 __license__ = "See LICENSE.txt"
-__author__ = "Kenny Ells, Brian McKenna, Patrick Tripp"
+__email__ = "Kenny Ells, Brian McKenna, Patrick Tripp"
 
 debug = False
 
