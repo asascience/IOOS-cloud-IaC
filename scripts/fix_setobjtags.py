@@ -31,9 +31,10 @@ def main():
 
     # Redo these
     #p = re.compile('(destfolder/RADIALS/OSU/YHL1/|destfolder/RADIALS/OSU/YHS2)')  # DONE
-    p = re.compile('( destfolder/RADIALS/Rutgers| destfolder/RADIALS/SC| destfolder/RADIALS/SFSU| destfolder/RADIALS/SIO| 
-                      destfolder/RADIALS/SIT| destfolder/RADIALS/SKIO| destfolder/RADIALS/SLO)')
+    #p = re.compile('( destfolder/RADIALS/Rutgers| destfolder/RADIALS/SC| destfolder/RADIALS/SFSU| destfolder/RADIALS/SIO| 
+    #                  destfolder/RADIALS/SIT| destfolder/RADIALS/SKIO| destfolder/RADIALS/SLO)')
 
+    p = re.compile('( stgprodarchive )')
 
     for bucket in buckettags.keys():
         project = buckettags[bucket]

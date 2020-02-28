@@ -18,10 +18,10 @@ def main():
         'eds-master':'EDS' }
 
 
-    # FIX THIS ONE        'eds-snowball':'EDS',
-    # eds-snowball/destfolder/RADIALS/OSU/YHL1/
+    # FIX THIS ONE        'eds-snowball':'EDS', DONE
+    # eds-snowball/destfolder/RADIALS/OSU/YHL1/ DONE
     # next is:
-    # eds-snowball/destfolder/RADIALS/OSU/YHS2/
+    # eds-snowball/destfolder/RADIALS/OSU/YHS2/ DONE
     # :end of RADIALS/OSU
 
 
