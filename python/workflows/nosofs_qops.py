@@ -6,14 +6,13 @@ import sys
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
 
-# keep things cloud platform agnostic at this layer
-
-# 3rd party dependencies
-
-
 # Local dependencies
 import utils.romsUtil as util
 import flows
+
+__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+__license__ = "See LICENSE.txt"
+__author__ = "Patrick Tripp"
 
 # Set these for specific use
 curdir = os.path.dirname(os.path.abspath(__file__))

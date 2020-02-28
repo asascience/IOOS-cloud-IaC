@@ -8,6 +8,10 @@ from dask.distributed import Client
 # 3rd party dependencies
 from prefect import Flow
 
+__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+__license__ = "See LICENSE.txt"
+__author__ = "Patrick Tripp"
+
 # keep things cloud platform agnostic at this layer
 
 # Set these for specific use

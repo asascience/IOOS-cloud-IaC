@@ -8,6 +8,10 @@ if os.path.abspath('..') not in sys.path:
 
 from job.Job import Job
 
+__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+__license__ = "See LICENSE.txt"
+__author__ = "Patrick Tripp"
+
 debug = True
 
 class Plotting(Job):

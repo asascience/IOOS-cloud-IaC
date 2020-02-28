@@ -6,19 +6,21 @@ import subprocess
 import sys
 import os
 import glob
-
 from distributed import Client
 from prefect.engine import signals
 from prefect import task
 
-from job.Job import Job
-from plotting import plot
-
-import utils.romsUtil as util
-
 if os.path.abspath('..') not in sys.path:
     sys.path.append(os.path.abspath('..'))
 curdir = os.path.dirname(os.path.abspath(__file__))
+
+from job.Job import Job
+from plotting import plot
+import utils.romsUtil as util
+
+__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+__license__ = "See LICENSE.txt"
+__author__ = "Patrick Tripp"
 
 log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)

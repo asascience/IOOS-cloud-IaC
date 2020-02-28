@@ -3,6 +3,10 @@ set -xa
 ulimit -c unlimited
 ulimit -s unlimited
 
+#__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+#__license__ = "See LICENSE.txt"
+#__author__ = "Patrick Tripp"
+
 if [ $# -ne 7 ] ; then
   echo "Usage: $0 YYYYMMDD HH COMOUT NPROCS PPN HOSTS <cbofs|ngofs|liveocean|adnoc|etc.>"
   exit 1
@@ -77,7 +81,7 @@ case $OFS in
     export JOBSCRIPT=$JOBDIR/fcstrun.sh
     export JOBARGS="$CDATE"
     cd "$JOBDIR" || exit 1
-    $JOBSCRIPT $JOBARGS
+    $JOBSCRIPT "$JOBARGS"
     ;;
   cbofs | dbofs | tbofs | gomofs | ciofs | leofs | sfbofs | ngofs | nwgofs | negofs | lmhofs )
     export HOMEnos=/save/nosofs-NCO
@@ -86,14 +90,14 @@ case $OFS in
     export cyc=$HH
     export JOBARGS="$CDATE $HH"
     cd "$JOBDIR" || exit 1
-    $JOBSCRIPT $JOBARGS
+    $JOBSCRIPT "$JOBARGS"
     ;;
   adnoc)
     EXEC=roms
     export JOBDIR=$COMOUT
-    mkdir -p $JOBDIR/output
+    mkdir -p "$JOBDIR"/output
     cd "$JOBDIR" || exit 1
-    mpirun $MPIOPTS $EXEC ocean.in > ocean.log
+    mpirun "$MPIOPTS" $EXEC ocean.in > ocean.log
     ;;
 
   *)

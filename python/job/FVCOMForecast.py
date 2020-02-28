@@ -11,8 +11,11 @@ curdir = os.path.dirname(os.path.abspath(__file__))
 from job.Job import Job
 import utils.romsUtil as util
 
-debug = False
+__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+__license__ = "See LICENSE.txt"
+__author__ = "Patrick Tripp"
 
+debug = False
 
 class FVCOMForecast(Job):
 

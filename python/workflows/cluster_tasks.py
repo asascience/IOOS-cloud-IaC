@@ -9,19 +9,21 @@ import sys
 import time
 import traceback
 import subprocess
-
 import pprint
-
 from distributed import Client
 from prefect import task
 from prefect.engine import signals
 from prefect.triggers import all_finished
 
+if os.path.abspath('..') not in sys.path:
+    sys.path.append(os.path.abspath('..'))
+
 from cluster.Cluster import Cluster
 from cluster.ClusterFactory import ClusterFactory
 
-if os.path.abspath('..') not in sys.path:
-    sys.path.append(os.path.abspath('..'))
+__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+__license__ = "See LICENSE.txt"
+__author__ = "Patrick Tripp"
 
 curdir = os.path.dirname(os.path.abspath(__file__))
 

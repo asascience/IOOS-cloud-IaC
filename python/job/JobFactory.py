@@ -5,6 +5,10 @@ from job.ROMSForecast import ROMSForecast
 from job.Plotting import Plotting
 from job.FVCOMForecast import FVCOMForecast
 
+__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+__license__ = "See LICENSE.txt"
+__author__ = "Patrick Tripp"
+
 debug = True
 
 class JobFactory:

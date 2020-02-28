@@ -2,10 +2,13 @@ import json
 import logging
 
 from prefect.engine import signals
-
 from cluster.Cluster import Cluster
 from cluster.AWSCluster import AWSCluster
 from cluster.LocalCluster import LocalCluster
+
+__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+__license__ = "See LICENSE.txt"
+__author__ = "Patrick Tripp"
 
 debug = True
 

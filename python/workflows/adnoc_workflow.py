@@ -2,12 +2,15 @@
 
 # keep things cloud platform agnostic at this layer
 
-# Local dependencies
 import tasks as tasks
 import cluster_tasks as ctasks
 
 # 3rd party dependencies
 from prefect import Flow
+
+__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+__license__ = "See LICENSE.txt"
+__author__ = "Patrick Tripp"
 
 # Change the following for specific configurations and jobs
 # provider = 'Local'

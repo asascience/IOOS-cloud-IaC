@@ -1,16 +1,21 @@
 #!/usr/bin/python3
+'''
 
+
+'''
 from signal import signal, SIGINT
 import logging
-
 from distributed import Client
 from prefect import Flow
 from prefect.engine import signals
-
 import tasks as tasks
 import cluster_tasks as ctasks
 import job_tasks as jtasks
 from cluster.Cluster import Cluster
+
+__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+__license__ = "See LICENSE.txt"
+__author__ = "Patrick Tripp"
 
 log = logging.getLogger('workflow')
 log.setLevel(logging.DEBUG)

@@ -11,6 +11,10 @@ import matplotlib.pyplot as plt
 
 from plotting import tile
 
+__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+__license__ = "See LICENSE.txt"
+__author__ = "Kenny Ells, Brian McKenna, Patrick Tripp"
+
 
 def png_ffmpeg(source, target):
     '''Make a movie from a set of sequential png files

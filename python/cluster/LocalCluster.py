@@ -5,8 +5,11 @@ from subprocess import Popen
 
 from cluster.Cluster import Cluster
 
-debug = False
+__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+__license__ = "See LICENSE.txt"
+__author__ = "Patrick Tripp"
 
+debug = False
 
 class LocalCluster(Cluster):
 

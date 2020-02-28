@@ -7,6 +7,9 @@ This class needs to be implemented and extended for specific cloud providers.
 from abc import ABC, abstractmethod
 from subprocess import Popen
 import time
+__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+__license__ = "See LICENSE.txt"
+__author__ = "Patrick Tripp"
 
 '''
 Parameters

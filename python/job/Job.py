@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
 import json
 
-debug = False
+__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+__license__ = "See LICENSE.txt"
+__author__ = "Patrick Tripp"
 
+debug = False
 
 class Job(ABC):
     ''' This is an abstract base class for job classes

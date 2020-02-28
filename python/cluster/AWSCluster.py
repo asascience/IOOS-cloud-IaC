@@ -13,6 +13,10 @@ from botocore.exceptions import ClientError
 import cluster.nodeInfo as nodeInfo
 from cluster.Cluster import Cluster
 
+__copyright__ = "Copyright © 2020 RPS Group. All rights reserved."
+__license__ = "Proprietary, see LICENSE file."
+__author__ = "Patrick Tripp"
+
 debug = False
 
 log = logging.getLogger('workflow')
