@@ -1,7 +1,0 @@
-plotting
-pyproj
-cmocean
-numpy
-matplotlib
-netCDF4
-Pillow==6.2.1
