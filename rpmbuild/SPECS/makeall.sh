@@ -34,17 +34,13 @@ cbofs-devel.spec
 '
 
 some='
-netcdf.spec
+esmf.spec
 '
-#hdf5.spec
-
-
 
 # NCEPLIBS built folder
 export BBASE=/home/centos/nosofs-prereqs/BUILT
 
-rpmlist="$alist $nceplibs $utils $compilers"
-
+#rpmlist="$alist $nceplibs $utils $compilers"
 #rpmlist=$nceplibs
 #rpmlist=$utils
 #rpmlist='g2.spec'
