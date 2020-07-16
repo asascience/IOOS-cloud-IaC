@@ -1,6 +1,6 @@
 Name:           libpng
 Version:        1.5.30
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A library of functions for manipulating PNG image format files 
 
 License:        zlib
@@ -35,7 +35,9 @@ module-whatis       "Sets up the PNG Library environment"
 
 set ver v%{version}
 
-setenv PNG_LIB "-L/usrx/%{name}/%{version}/lib -lpng"
+setenv       PNG_LIB          "-L/usrx/%{name}/%{version}/lib -lpng"
+setenv       PNG_INC          "-I/usrx/%{name}/%{version}/include"
+append-path  LD_LIBRARY_PATH  /usrx/%{name}/%{version}/lib
 EOF
 
 %files
@@ -55,5 +57,7 @@ EOF
    ldconfig -n /usrx/%{name}/%{version}/lib
 
 %changelog
+* Thu Jul 16 2020 Patrick Tripp <patrick.tripp@rpsgroup.com>
+- Updated modulefile
 * Fri Sep 20 2019 Patrick Tripp <patrick.tripp@rpsgroup.com>
 - Initial %{name} package

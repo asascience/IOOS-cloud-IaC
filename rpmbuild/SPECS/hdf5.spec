@@ -1,6 +1,6 @@
 Name:           hdf5
 Version:        1.10.5
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        HDF5 libraries and tools
 
 License:        NCSA HDF
@@ -35,10 +35,11 @@ module-whatis       "Sets up the HDF5 Library environment"
 
 set ver v%{version}
 prepend-path    LD_LIBRARY_PATH  "/usrx/%{name}/%{version}/lib"
+append-path     PATH             "/usrx/%{name}/%{version}/bin"
 setenv HDF5_LIB "-L/usrx/%{name}/%{version}/lib -lhdf5 -lhdf5_hl -lz"
 setenv HDF5_INC "-I/usrx/%{name}/%{version}/include"
 setenv HDF5_LIBDIR "/usrx/%{name}/%{version}/lib"
-
+setenv HDF5_DIR    "/usrx/%{name}/%{version}
 EOF
 
 
@@ -59,6 +60,8 @@ EOF
    ldconfig -n /usrx/%{name}/%{version}/lib
 
 %changelog
+* Thu Jul 16 2020 Patrick Tripp <patrick.tripp@rpsgroup.com>
+- Updated modulefile 
 * Thu Dec 12 2019 Patrick Tripp <patrick.tripp@rpsgroup.com>
 - Upgrade to 1.10.5
 * Thu Dec 12 2019 Patrick Tripp <patrick.tripp@rpsgroup.com>

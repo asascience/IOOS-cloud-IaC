@@ -22,6 +22,7 @@ utils='
 netcdf.spec
 wgrib2.spec
 produtil.spec
+esmf.spec
 '
 
 compilers='
@@ -34,7 +35,7 @@ cbofs-devel.spec
 '
 
 some='
-esmf.spec
+libpng.spec
 '
 
 # NCEPLIBS built folder
