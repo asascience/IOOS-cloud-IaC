@@ -35,7 +35,7 @@ cbofs-devel.spec
 '
 
 some='
-libpng.spec
+hdf5.spec
 '
 
 # NCEPLIBS built folder

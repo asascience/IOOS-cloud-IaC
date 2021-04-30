@@ -15,3 +15,5 @@ SRPMS/
 You can create this directory structure with rpmdev-setuptree from the rpmdevtools package.
 
 (From: https://ro-che.info/articles/2018-01-25-rpm-packager-cheat-sheet)
+
+rpmbuild needs to be installed before you can build new RPMS

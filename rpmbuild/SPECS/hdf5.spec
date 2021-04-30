@@ -39,7 +39,7 @@ append-path     PATH             "/usrx/%{name}/%{version}/bin"
 setenv HDF5_LIB "-L/usrx/%{name}/%{version}/lib -lhdf5 -lhdf5_hl -lz"
 setenv HDF5_INC "-I/usrx/%{name}/%{version}/include"
 setenv HDF5_LIBDIR "/usrx/%{name}/%{version}/lib"
-setenv HDF5_DIR    "/usrx/%{name}/%{version}
+setenv HDF5_DIR    "/usrx/%{name}/%{version}"
 EOF
 
 
@@ -60,6 +60,8 @@ EOF
    ldconfig -n /usrx/%{name}/%{version}/lib
 
 %changelog
+* Tue Apr 20 2021 Patrick Tripp <patrick.tripp@rpsgroup.com>
+- Fixed missing " in modulefile
 * Thu Jul 16 2020 Patrick Tripp <patrick.tripp@rpsgroup.com>
 - Updated modulefile 
 * Thu Dec 12 2019 Patrick Tripp <patrick.tripp@rpsgroup.com>
